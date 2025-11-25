@@ -6,7 +6,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./components/*": "./src/components/*.tsx",
-    "./hooks/*": "./src/hooks/*.ts",
+    "./hooks/*": "./src/hooks/*.tsx",
     "./lib/*": "./src/lib/*.ts",
     "./styles/globals.css": "./src/styles/globals.css"
   },

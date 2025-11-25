@@ -1,0 +1,21 @@
+{
+  "name": "@hachi/schemas",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./nodes": "./src/nodes/index.ts",
+    "./canvas": "./src/canvas/index.ts",
+    "./api": "./src/api/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  }
+}

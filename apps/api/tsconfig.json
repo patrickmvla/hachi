@@ -1,0 +1,17 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@hachi/database": ["../../packages/database/src"],
+      "@hachi/database/*": ["../../packages/database/src/*"],
+      "@hachi/schemas": ["../../packages/schemas/src"],
+      "@hachi/schemas/*": ["../../packages/schemas/src/*"],
+      "@hachi/mastra-core": ["../../packages/mastra-core/src"],
+      "@hachi/mastra-core/*": ["../../packages/mastra-core/src/*"]
+    }
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules"]
+}

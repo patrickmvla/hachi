@@ -1,0 +1,35 @@
+{
+  "name": "@hachi/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "next": "^15.1.2",
+    "@xyflow/react": "catalog:flow",
+    "@tanstack/react-query": "catalog:",
+    "zod": "catalog:",
+    "@hachi/ui": "workspace:*",
+    "@hachi/schemas": "workspace:*",
+    "zustand": "^5.0.2",
+    "yjs": "^13.6.21",
+    "y-websocket": "^2.0.4",
+    "lucide-react": "catalog:ui"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@types/react": "^19.0.1",
+    "@types/react-dom": "^19.0.2",
+    "typescript": "^5.7.2",
+    "tailwindcss": "catalog:ui",
+    "@tailwindcss/postcss": "^4.0.0"
+  }
+}

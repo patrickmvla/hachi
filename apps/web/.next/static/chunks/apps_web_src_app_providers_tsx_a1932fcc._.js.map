@@ -1,6 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 4, "column": 0}, "map": {"version":3,"sources":["file:///home/mvula/projects/hachi/apps/web/src/app/providers.tsx"],"sourcesContent":["\"use client\";\n\nimport { QueryClient, QueryClientProvider } from \"@tanstack/react-query\";\nimport { useState } from \"react\";\n\nexport function Providers({ children }: { children: React.ReactNode }) {\n  const [queryClient] = useState(\n    () =>\n      new QueryClient({\n        defaultOptions: {\n          queries: {\n            staleTime: 60 * 1000,\n          },\n        },\n      })\n  );\n\n  return (\n    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>\n  );\n}\n"],"names":[],"mappings":";;;;;AAEA;AAAA;AACA;;;AAHA;;;AAKO,SAAS,UAAU,KAA2C;QAA3C,EAAE,QAAQ,EAAiC,GAA3C;;IACxB,MAAM,CAAC,YAAY,GAAG,IAAA,8OAAQ;8BAC5B,IACE,IAAI,wQAAW,CAAC;gBACd,gBAAgB;oBACd,SAAS;wBACP,WAAW,KAAK;oBAClB;gBACF;YACF;;IAGJ,qBACE,kQAAC,8SAAmB;QAAC,QAAQ;kBAAc;;;;;;AAE/C;GAfgB;KAAA","debugId":null}}]
-}

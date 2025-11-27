@@ -1,34 +1,43 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Sparkles } from "lucide-react";
 
 export function Hero() {
   return (
-    <section className="pt-32 pb-20 px-6">
+    <section className="relative pt-32 pb-24 px-6 overflow-hidden">
+      {/* Background gradient effects */}
+      <div className="absolute inset-0 -z-10">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-3xl opacity-50" />
+        <div className="absolute top-20 right-1/4 w-80 h-80 bg-purple-500/15 rounded-full blur-3xl opacity-50" />
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+      </div>
+
       <div className="max-w-4xl mx-auto text-center">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border text-sm text-muted-foreground mb-6">
-          <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
-          For engineers building production RAG systems
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/20 bg-primary/5 text-sm text-muted-foreground mb-8 backdrop-blur-sm">
+          <Sparkles className="size-3.5 text-primary" />
+          <span>For engineers building production RAG systems</span>
         </div>
-        <h1 className="text-5xl sm:text-6xl font-bold tracking-tight mb-6">
+        <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight mb-6">
           Design RAG architectures
           <br />
-          <span className="text-muted-foreground">you can actually debug</span>
+          <span className="bg-gradient-to-r from-primary via-purple-500 to-primary bg-clip-text text-transparent">
+            you can actually debug
+          </span>
         </h1>
-        <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-10">
+        <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-12 leading-relaxed">
           Hachi is a visual platform where engineering teams design, execute, and
           debug advanced RAG pipelines. See exactly why your retrieval fails.
         </p>
-        <div className="flex items-center justify-center gap-4">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <Link
             href="/canvas"
-            className="inline-flex items-center gap-2 px-6 py-3 text-base font-medium rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+            className="group inline-flex items-center gap-2 px-8 py-4 text-base font-medium rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-all shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5"
           >
             Start Building
-            <ArrowRight className="size-4" />
+            <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
           </Link>
           <Link
-            href="#features"
-            className="inline-flex items-center gap-2 px-6 py-3 text-base font-medium rounded-lg border hover:bg-accent transition-colors"
+            href="/features"
+            className="inline-flex items-center gap-2 px-8 py-4 text-base font-medium rounded-xl border border-border/50 hover:bg-accent hover:border-accent transition-all"
           >
             See How It Works
           </Link>

@@ -1,7 +1,7 @@
 import { TemplateCard } from "./template-card";
 import { templates } from "./templates-data";
 
-export function TemplatesGrid() {
+export const TemplatesGrid = () => {
   return (
     <section className="py-16 px-6">
       <div className="max-w-6xl mx-auto">
@@ -31,4 +31,4 @@ export function TemplatesGrid() {
       </div>
     </section>
   );
-}
+};

@@ -16,8 +16,40 @@ import {
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
   email: text("email").unique().notNull(),
+  emailVerified: timestamp("email_verified"), // Required by Better Auth
   name: text("name"),
-  avatarUrl: text("avatar_url"),
+  image: text("image"), // Better Auth uses 'image' instead of 'avatarUrl'
+  avatarUrl: text("avatar_url"), // Keep for backward compatibility
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// ============================================================================
+// Better Auth Tables
+// ============================================================================
+
+export const sessions = pgTable("session", {
+  id: text("id").primaryKey(),
+  userId: uuid("user_id")
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const accounts = pgTable("account", {
+  id: text("id").primaryKey(),
+  userId: uuid("user_id")
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull(),
+  accountId: text("account_id").notNull(),
+  providerId: text("provider_id").notNull(),
+  accessToken: text("access_token"),
+  refreshToken: text("refresh_token"),
+  idToken: text("id_token"),
+  expiresAt: timestamp("expires_at"),
+  password: text("password"), // For email/password auth
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -90,6 +122,7 @@ export const canvases = pgTable("canvases", {
   workspaceId: uuid("workspace_id").references(() => workspaces.id),
   name: text("name").notNull(),
   graphJson: jsonb("graph_json").notNull(),
+  yjsState: text("yjs_state"), // Base64 encoded Yjs document state for collaboration
   createdBy: uuid("created_by").references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

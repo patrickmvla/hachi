@@ -1,7 +1,7 @@
 import { Users, MousePointer2, Share2, Eye, Terminal, Database } from "lucide-react";
 import { FeaturePoint } from "./shared";
 
-export function CollaborationSection() {
+export const CollaborationSection = () => {
   return (
     <section id="collaboration" className="py-24 px-6 border-t bg-muted/30">
       <div className="max-w-6xl mx-auto">
@@ -47,9 +47,9 @@ export function CollaborationSection() {
       </div>
     </section>
   );
-}
+};
 
-function CollaborationDemo() {
+const CollaborationDemo = () => {
   return (
     <div className="relative h-96 rounded-2xl border bg-muted/30 overflow-hidden shadow-xl">
       <div className="absolute inset-0 bg-[linear-gradient(to_right,hsl(var(--border))_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--border))_1px,transparent_1px)] bg-[size:20px_20px] opacity-50" />
@@ -106,4 +106,4 @@ function CollaborationDemo() {
       </div>
     </div>
   );
-}
+};

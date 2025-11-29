@@ -1,7 +1,7 @@
 import { Play, Cpu, FileJson, Zap, Shield, Check } from "lucide-react";
 import { FeaturePoint } from "./shared";
 
-export function ExecutionSection() {
+export const ExecutionSection = () => {
   return (
     <section id="execution" className="py-24 px-6 border-t">
       <div className="max-w-6xl mx-auto">
@@ -47,9 +47,9 @@ export function ExecutionSection() {
       </div>
     </section>
   );
-}
+};
 
-function ExecutionDemo() {
+const ExecutionDemo = () => {
   return (
     <div className="h-96 rounded-2xl border bg-muted/30 overflow-hidden shadow-xl relative">
       {/* Header */}
@@ -84,9 +84,9 @@ function ExecutionDemo() {
       </div>
     </div>
   );
-}
+};
 
-function ExecutionStep({
+const ExecutionStep = ({
   status,
   name,
   time,
@@ -96,7 +96,7 @@ function ExecutionStep({
   name: string;
   time: string;
   detail: string;
-}) {
+}) => {
   return (
     <div className="flex items-center gap-3">
       <div className="shrink-0">
@@ -125,4 +125,4 @@ function ExecutionStep({
       </div>
     </div>
   );
-}
+};

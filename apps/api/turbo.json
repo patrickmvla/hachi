@@ -1,0 +1,14 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "build": {
+      "outputs": ["dist/**"]
+    },
+    "dev": {
+      "persistent": true,
+      "cache": false,
+      "env": ["DATABASE_URL", "OPENAI_API_KEY", "COHERE_API_KEY", "PINECONE_API_KEY"]
+    }
+  }
+}

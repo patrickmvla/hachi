@@ -19,16 +19,16 @@
     "zod": "catalog:",
     "@hachi/ui": "workspace:*",
     "@hachi/schemas": "workspace:*",
-    "zustand": "^5.0.2",
+    "zustand": "catalog:",
     "yjs": "^13.6.21",
     "y-websocket": "^2.0.4",
     "lucide-react": "catalog:ui"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
-    "@types/react": "^19.0.1",
-    "@types/react-dom": "^19.0.2",
-    "typescript": "^5.7.2",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "typescript": "catalog:",
     "tailwindcss": "catalog:ui",
     "@tailwindcss/postcss": "^4.0.0"
   }

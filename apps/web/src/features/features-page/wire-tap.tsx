@@ -1,7 +1,7 @@
 import { Eye, Database, MessageSquare, Clock } from "lucide-react";
 import { FeaturePoint } from "./shared";
 
-export function WireTapSection() {
+export const WireTapSection = () => {
   return (
     <section id="wiretap" className="py-24 px-6 border-t bg-muted/30">
       <div className="max-w-6xl mx-auto">
@@ -47,9 +47,9 @@ export function WireTapSection() {
       </div>
     </section>
   );
-}
+};
 
-function WireTapDemo() {
+const WireTapDemo = () => {
   return (
     <div className="h-96 rounded-2xl border bg-muted/30 overflow-hidden shadow-xl">
       {/* Header */}
@@ -115,4 +115,4 @@ function WireTapDemo() {
       </div>
     </div>
   );
-}
+};

@@ -19,7 +19,7 @@ const featuredTemplates = [
   },
 ];
 
-export function Templates() {
+export const Templates = () => {
   return (
     <section className="py-24 px-6 border-t">
       <div className="max-w-5xl mx-auto">
@@ -75,4 +75,4 @@ export function Templates() {
       </div>
     </section>
   );
-}
+};

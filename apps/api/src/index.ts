@@ -1,21 +1,27 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
+import type { AppEnv } from "./types";
+import { authRoutes } from "./routes/auth";
+import { workspaceRoutes } from "./routes/workspaces";
 import { canvasRoutes } from "./routes/canvas";
 import { runRoutes } from "./routes/runs";
 import { documentRoutes } from "./routes/documents";
 
-const app = new Hono()
+const app = new Hono<AppEnv>()
   .use("*", logger())
   .use(
     "*",
     cors({
       origin: ["http://localhost:3000"],
       allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-      allowHeaders: ["Content-Type", "Authorization"],
+      allowHeaders: ["Content-Type", "Authorization", "Cookie"],
+      credentials: true, // Allow cookies for session management
     })
   )
   .get("/health", (c) => c.json({ status: "ok", timestamp: new Date().toISOString() }))
+  .route("/api/auth", authRoutes)
+  .route("/api/workspaces", workspaceRoutes)
   .route("/api/canvases", canvasRoutes)
   .route("/api/runs", runRoutes)
   .route("/api/documents", documentRoutes)

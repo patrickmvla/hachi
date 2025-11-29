@@ -13,7 +13,7 @@ export type TemplateData = {
   diagram: React.ReactNode;
 };
 
-export function TemplateCard({ template }: { template: TemplateData }) {
+export const TemplateCard = ({ template }: { template: TemplateData }) => {
   const complexityColors = {
     Beginner: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
     Intermediate: "bg-blue-500/10 text-blue-600 border-blue-500/20",
@@ -83,4 +83,4 @@ export function TemplateCard({ template }: { template: TemplateData }) {
       </div>
     </div>
   );
-}
+};

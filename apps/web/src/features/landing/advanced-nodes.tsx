@@ -1,6 +1,6 @@
 import { Lightbulb, GitFork, Merge, Scale } from "lucide-react";
 
-export function AdvancedNodes() {
+export const AdvancedNodes = () => {
   return (
     <section className="py-24 px-6 border-t bg-muted/30">
       <div className="max-w-5xl mx-auto">
@@ -42,9 +42,9 @@ export function AdvancedNodes() {
       </div>
     </section>
   );
-}
+};
 
-function NodeCard({
+const NodeCard = ({
   icon,
   name,
   description,
@@ -54,7 +54,7 @@ function NodeCard({
   name: string;
   description: string;
   color: "blue" | "purple" | "green" | "orange";
-}) {
+}) => {
   const colorClasses = {
     blue: {
       border: "border-blue-500/30 hover:border-blue-500/60",
@@ -93,4 +93,4 @@ function NodeCard({
       <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
     </div>
   );
-}
+};

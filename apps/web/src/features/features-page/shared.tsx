@@ -1,6 +1,6 @@
 import { Check } from "lucide-react";
 
-export function FeaturePoint({
+export const FeaturePoint = ({
   icon,
   title,
   description,
@@ -8,7 +8,7 @@ export function FeaturePoint({
   icon: React.ReactNode;
   title: string;
   description: string;
-}) {
+}) => {
   return (
     <div className="flex gap-4">
       <div className="size-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 text-primary">
@@ -20,9 +20,9 @@ export function FeaturePoint({
       </div>
     </div>
   );
-}
+};
 
-export function PatternCard({
+export const PatternCard = ({
   icon,
   name,
   fullName,
@@ -36,7 +36,7 @@ export function PatternCard({
   description: string;
   color: "blue" | "purple" | "green" | "orange" | "pink" | "cyan";
   benefits: string[];
-}) {
+}) => {
   const colorClasses = {
     blue: "border-blue-500/30 bg-blue-500/5 hover:border-blue-500/50",
     purple: "border-purple-500/30 bg-purple-500/5 hover:border-purple-500/50",
@@ -71,13 +71,13 @@ export function PatternCard({
       </ul>
     </div>
   );
-}
+};
 
-export function IntegrationCard({ name, category }: { name: string; category: string }) {
+export const IntegrationCard = ({ name, category }: { name: string; category: string }) => {
   return (
     <div className="p-4 rounded-xl border bg-background hover:border-primary/30 transition-colors">
       <p className="font-semibold">{name}</p>
       <p className="text-sm text-muted-foreground">{category}</p>
     </div>
   );
-}
+};

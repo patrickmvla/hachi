@@ -1,0 +1,29 @@
+{
+  "name": "@hachi/realtime",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./provider": "./src/provider.ts",
+    "./presence": "./src/presence.ts",
+    "./hooks": "./src/hooks.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "yjs": "^13.6.20",
+    "y-websocket": "^2.0.4",
+    "lib0": "^0.2.98",
+    "zustand": "catalog:"
+  },
+  "devDependencies": {
+    "@types/bun": "catalog:",
+    "@types/react": "catalog:",
+    "typescript": "catalog:"
+  },
+  "peerDependencies": {
+    "react": "^18 || ^19"
+  }
+}

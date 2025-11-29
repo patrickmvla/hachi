@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, Plus } from "lucide-react";
 
-export function TemplatesCTA() {
+export const TemplatesCTA = () => {
   return (
     <section className="py-20 px-6 border-t bg-muted/30">
       <div className="max-w-3xl mx-auto text-center">
@@ -31,4 +31,4 @@ export function TemplatesCTA() {
       </div>
     </section>
   );
-}
+};

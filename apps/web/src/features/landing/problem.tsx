@@ -1,6 +1,6 @@
 import { PenLine, CircleHelp, Puzzle } from "lucide-react";
 
-export function Problem() {
+export const Problem = () => {
   return (
     <section className="py-24 px-6 border-t bg-muted/30">
       <div className="max-w-5xl mx-auto">
@@ -34,9 +34,9 @@ export function Problem() {
       </div>
     </section>
   );
-}
+};
 
-function ProblemCard({
+const ProblemCard = ({
   icon,
   title,
   description
@@ -44,7 +44,7 @@ function ProblemCard({
   icon: React.ReactNode;
   title: string;
   description: string;
-}) {
+}) => {
   return (
     <div className="group p-6 rounded-xl border bg-background hover:border-primary/30 hover:shadow-lg transition-all duration-300">
       <div className="size-10 rounded-lg bg-destructive/10 text-destructive flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
@@ -54,4 +54,4 @@ function ProblemCard({
       <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
     </div>
   );
-}
+};

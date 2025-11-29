@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, Sparkles } from "lucide-react";
 
-export function CTA() {
+export const CTA = () => {
   return (
     <section className="relative py-24 px-6 border-t overflow-hidden">
       {/* Background gradient effects */}
@@ -36,4 +36,4 @@ export function CTA() {
       </div>
     </section>
   );
-}
+};

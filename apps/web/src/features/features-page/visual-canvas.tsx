@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { FeaturePoint } from "./shared";
 
-export function VisualCanvasSection() {
+export const VisualCanvasSection = () => {
   return (
     <section id="canvas" className="py-24 px-6 border-t">
       <div className="max-w-6xl mx-auto">
@@ -59,9 +59,9 @@ export function VisualCanvasSection() {
       </div>
     </section>
   );
-}
+};
 
-function CanvasDemo() {
+const CanvasDemo = () => {
   return (
     <div className="relative h-96 rounded-2xl border bg-muted/30 p-6 overflow-hidden shadow-xl">
       <div className="absolute inset-0 bg-[linear-gradient(to_right,hsl(var(--border))_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--border))_1px,transparent_1px)] bg-[size:20px_20px] opacity-50" />
@@ -143,4 +143,4 @@ function CanvasDemo() {
       </div>
     </div>
   );
-}
+};

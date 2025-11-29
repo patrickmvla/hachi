@@ -6,10 +6,10 @@ import { CheckIcon } from "lucide-react"
 
 import { cn } from "@hachi/ui/lib/utils"
 
-function Checkbox({
+const Checkbox = ({
   className,
   ...props
-}: React.ComponentProps<typeof CheckboxPrimitive.Root>) {
+}: React.ComponentProps<typeof CheckboxPrimitive.Root>) => {
   return (
     <CheckboxPrimitive.Root
       data-slot="checkbox"
@@ -27,6 +27,6 @@ function Checkbox({
       </CheckboxPrimitive.Indicator>
     </CheckboxPrimitive.Root>
   )
-}
+};
 
 export { Checkbox }

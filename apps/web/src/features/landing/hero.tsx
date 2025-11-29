@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, Sparkles } from "lucide-react";
 
-export function Hero() {
+export const Hero = () => {
   return (
     <section className="relative pt-32 pb-24 px-6 overflow-hidden">
       {/* Background gradient effects */}
@@ -45,4 +45,4 @@ export function Hero() {
       </div>
     </section>
   );
-}
+};

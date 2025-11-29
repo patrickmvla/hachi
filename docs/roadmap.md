@@ -21,7 +21,7 @@
 
 | Package | Purpose | Priority |
 |---------|---------|----------|
-| `packages/auth` | Authentication logic (Better Auth or Lucia) | High |
+| `packages/auth` | Authentication logic (Better Auth) | High |
 | `packages/encryption` | AES-256 encryption for API keys | High |
 | `packages/mastra-nodes` | Node type definitions mapping to Mastra steps | High |
 | `packages/realtime` | Yjs + WebSocket collaboration server | Medium |
@@ -350,14 +350,15 @@ These can be implemented immediately with static/mock data:
 ## 6. Technical Decisions Needed
 
 ### Authentication
-| Option | Pros | Cons |
-|--------|------|------|
-| **Better Auth** | TypeScript-first, simple, flexible | Newer, smaller community |
-| **Lucia** | Lightweight, good DX | Manual session handling |
-| **NextAuth/Auth.js** | Popular, many providers | Complex, Next.js focused |
-| **Clerk** | Full-featured, UI included | SaaS cost, vendor lock-in |
 
-**Recommendation:** Better Auth or Lucia for control, Clerk for speed.
+**Decision:** Using **Better Auth** for authentication.
+
+**Rationale:**
+- TypeScript-first design for better type safety
+- Simple and flexible API
+- Easy to customize and extend
+- Built-in OAuth support for GitHub and Google
+- Good documentation and active development
 
 ### Background Jobs
 | Option | Pros | Cons |

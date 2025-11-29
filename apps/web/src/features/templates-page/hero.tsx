@@ -1,6 +1,6 @@
 import { LayoutTemplate } from "lucide-react";
 
-export function TemplatesHero() {
+export const TemplatesHero = () => {
   return (
     <section className="relative pt-32 pb-16 px-6 overflow-hidden">
       {/* Background */}
@@ -29,4 +29,4 @@ export function TemplatesHero() {
       </div>
     </section>
   );
-}
+};

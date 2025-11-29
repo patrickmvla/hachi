@@ -1,6 +1,6 @@
 import { Sparkles } from "lucide-react";
 
-export function FeaturesHero() {
+export const FeaturesHero = () => {
   return (
     <section className="relative pt-32 pb-20 px-6 overflow-hidden">
       {/* Background */}
@@ -29,4 +29,4 @@ export function FeaturesHero() {
       </div>
     </section>
   );
-}
+};

@@ -1,7 +1,7 @@
 import { Box, Lightbulb, GitFork, Merge, Scale, RefreshCw, Bot } from "lucide-react";
 import { PatternCard } from "./shared";
 
-export function AdvancedPatternsSection() {
+export const AdvancedPatternsSection = () => {
   return (
     <section id="patterns" className="py-24 px-6 border-t">
       <div className="max-w-6xl mx-auto">
@@ -69,4 +69,4 @@ export function AdvancedPatternsSection() {
       </div>
     </section>
   );
-}
+};

@@ -1,6 +1,6 @@
 import { IntegrationCard } from "./shared";
 
-export function IntegrationsSection() {
+export const IntegrationsSection = () => {
   return (
     <section className="py-24 px-6 border-t bg-muted/30">
       <div className="max-w-5xl mx-auto">
@@ -24,4 +24,4 @@ export function IntegrationsSection() {
       </div>
     </section>
   );
-}
+};

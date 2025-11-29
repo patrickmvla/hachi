@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 
 // Shared node component
-function Node({
+const Node = ({
   icon: Icon,
   label,
   color,
@@ -22,7 +22,7 @@ function Node({
   icon: React.ComponentType<{ className?: string }>;
   label: string;
   color: string;
-}) {
+}) => {
   const colors: Record<string, string> = {
     blue: "border-blue-500/50 bg-blue-500/10 text-blue-500",
     green: "border-green-500/50 bg-green-500/10 text-green-500",
@@ -42,14 +42,14 @@ function Node({
       <span className="text-[10px] text-muted-foreground">{label}</span>
     </div>
   );
-}
+};
 
-function Arrow() {
+const Arrow = () => {
   return <ArrowRight className="size-3 text-muted-foreground/50 shrink-0" />;
-}
+};
 
 // Naive RAG: Query → Retriever → LLM → Output
-export function NaiveRAGDiagram() {
+export const NaiveRAGDiagram = () => {
   return (
     <div className="flex items-center gap-2">
       <Node icon={MessageSquare} label="Query" color="blue" />
@@ -61,10 +61,10 @@ export function NaiveRAGDiagram() {
       <Node icon={Box} label="Output" color="orange" />
     </div>
   );
-}
+};
 
 // HyDE: Query → HyDE → Retriever → LLM → Output
-export function HyDEDiagram() {
+export const HyDEDiagram = () => {
   return (
     <div className="flex items-center gap-2">
       <Node icon={MessageSquare} label="Query" color="blue" />
@@ -78,10 +78,10 @@ export function HyDEDiagram() {
       <Node icon={Box} label="Output" color="orange" />
     </div>
   );
-}
+};
 
 // Hybrid Search: Query → [BM25 + Vector] → Fusion → Reranker → LLM
-export function HybridSearchDiagram() {
+export const HybridSearchDiagram = () => {
   return (
     <div className="flex flex-col items-center gap-2">
       <Node icon={MessageSquare} label="Query" color="blue" />
@@ -104,10 +104,10 @@ export function HybridSearchDiagram() {
       </div>
     </div>
   );
-}
+};
 
 // CRAG: Query → Retriever → Judge → [LLM or Web Search → LLM]
-export function CRAGDiagram() {
+export const CRAGDiagram = () => {
   return (
     <div className="flex flex-col items-center gap-2">
       <div className="flex items-center gap-2">
@@ -133,10 +133,10 @@ export function CRAGDiagram() {
       </div>
     </div>
   );
-}
+};
 
 // Parent-Child: Query → Child Retriever → Parent Lookup → LLM
-export function ParentChildDiagram() {
+export const ParentChildDiagram = () => {
   return (
     <div className="flex items-center gap-2">
       <Node icon={MessageSquare} label="Query" color="blue" />
@@ -156,10 +156,10 @@ export function ParentChildDiagram() {
       <Node icon={Box} label="Output" color="orange" />
     </div>
   );
-}
+};
 
 // Agentic RAG: Agent loop with retrieval tool
-export function AgenticRAGDiagram() {
+export const AgenticRAGDiagram = () => {
   return (
     <div className="flex flex-col items-center gap-2">
       <Node icon={MessageSquare} label="Query" color="blue" />
@@ -185,4 +185,4 @@ export function AgenticRAGDiagram() {
       <Node icon={Box} label="Output" color="orange" />
     </div>
   );
-}
+};

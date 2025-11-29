@@ -1,6 +1,6 @@
 import { Workflow, Eye, Play, Users, Check, Box, ArrowRight, Database, Cpu, MessageSquare } from "lucide-react";
 
-export function Features() {
+export const Features = () => {
   return (
     <section id="features" className="py-24 px-6 border-t">
       <div className="max-w-6xl mx-auto">
@@ -72,9 +72,9 @@ export function Features() {
       </div>
     </section>
   );
-}
+};
 
-function FeatureRow({
+const FeatureRow = ({
   icon,
   title,
   description,
@@ -88,7 +88,7 @@ function FeatureRow({
   highlights: string[];
   visual: React.ReactNode;
   reverse?: boolean;
-}) {
+}) => {
   return (
     <div className={`flex flex-col ${reverse ? "lg:flex-row-reverse" : "lg:flex-row"} gap-12 items-center`}>
       <div className="flex-1 max-w-xl">
@@ -113,9 +113,9 @@ function FeatureRow({
       </div>
     </div>
   );
-}
+};
 
-function CanvasVisual() {
+const CanvasVisual = () => {
   return (
     <div className="relative h-72 lg:h-80 rounded-2xl border bg-muted/30 p-6 overflow-hidden">
       <div className="absolute inset-0 bg-[linear-gradient(to_right,hsl(var(--border))_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--border))_1px,transparent_1px)] bg-[size:24px_24px] opacity-50" />
@@ -154,9 +154,9 @@ function CanvasVisual() {
       </div>
     </div>
   );
-}
+};
 
-function WireTapVisual() {
+const WireTapVisual = () => {
   return (
     <div className="h-72 lg:h-80 rounded-2xl border bg-muted/30 p-6 overflow-hidden">
       <div className="h-full flex flex-col gap-4">
@@ -198,9 +198,9 @@ function WireTapVisual() {
       </div>
     </div>
   );
-}
+};
 
-function ExecutionVisual() {
+const ExecutionVisual = () => {
   return (
     <div className="h-72 lg:h-80 rounded-2xl border bg-muted/30 p-6 overflow-hidden">
       <div className="h-full flex flex-col gap-4">
@@ -239,9 +239,9 @@ function ExecutionVisual() {
       </div>
     </div>
   );
-}
+};
 
-function CollaborationVisual() {
+const CollaborationVisual = () => {
   return (
     <div className="relative h-72 lg:h-80 rounded-2xl border bg-muted/30 p-6 overflow-hidden">
       <div className="absolute inset-0 bg-[linear-gradient(to_right,hsl(var(--border))_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--border))_1px,transparent_1px)] bg-[size:24px_24px] opacity-50" />
@@ -277,4 +277,4 @@ function CollaborationVisual() {
       </div>
     </div>
   );
-}
+};

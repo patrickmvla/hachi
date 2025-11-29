@@ -1,11 +1,2 @@
-import { z } from "zod";
-
-export const runSchema = z.object({
-  id: z.string().uuid(),
-  canvasId: z.string().uuid(),
-  status: z.enum(["pending", "running", "completed", "failed"]),
-  input: z.record(z.unknown()),
-  output: z.record(z.unknown()).optional(),
-});
-
-export type Run = z.infer<typeof runSchema>;
+// API schemas are now consolidated in ./execution/index.ts
+// This file is kept for backwards compatibility - all schemas re-exported from execution

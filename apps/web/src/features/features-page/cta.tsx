@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
-export function FeaturesCTA() {
+export const FeaturesCTA = () => {
   return (
     <section className="relative py-24 px-6 border-t overflow-hidden">
       <div className="absolute inset-0 -z-10">
@@ -35,4 +35,4 @@ export function FeaturesCTA() {
       </div>
     </section>
   );
-}
+};

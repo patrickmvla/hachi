@@ -4,6 +4,19 @@ import Link from "next/link";
 import { Activity, CheckCircle2, AlertCircle, Clock, Filter, ArrowRight, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { runsApi, canvasesApi, type Run, type Canvas } from "@/lib/api";
+import {
+  PageHeader,
+  PageHeaderContent,
+  PageHeaderTitle,
+  PageHeaderDescription,
+  PageHeaderActions,
+  StatusBadge,
+  Empty,
+  EmptyMedia,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+} from "@hachi/ui";
 
 // TODO: Get from context or URL params
 const CANVAS_ID = "00000000-0000-0000-0000-000000000000";
@@ -81,13 +94,13 @@ export default function RunsPage() {
   const getStatusColor = (status: Run["status"]) => {
     switch (status) {
       case "completed":
-        return "bg-green-500/10 text-green-600";
+        return "bg-green-500/10 text-green-600 dark:text-green-400";
       case "failed":
-        return "bg-red-500/10 text-red-600";
+        return "bg-red-500/10 text-red-600 dark:text-red-400";
       case "running":
-        return "bg-blue-500/10 text-blue-600";
+        return "bg-blue-500/10 text-blue-600 dark:text-blue-400";
       default:
-        return "bg-gray-500/10 text-gray-600";
+        return "bg-gray-500/10 text-gray-600 dark:text-gray-400";
     }
   };
 
@@ -106,51 +119,53 @@ export default function RunsPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-[var(--muted-foreground)]" />
+      <div className="flex items-center justify-center h-64" role="status" aria-label="Loading runs">
+        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
       </div>
     );
   }
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Runs History</h1>
-          <p className="text-[var(--muted-foreground)]">View and debug your past executions.</p>
-        </div>
-        <button
-          onClick={loadRuns}
-          className="flex items-center gap-2 px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--background)] hover:bg-[var(--muted)] transition-colors text-sm font-medium"
-        >
-          <Activity size={16} />
-          Refresh
-        </button>
-      </div>
+      <PageHeader>
+        <PageHeaderContent>
+          <PageHeaderTitle>Runs History</PageHeaderTitle>
+          <PageHeaderDescription>View and debug your past executions.</PageHeaderDescription>
+        </PageHeaderContent>
+        <PageHeaderActions>
+          <button
+            onClick={loadRuns}
+            className="flex items-center gap-2 px-3 py-2 rounded-md border border-border bg-background hover:bg-muted transition-colors text-sm font-medium"
+          >
+            <Activity size={16} aria-hidden="true" />
+            Refresh
+          </button>
+        </PageHeaderActions>
+      </PageHeader>
 
       {error && (
-        <div className="p-4 rounded-lg bg-red-500/10 text-red-600 text-sm">
+        <div className="p-4 rounded-lg bg-red-500/10 text-red-600 dark:text-red-400 text-sm" role="alert">
           {error}
         </div>
       )}
 
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-2">
-          <button className="flex items-center gap-2 px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--background)] hover:bg-[var(--muted)] transition-colors text-sm font-medium">
+          <button className="flex items-center gap-2 px-3 py-2 rounded-md border border-border bg-background hover:bg-muted transition-colors text-sm font-medium">
             <Filter size={16} />
             Filter Status
           </button>
-          <button className="flex items-center gap-2 px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--background)] hover:bg-[var(--muted)] transition-colors text-sm font-medium">
+          <button className="flex items-center gap-2 px-3 py-2 rounded-md border border-border bg-background hover:bg-muted transition-colors text-sm font-medium">
             <Clock size={16} />
             Time Range
           </button>
         </div>
       </div>
 
-      <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] overflow-hidden shadow-sm">
+      <div className="rounded-xl border border-border bg-card overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
-            <thead className="bg-[var(--muted)]/50 text-[var(--muted-foreground)] font-medium border-b border-[var(--border)]">
+            <thead className="bg-muted/50 text-muted-foreground font-medium border-b border-border">
               <tr>
                 <th className="px-6 py-3">Status</th>
                 <th className="px-6 py-3">Canvas</th>
@@ -161,45 +176,46 @@ export default function RunsPage() {
                 <th className="px-6 py-3 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[var(--border)]">
+            <tbody className="divide-y divide-border">
               {runs.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-[var(--muted-foreground)]">
-                    <div className="flex flex-col items-center gap-2">
-                      <Activity size={32} className="opacity-20" />
-                      <p>No runs found</p>
-                      <p className="text-xs">Execute a canvas to see run history</p>
-                    </div>
+                  <td colSpan={7} className="px-6 py-12">
+                    <Empty className="border-0">
+                      <EmptyMedia variant="icon">
+                        <Activity size={24} />
+                      </EmptyMedia>
+                      <EmptyHeader>
+                        <EmptyTitle>No runs found</EmptyTitle>
+                        <EmptyDescription>Execute a canvas to see run history</EmptyDescription>
+                      </EmptyHeader>
+                    </Empty>
                   </td>
                 </tr>
               ) : (
                 runs.map((run) => (
-                  <tr key={run.id} className="group hover:bg-[var(--muted)]/30 transition-colors">
+                  <tr key={run.id} className="group hover:bg-muted/30 transition-colors">
                     <td className="px-6 py-4">
-                      <div className={`flex items-center gap-1.5 px-2 py-1 rounded-full ${getStatusColor(run.status)} text-xs font-medium w-fit`}>
-                        {getStatusIcon(run.status)}
-                        {run.status.charAt(0).toUpperCase() + run.status.slice(1)}
-                      </div>
+                      <StatusBadge status={run.status} />
                     </td>
                     <td className="px-6 py-4 font-medium">
                       {run.canvasName || run.canvasId.slice(0, 8)}
                     </td>
-                    <td className="px-6 py-4 text-[var(--muted-foreground)] font-mono text-xs">
+                    <td className="px-6 py-4 text-muted-foreground font-mono text-xs">
                       {run.id.slice(0, 8)}...
                     </td>
-                    <td className="px-6 py-4 text-[var(--muted-foreground)]">
+                    <td className="px-6 py-4 text-muted-foreground">
                       {run.duration}
                     </td>
-                    <td className="px-6 py-4 text-[var(--muted-foreground)]">
+                    <td className="px-6 py-4 text-muted-foreground">
                       {run.cost}
                     </td>
-                    <td className="px-6 py-4 text-[var(--muted-foreground)]">
+                    <td className="px-6 py-4 text-muted-foreground">
                       {formatTime(run.startedAt)}
                     </td>
                     <td className="px-6 py-4 text-right">
                       <Link
                         href={`/runs/${run.id}`}
-                        className="inline-flex items-center gap-1 text-sm font-medium text-[var(--primary)] hover:underline"
+                        className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
                       >
                         View Details <ArrowRight size={14} />
                       </Link>

@@ -16,19 +16,20 @@ interface DocumentListProps {
 
 export const DocumentList = ({ documents }: DocumentListProps) => {
   return (
-    <div className="space-y-3">
+    <div className="space-y-3" role="list" aria-label="Retrieved documents">
       {documents.map((doc) => (
         <div
           key={doc.id}
-          className="p-3 rounded-lg border border-[var(--border)] bg-[var(--card)] hover:border-[var(--primary)]/50 transition-colors"
+          className="p-3 rounded-lg border border-border bg-card hover:border-primary/50 transition-colors"
+          role="listitem"
         >
           <div className="flex items-start justify-between mb-2">
             <div className="flex items-center gap-2">
-              <FileText size={16} className="text-[var(--primary)]" />
+              <FileText size={16} className="text-primary" aria-hidden="true" />
               <span className="text-sm font-medium">{doc.title}</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-xs font-mono bg-[var(--muted)] px-1.5 py-0.5 rounded">
+              <span className="text-xs font-mono bg-muted px-1.5 py-0.5 rounded" title="Relevance score">
                 {doc.score.toFixed(3)}
               </span>
               {doc.source && (
@@ -36,14 +37,15 @@ export const DocumentList = ({ documents }: DocumentListProps) => {
                   href={doc.source}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                  className="text-muted-foreground hover:text-foreground"
+                  aria-label={`View source for ${doc.title}`}
                 >
-                  <ExternalLink size={14} />
+                  <ExternalLink size={14} aria-hidden="true" />
                 </a>
               )}
             </div>
           </div>
-          <p className="text-xs text-[var(--muted-foreground)] line-clamp-3 font-mono leading-relaxed">
+          <p className="text-xs text-muted-foreground line-clamp-3 font-mono leading-relaxed">
             {doc.content}
           </p>
         </div>

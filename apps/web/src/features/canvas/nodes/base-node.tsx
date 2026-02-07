@@ -10,7 +10,8 @@ import { NodeStatusIndicator } from "../components/node-status-indicator";
 const ResizeIcon = () => (
   <GripVertical
     size={12}
-    className="text-[var(--muted-foreground)] opacity-50 group-hover:opacity-100 transition-opacity"
+    className="text-muted-foreground opacity-50 group-hover:opacity-100 transition-opacity"
+    aria-hidden="true"
   />
 );
 
@@ -22,9 +23,11 @@ export const BaseNode = memo(({ id, data, selected }: NodeProps<HachiNode>) => {
       <NodeToolbar nodeId={id} isVisible={selected ?? false} />
       <NodeStatusIndicator status={status} variant="border">
         <div
-          className={`relative px-4 py-3 rounded-lg border-2 bg-[var(--background)] min-w-[150px] min-h-[60px] group ${
-            selected ? "border-[var(--primary)]" : "border-[var(--border)]"
+          className={`relative px-4 py-3 rounded-lg border-2 bg-background min-w-[150px] min-h-[60px] group ${
+            selected ? "border-primary" : "border-border"
           }`}
+          role="group"
+          aria-label={`${data.type} node: ${data.label}`}
         >
           <NodeResizeControl
             minWidth={150}
@@ -43,10 +46,10 @@ export const BaseNode = memo(({ id, data, selected }: NodeProps<HachiNode>) => {
           <Handle
             type="target"
             position={Position.Top}
-            className="!w-3 !h-3 !bg-[var(--muted-foreground)] !border-2 !border-[var(--background)]"
+            className="!w-3 !h-3 !bg-muted-foreground !border-2 !border-background"
           />
           <div className="flex flex-col gap-1">
-            <span className="text-xs font-medium text-[var(--muted-foreground)] uppercase">
+            <span className="text-xs font-medium text-muted-foreground uppercase">
               {data.type}
             </span>
             <span className="font-medium">{data.label}</span>
@@ -54,7 +57,7 @@ export const BaseNode = memo(({ id, data, selected }: NodeProps<HachiNode>) => {
           <Handle
             type="source"
             position={Position.Bottom}
-            className="!w-3 !h-3 !bg-[var(--muted-foreground)] !border-2 !border-[var(--background)]"
+            className="!w-3 !h-3 !bg-muted-foreground !border-2 !border-background"
           />
         </div>
       </NodeStatusIndicator>

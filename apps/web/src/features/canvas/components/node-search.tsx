@@ -100,10 +100,10 @@ export const NodeSearch = ({
 
   return (
     <Panel position={position} className={cn("!m-2", className)}>
-      <div className="relative">
+      <div className="relative" role="combobox" aria-expanded={isOpen} aria-haspopup="listbox">
         {/* Search Input */}
-        <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--background)] shadow-lg min-w-[200px]">
-          <Search size={14} className="text-[var(--muted-foreground)]" />
+        <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-background shadow-lg min-w-[200px]">
+          <Search size={14} className="text-muted-foreground" aria-hidden="true" />
           <input
             type="text"
             value={searchValue}
@@ -115,12 +115,16 @@ export const NodeSearch = ({
             onFocus={handleFocus}
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
-            className="flex-1 bg-transparent border-none outline-none text-sm text-[var(--foreground)] placeholder:text-[var(--muted-foreground)]"
+            className="flex-1 bg-transparent border-none outline-none text-sm text-foreground placeholder:text-muted-foreground"
+            aria-label="Search nodes"
+            aria-autocomplete="list"
+            aria-controls="node-search-results"
           />
           {searchValue && (
             <button
               onClick={handleClear}
-              className="p-0.5 hover:bg-[var(--muted)] rounded text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+              className="p-0.5 hover:bg-muted rounded text-muted-foreground hover:text-foreground"
+              aria-label="Clear search"
             >
               <X size={12} />
             </button>
@@ -129,20 +133,26 @@ export const NodeSearch = ({
 
         {/* Results Dropdown */}
         {isOpen && results.length > 0 && (
-          <div className="absolute top-full left-0 right-0 mt-1 rounded-lg border border-[var(--border)] bg-[var(--background)] shadow-lg max-h-[200px] overflow-auto z-50">
+          <div
+            id="node-search-results"
+            role="listbox"
+            className="absolute top-full left-0 right-0 mt-1 rounded-lg border border-border bg-background shadow-lg max-h-[200px] overflow-auto z-50"
+          >
             {results.map((node, index) => (
               <button
                 key={node.id}
+                role="option"
+                aria-selected={index === selectedIndex}
                 onClick={() => handleSelect(node)}
                 onMouseEnter={() => setSelectedIndex(index)}
                 className={cn(
                   "w-full px-3 py-2 text-left text-sm flex items-center gap-2 transition-colors",
                   index === selectedIndex
-                    ? "bg-[var(--muted)] text-[var(--foreground)]"
-                    : "text-[var(--muted-foreground)] hover:bg-[var(--muted)]/50"
+                    ? "bg-muted text-foreground"
+                    : "text-muted-foreground hover:bg-muted/50"
                 )}
               >
-                <span className="text-xs px-1.5 py-0.5 rounded bg-[var(--primary)]/10 text-[var(--primary)] font-mono uppercase">
+                <span className="text-xs px-1.5 py-0.5 rounded bg-primary/10 text-primary font-mono uppercase">
                   {node.data?.type || node.type}
                 </span>
                 <span className="truncate">{node.data?.label || node.id}</span>
@@ -153,7 +163,7 @@ export const NodeSearch = ({
 
         {/* No Results */}
         {isOpen && searchValue && results.length === 0 && (
-          <div className="absolute top-full left-0 right-0 mt-1 rounded-lg border border-[var(--border)] bg-[var(--background)] shadow-lg p-3 text-center text-sm text-[var(--muted-foreground)]">
+          <div className="absolute top-full left-0 right-0 mt-1 rounded-lg border border-border bg-background shadow-lg p-3 text-center text-sm text-muted-foreground" role="status">
             No nodes found
           </div>
         )}

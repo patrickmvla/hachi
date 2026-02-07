@@ -277,7 +277,7 @@ const CanvasContent = () => {
             onEdgeContextMenu={onEdgeContextMenu}
             onPaneContextMenu={onPaneContextMenu}
             fitView
-            className="bg-[var(--background)]"
+            className="bg-background"
             defaultEdgeOptions={{ type: "data", markerEnd: "url(#arrow)" }}
           >
             {/* Background with variant support */}
@@ -293,7 +293,7 @@ const CanvasContent = () => {
 
             {/* MiniMap */}
             <MiniMap
-              className="!bg-[var(--card)] !border-[var(--border)]"
+              className="!bg-card !border-border"
               nodeColor="var(--muted)"
               maskColor="rgba(0, 0, 0, 0.1)"
             />
@@ -304,7 +304,7 @@ const CanvasContent = () => {
               showFitView={false}
               showInteractive={true}
               position="bottom-left"
-              className="!bg-[var(--background)] !border-[var(--border)] !shadow-lg"
+              className="!bg-background !border-border !shadow-lg"
             >
               <ControlButton
                 onClick={() => setShowDebug(!showDebug)}

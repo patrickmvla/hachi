@@ -38,15 +38,18 @@ export const ZoomSlider = ({
     <Panel position={position} className={cn("!m-2", className)}>
       <div
         className={cn(
-          "flex items-center gap-1 p-1 rounded-lg border border-[var(--border)] bg-[var(--background)] shadow-lg",
+          "flex items-center gap-1 p-1 rounded-lg border border-border bg-background shadow-lg",
           isVertical && "flex-col"
         )}
+        role="group"
+        aria-label="Zoom controls"
       >
         {/* Zoom Out Button */}
         <button
           onClick={() => zoomOut()}
-          className="p-1.5 hover:bg-[var(--muted)] rounded-md text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+          className="p-1.5 hover:bg-muted rounded-md text-muted-foreground hover:text-foreground transition-colors"
           title="Zoom Out"
+          aria-label="Zoom out"
         >
           <Minus size={14} />
         </button>
@@ -66,7 +69,7 @@ export const ZoomSlider = ({
             value={zoom}
             onChange={handleSliderChange}
             className={cn(
-              "accent-[var(--primary)] cursor-pointer",
+              "accent-primary cursor-pointer",
               isVertical ? "h-20 w-2 -rotate-90" : "w-20 h-2"
             )}
             style={{
@@ -74,8 +77,12 @@ export const ZoomSlider = ({
               background: `linear-gradient(to right, var(--primary) 0%, var(--primary) ${((zoom - minZoom) / (maxZoom - minZoom)) * 100}%, var(--muted) ${((zoom - minZoom) / (maxZoom - minZoom)) * 100}%, var(--muted) 100%)`,
               borderRadius: "4px",
             }}
+            aria-label={`Zoom level: ${zoomPercentage}%`}
+            aria-valuemin={minZoom * 100}
+            aria-valuemax={maxZoom * 100}
+            aria-valuenow={zoomPercentage}
           />
-          <span className="text-xs font-mono text-[var(--muted-foreground)] min-w-[3ch] text-center">
+          <span className="text-xs font-mono text-muted-foreground min-w-[3ch] text-center" aria-hidden="true">
             {zoomPercentage}%
           </span>
         </div>
@@ -83,8 +90,9 @@ export const ZoomSlider = ({
         {/* Zoom In Button */}
         <button
           onClick={() => zoomIn()}
-          className="p-1.5 hover:bg-[var(--muted)] rounded-md text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+          className="p-1.5 hover:bg-muted rounded-md text-muted-foreground hover:text-foreground transition-colors"
           title="Zoom In"
+          aria-label="Zoom in"
         >
           <Plus size={14} />
         </button>
@@ -92,16 +100,18 @@ export const ZoomSlider = ({
         {/* Divider */}
         <div
           className={cn(
-            "bg-[var(--border)]",
+            "bg-border",
             isVertical ? "w-full h-px" : "w-px h-4"
           )}
+          aria-hidden="true"
         />
 
         {/* Fit View Button */}
         <button
           onClick={() => fitView({ padding: 0.2 })}
-          className="p-1.5 hover:bg-[var(--muted)] rounded-md text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+          className="p-1.5 hover:bg-muted rounded-md text-muted-foreground hover:text-foreground transition-colors"
           title="Fit View"
+          aria-label="Fit view to canvas"
         >
           <Maximize size={14} />
         </button>

@@ -140,23 +140,26 @@ export const ContextMenu = ({ id, type, position, onClose }: ContextMenuProps) =
 
   return (
     <div
-      className="fixed z-50 min-w-[180px] rounded-lg border border-[var(--border)] bg-[var(--background)] shadow-lg py-1 animate-in fade-in-0 zoom-in-95"
+      className="fixed z-50 min-w-[180px] rounded-lg border border-border bg-background shadow-lg py-1 animate-in fade-in-0 zoom-in-95"
       style={{
         left: position.x,
         top: position.y,
       }}
       onClick={handleClick}
+      role="menu"
+      aria-label={`${type} context menu`}
     >
       {menuItems.map((item, index) => {
         if ("divider" in item && item.divider) {
-          return <div key={index} className="my-1 h-px bg-[var(--border)]" />;
+          return <div key={index} className="my-1 h-px bg-border" aria-hidden="true" />;
         }
 
         if ("header" in item && item.header) {
           return (
             <div
               key={index}
-              className="px-3 py-1.5 text-xs font-semibold text-[var(--muted-foreground)] uppercase tracking-wider"
+              className="px-3 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider"
+              role="presentation"
             >
               {item.label}
             </div>
@@ -175,13 +178,14 @@ export const ContextMenu = ({ id, type, position, onClose }: ContextMenuProps) =
               "w-full flex items-center gap-2 px-3 py-1.5 text-sm transition-colors",
               danger
                 ? "text-red-500 hover:bg-red-500/10"
-                : "text-[var(--foreground)] hover:bg-[var(--muted)]"
+                : "text-foreground hover:bg-muted"
             )}
+            role="menuitem"
           >
-            {Icon && <Icon size={14} />}
+            {Icon && <Icon size={14} aria-hidden="true" />}
             <span className="flex-1 text-left">{item.label}</span>
             {shortcut && (
-              <span className="text-xs text-[var(--muted-foreground)]">{shortcut}</span>
+              <span className="text-xs text-muted-foreground" aria-hidden="true">{shortcut}</span>
             )}
           </button>
         );

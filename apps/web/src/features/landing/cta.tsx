@@ -1,38 +1,105 @@
+"use client";
+
 import Link from "next/link";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, Zap, Terminal } from "lucide-react";
 
 export const CTA = () => {
   return (
-    <section className="relative py-24 px-6 border-t overflow-hidden">
-      {/* Background gradient effects */}
+    <section className="relative py-32 px-6 overflow-hidden">
+      {/* Background effects */}
       <div className="absolute inset-0 -z-10">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/5 to-primary/10" />
-        <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-3xl opacity-50" />
-        <div className="absolute bottom-20 right-1/4 w-80 h-80 bg-purple-500/15 rounded-full blur-3xl opacity-50" />
+        {/* Grid pattern */}
+        <div
+          className="absolute inset-0 opacity-[0.03]"
+          style={{
+            backgroundImage: `
+              linear-gradient(hsl(var(--primary)) 1px, transparent 1px),
+              linear-gradient(90deg, hsl(var(--primary)) 1px, transparent 1px)
+            `,
+            backgroundSize: "60px 60px",
+          }}
+        />
+        {/* Radial glow */}
+        <div
+          className="absolute inset-0 opacity-20"
+          style={{
+            background: "radial-gradient(ellipse at center, hsl(var(--primary)) 0%, transparent 60%)",
+          }}
+        />
+        {/* Corner glows */}
+        <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl" />
+        <div className="absolute top-0 right-1/4 w-80 h-80 bg-violet-500/15 rounded-full blur-3xl" />
       </div>
 
-      <div className="max-w-3xl mx-auto text-center">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/20 bg-primary/5 text-sm text-muted-foreground mb-8 backdrop-blur-sm">
-          <Sparkles className="size-3.5 text-primary" />
-          <span>Free to get started</span>
+      <div className="relative max-w-4xl mx-auto">
+        {/* Terminal-style container */}
+        <div className="relative rounded-2xl border border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden">
+          {/* Terminal header */}
+          <div className="flex items-center gap-2 px-4 py-3 border-b border-border/30 bg-muted/30">
+            <div className="flex items-center gap-1.5">
+              <div className="size-3 rounded-full bg-red-500/80" />
+              <div className="size-3 rounded-full bg-amber-500/80" />
+              <div className="size-3 rounded-full bg-emerald-500/80" />
+            </div>
+            <div className="flex-1 text-center">
+              <span className="text-xs text-muted-foreground font-mono">ready_to_build.sh</span>
+            </div>
+            <Terminal className="size-4 text-muted-foreground" />
+          </div>
+
+          {/* Content */}
+          <div className="p-10 sm:p-16 text-center">
+            {/* Badge */}
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded border border-emerald-500/30 bg-emerald-500/10 text-emerald-500 text-xs font-medium mb-8">
+              <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span>FREE_TO_START</span>
+            </div>
+
+            {/* Heading */}
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6">
+              Ready to understand your
+              <br />
+              <span className="text-primary">RAG pipeline?</span>
+            </h2>
+
+            {/* Description */}
+            <p className="text-muted-foreground text-lg mb-10 max-w-xl mx-auto leading-relaxed">
+              Stop guessing. Start seeing. Design architectures you can actually debug.
+            </p>
+
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Link
+                href="/sandbox"
+                className="group relative inline-flex items-center gap-3 px-10 py-5 text-lg font-medium rounded-lg overflow-hidden transition-all"
+              >
+                {/* Button background with glow */}
+                <span className="absolute inset-0 bg-primary" />
+                <span className="absolute inset-0 bg-gradient-to-r from-primary via-cyan-400 to-primary opacity-0 group-hover:opacity-100 transition-opacity" />
+                <span className="absolute inset-0 shadow-[0_0_60px_hsl(var(--primary))] opacity-40 group-hover:opacity-60 transition-opacity" />
+                {/* Button content */}
+                <span className="relative flex items-center gap-3 text-primary-foreground">
+                  <Zap className="size-5" />
+                  Open Canvas
+                  <ArrowRight className="size-5 transition-transform group-hover:translate-x-1" />
+                </span>
+              </Link>
+
+              <Link
+                href="/signup"
+                className="group inline-flex items-center gap-2 px-8 py-5 text-lg font-medium rounded-lg border border-border/50 hover:border-primary/50 hover:bg-primary/5 transition-all"
+              >
+                Create Account
+                <ArrowRight className="size-5 opacity-50 group-hover:opacity-100 transition-all group-hover:translate-x-1" />
+              </Link>
+            </div>
+
+            {/* Subtext */}
+            <p className="mt-8 text-sm text-muted-foreground">
+              No credit card required. Start building in seconds.
+            </p>
+          </div>
         </div>
-        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6">
-          Ready to understand your
-          <br />
-          <span className="bg-gradient-to-r from-primary via-purple-500 to-primary bg-clip-text text-transparent">
-            RAG pipeline?
-          </span>
-        </h2>
-        <p className="text-muted-foreground text-lg mb-10 max-w-xl mx-auto leading-relaxed">
-          Stop guessing. Start seeing. Design architectures you can actually debug.
-        </p>
-        <Link
-          href="/canvas"
-          className="group inline-flex items-center gap-2 px-10 py-5 text-lg font-medium rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-all shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5"
-        >
-          Open Canvas
-          <ArrowRight className="size-5 transition-transform group-hover:translate-x-0.5" />
-        </Link>
       </div>
     </section>
   );

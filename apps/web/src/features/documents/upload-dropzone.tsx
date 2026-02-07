@@ -38,22 +38,25 @@ export const UploadDropzone = () => {
         className={`
           border-2 border-dashed rounded-lg p-10 text-center transition-colors cursor-pointer
           ${isDragging
-            ? "border-[var(--primary)] bg-[var(--primary)]/5"
-            : "border-[var(--border)] hover:border-[var(--primary)]/50 hover:bg-[var(--muted)]/30"
+            ? "border-primary bg-primary/5"
+            : "border-border hover:border-primary/50 hover:bg-muted/30"
           }
         `}
+        role="button"
+        aria-label="Upload files by clicking or dragging"
+        tabIndex={0}
       >
         <div className="flex flex-col items-center gap-4">
-          <div className="p-4 rounded-full bg-[var(--muted)]">
-            <UploadCloud size={32} className="text-[var(--muted-foreground)]" />
+          <div className="p-4 rounded-full bg-muted">
+            <UploadCloud size={32} className="text-muted-foreground" aria-hidden="true" />
           </div>
           <div>
             <p className="text-lg font-medium">Click to upload or drag and drop</p>
-            <p className="text-sm text-[var(--muted-foreground)] mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               PDF, TXT, MD, or DOCX (max 10MB)
             </p>
           </div>
-          <button className="px-4 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-md font-medium hover:bg-[var(--primary)]/90 transition-colors">
+          <button className="px-4 py-2 bg-primary text-primary-foreground rounded-md font-medium hover:bg-primary/90 transition-colors">
             Select Files
           </button>
         </div>
@@ -61,30 +64,31 @@ export const UploadDropzone = () => {
 
       {files.length > 0 && (
         <div className="mt-6 space-y-3">
-          <h3 className="text-sm font-medium text-[var(--muted-foreground)]">Selected Files</h3>
+          <h3 className="text-sm font-medium text-muted-foreground">Selected Files</h3>
           {files.map((file, index) => (
-            <div key={index} className="flex items-center justify-between p-3 rounded-lg border border-[var(--border)] bg-[var(--card)]">
+            <div key={index} className="flex items-center justify-between p-3 rounded-lg border border-border bg-card">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded bg-[var(--muted)]">
-                  <File size={16} className="text-[var(--muted-foreground)]" />
+                <div className="p-2 rounded bg-muted">
+                  <File size={16} className="text-muted-foreground" aria-hidden="true" />
                 </div>
                 <div>
                   <p className="text-sm font-medium">{file.name}</p>
-                  <p className="text-xs text-[var(--muted-foreground)]">
+                  <p className="text-xs text-muted-foreground">
                     {(file.size / 1024).toFixed(2)} KB
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => removeFile(index)}
-                className="p-1 hover:bg-[var(--muted)] rounded text-[var(--muted-foreground)] hover:text-[var(--destructive)]"
+                className="p-1 hover:bg-muted rounded text-muted-foreground hover:text-destructive"
+                aria-label={`Remove ${file.name}`}
               >
-                <X size={16} />
+                <X size={16} aria-hidden="true" />
               </button>
             </div>
           ))}
           <div className="flex justify-end mt-4">
-            <button className="px-6 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-md font-medium hover:bg-[var(--primary)]/90 transition-colors">
+            <button className="px-6 py-2 bg-primary text-primary-foreground rounded-md font-medium hover:bg-primary/90 transition-colors">
               Upload {files.length} Files
             </button>
           </div>

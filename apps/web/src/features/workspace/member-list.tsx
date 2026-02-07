@@ -16,30 +16,30 @@ interface MemberListProps {
 
 export const MemberList = ({ members }: MemberListProps) => {
   return (
-    <div className="rounded-lg border border-[var(--border)] overflow-hidden">
+    <div className="rounded-lg border border-border overflow-hidden">
       <table className="w-full text-sm text-left">
-        <thead className="bg-[var(--muted)] text-[var(--muted-foreground)] uppercase text-xs font-medium">
+        <thead className="bg-muted text-muted-foreground uppercase text-xs font-medium">
           <tr>
-            <th className="px-4 py-3">User</th>
-            <th className="px-4 py-3">Role</th>
-            <th className="px-4 py-3 text-right">Actions</th>
+            <th scope="col" className="px-4 py-3">User</th>
+            <th scope="col" className="px-4 py-3">Role</th>
+            <th scope="col" className="px-4 py-3 text-right">Actions</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-[var(--border)]">
+        <tbody className="divide-y divide-border">
           {members.map((member) => (
-            <tr key={member.id} className="bg-[var(--background)] hover:bg-[var(--muted)]/30 transition-colors">
+            <tr key={member.id} className="bg-background hover:bg-muted/30 transition-colors">
               <td className="px-4 py-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-[var(--muted)] flex items-center justify-center overflow-hidden">
+                  <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center overflow-hidden">
                     {member.avatarUrl ? (
                       <img src={member.avatarUrl} alt={member.name} className="w-full h-full object-cover" />
                     ) : (
-                      <User size={16} className="text-[var(--muted-foreground)]" />
+                      <User size={16} className="text-muted-foreground" aria-hidden="true" />
                     )}
                   </div>
                   <div>
                     <div className="font-medium">{member.name}</div>
-                    <div className="text-xs text-[var(--muted-foreground)]">{member.email}</div>
+                    <div className="text-xs text-muted-foreground">{member.email}</div>
                   </div>
                 </div>
               </td>
@@ -51,12 +51,15 @@ export const MemberList = ({ members }: MemberListProps) => {
                     ? "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800"
                     : "bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700"
                 }`}>
-                  {member.role === "owner" && <Shield size={10} />}
+                  {member.role === "owner" && <Shield size={10} aria-hidden="true" />}
                   {member.role.charAt(0).toUpperCase() + member.role.slice(1)}
                 </span>
               </td>
               <td className="px-4 py-3 text-right">
-                <button className="p-1 hover:bg-[var(--muted)] rounded text-[var(--muted-foreground)] hover:text-[var(--foreground)]">
+                <button
+                  className="p-1 hover:bg-muted rounded text-muted-foreground hover:text-foreground"
+                  aria-label={`More options for ${member.name}`}
+                >
                   <MoreHorizontal size={16} />
                 </button>
               </td>

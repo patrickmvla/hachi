@@ -99,8 +99,8 @@ export const DataEdge = memo(({
             className={`
               w-5 h-5 rounded-full flex items-center justify-center border transition-all
               ${selected
-                ? "bg-[var(--primary)] border-[var(--primary)] text-[var(--primary-foreground)] shadow-sm"
-                : "bg-[var(--background)] border-[var(--border)] text-[var(--muted-foreground)] hover:border-[var(--primary)] hover:text-[var(--primary)]"
+                ? "bg-primary border-primary text-primary-foreground shadow-sm"
+                : "bg-background border-border text-muted-foreground hover:border-primary hover:text-primary"
               }
             `}
             onClick={(event) => {
@@ -108,8 +108,9 @@ export const DataEdge = memo(({
               console.log("Inspect edge data", id);
             }}
             title="Inspect data flow"
+            aria-label="Inspect data flow"
           >
-            <Activity size={10} />
+            <Activity size={10} aria-hidden="true" />
           </button>
         </div>
       </EdgeLabelRenderer>
@@ -123,21 +124,23 @@ export const DataEdge = memo(({
         alignX="left"
         alignY="center"
       >
-        <div className="flex items-center gap-0.5 p-1 rounded-lg border border-[var(--border)] bg-[var(--background)] shadow-lg">
+        <div className="flex items-center gap-0.5 p-1 rounded-lg border border-border bg-background shadow-lg" role="toolbar" aria-label="Edge actions">
           <button
             onClick={() => console.log("Edge settings", id)}
-            className="p-1.5 hover:bg-[var(--muted)] rounded-md text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+            className="p-1.5 hover:bg-muted rounded-md text-muted-foreground hover:text-foreground transition-colors"
             title="Settings"
+            aria-label="Edge settings"
           >
-            <Settings size={12} />
+            <Settings size={12} aria-hidden="true" />
           </button>
-          <div className="w-px h-4 bg-[var(--border)]" />
+          <div className="w-px h-4 bg-border" aria-hidden="true" />
           <button
             onClick={handleDelete}
-            className="p-1.5 hover:bg-red-500/10 rounded-md text-[var(--muted-foreground)] hover:text-red-500 transition-colors"
+            className="p-1.5 hover:bg-red-500/10 rounded-md text-muted-foreground hover:text-red-500 transition-colors"
             title="Delete"
+            aria-label="Delete edge"
           >
-            <Trash2 size={12} />
+            <Trash2 size={12} aria-hidden="true" />
           </button>
         </div>
       </EdgeToolbar>

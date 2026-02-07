@@ -14,7 +14,7 @@ export const TemplatesCTA = () => {
         </p>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <Link
-            href="/canvas"
+            href="/sandbox"
             className="group inline-flex items-center gap-2 px-8 py-4 text-base font-medium rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-all shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5"
           >
             <Plus className="size-5" />

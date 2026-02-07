@@ -1,4 +1,4 @@
-import { Sparkles } from "lucide-react";
+import { Code2, GitBranch, Cpu, Database } from "lucide-react";
 
 export const FeaturesHero = () => {
   return (
@@ -11,21 +11,46 @@ export const FeaturesHero = () => {
       </div>
 
       <div className="max-w-4xl mx-auto text-center">
+        {/* Badge */}
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/20 bg-primary/5 text-sm text-muted-foreground mb-8 backdrop-blur-sm">
-          <Sparkles className="size-3.5 text-primary" />
-          <span>Platform Features</span>
+          <Code2 className="size-3.5 text-primary" />
+          <span>Built by RAG engineers, for RAG engineers</span>
         </div>
+
+        {/* Headline */}
         <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-6">
-          Everything you need to
-          <br />
           <span className="bg-gradient-to-r from-primary via-purple-500 to-primary bg-clip-text text-transparent">
-            master RAG architecture
+            Debug retrieval failures.
+          </span>
+          <br />
+          <span className="text-foreground">
+            Benchmark patterns. Ship with confidence.
           </span>
         </h1>
-        <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-          Hachi provides a complete toolkit for designing, debugging, and understanding
-          retrieval-augmented generation pipelines. From visual design to real execution.
+
+        {/* Subtitle with concrete problem */}
+        <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed mb-10">
+          Stop guessing why cosine similarity returned 0.3. See exact embedding vectors,
+          chunk boundaries, and reranker scores. Debug RAG pipelines like you debug code.
         </p>
+
+        {/* Tech stack indicators */}
+        <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground">
+          <div className="flex items-center gap-2">
+            <GitBranch className="size-4" />
+            <span>TypeScript-first</span>
+          </div>
+          <div className="hidden sm:block h-4 w-px bg-border" />
+          <div className="flex items-center gap-2">
+            <Cpu className="size-4" />
+            <span>React Flow</span>
+          </div>
+          <div className="hidden sm:block h-4 w-px bg-border" />
+          <div className="flex items-center gap-2">
+            <Database className="size-4" />
+            <span>OpenAI · Anthropic · Pinecone</span>
+          </div>
+        </div>
       </div>
     </section>
   );

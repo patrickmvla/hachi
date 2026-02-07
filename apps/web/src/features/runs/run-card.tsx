@@ -17,7 +17,7 @@ interface RunCardProps {
 
 export const RunCard = ({ run }: RunCardProps) => {
   return (
-    <div className="flex items-center justify-between p-4 rounded-lg border border-[var(--border)] bg-[var(--card)] hover:border-[var(--primary)] transition-colors cursor-pointer">
+    <div className="flex items-center justify-between p-4 rounded-lg border border-border bg-card hover:border-primary transition-colors cursor-pointer">
       <div className="flex items-center gap-4">
         <div className={`
           p-2 rounded-full
@@ -32,7 +32,7 @@ export const RunCard = ({ run }: RunCardProps) => {
 
         <div>
           <h3 className="font-medium text-sm">{run.name}</h3>
-          <div className="flex items-center gap-3 mt-1 text-xs text-[var(--muted-foreground)]">
+          <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
             <span className="font-mono">{run.id}</span>
             <span>•</span>
             <span className="flex items-center gap-1">
@@ -46,11 +46,11 @@ export const RunCard = ({ run }: RunCardProps) => {
       <div className="flex items-center gap-6 text-sm">
         <div className="text-right">
           <div className="font-medium">{run.duration}</div>
-          <div className="text-xs text-[var(--muted-foreground)]">Duration</div>
+          <div className="text-xs text-muted-foreground">Duration</div>
         </div>
         <div className="text-right">
           <div className="font-medium">{run.tokens}</div>
-          <div className="text-xs text-[var(--muted-foreground)]">Tokens</div>
+          <div className="text-xs text-muted-foreground">Tokens</div>
         </div>
       </div>
     </div>

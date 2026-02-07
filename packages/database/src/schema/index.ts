@@ -7,6 +7,7 @@ import {
   integer,
   vector,
   unique,
+  boolean,
 } from "drizzle-orm/pg-core";
 
 // ============================================================================
@@ -14,13 +15,14 @@ import {
 // ============================================================================
 
 export const users = pgTable("users", {
-  id: uuid("id").primaryKey().defaultRandom(),
+  id: text("id").primaryKey(),
   email: text("email").unique().notNull(),
-  emailVerified: timestamp("email_verified"), // Required by Better Auth
+  emailVerified: boolean("email_verified").notNull().default(false), // Required by Better Auth
   name: text("name"),
   image: text("image"), // Better Auth uses 'image' instead of 'avatarUrl'
   avatarUrl: text("avatar_url"), // Keep for backward compatibility
   createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 // ============================================================================
@@ -29,28 +31,42 @@ export const users = pgTable("users", {
 
 export const sessions = pgTable("session", {
   id: text("id").primaryKey(),
-  userId: uuid("user_id")
+  userId: text("user_id")
     .references(() => users.id, { onDelete: "cascade" })
     .notNull(),
+  token: text("token").unique().notNull(),
   expiresAt: timestamp("expires_at").notNull(),
   ipAddress: text("ip_address"),
   userAgent: text("user_agent"),
   createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export const accounts = pgTable("account", {
   id: text("id").primaryKey(),
-  userId: uuid("user_id")
+  userId: text("user_id")
     .references(() => users.id, { onDelete: "cascade" })
     .notNull(),
   accountId: text("account_id").notNull(),
   providerId: text("provider_id").notNull(),
   accessToken: text("access_token"),
   refreshToken: text("refresh_token"),
+  accessTokenExpiresAt: timestamp("access_token_expires_at"),
+  refreshTokenExpiresAt: timestamp("refresh_token_expires_at"),
+  scope: text("scope"),
   idToken: text("id_token"),
-  expiresAt: timestamp("expires_at"),
-  password: text("password"), // For email/password auth
+  password: text("password"),
   createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const verifications = pgTable("verification", {
+  id: text("id").primaryKey(),
+  identifier: text("identifier").notNull(),
+  value: text("value").notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 // ============================================================================
@@ -69,11 +85,11 @@ export const workspaceMembers = pgTable(
     workspaceId: uuid("workspace_id")
       .references(() => workspaces.id, { onDelete: "cascade" })
       .notNull(),
-    userId: uuid("user_id")
+    userId: text("user_id")
       .references(() => users.id, { onDelete: "cascade" })
       .notNull(),
     role: text("role").notNull(), // 'owner', 'admin', 'editor', 'viewer'
-    invitedBy: uuid("invited_by").references(() => users.id),
+    invitedBy: text("invited_by").references(() => users.id),
     joinedAt: timestamp("joined_at").defaultNow(),
   },
   (table) => [unique().on(table.workspaceId, table.userId)]
@@ -86,7 +102,7 @@ export const workspaceInvites = pgTable("workspace_invites", {
     .notNull(),
   email: text("email").notNull(),
   role: text("role").notNull(), // 'admin', 'editor', 'viewer'
-  invitedBy: uuid("invited_by").references(() => users.id),
+  invitedBy: text("invited_by").references(() => users.id),
   token: text("token").unique().notNull(),
   expiresAt: timestamp("expires_at").notNull(),
   acceptedAt: timestamp("accepted_at"),
@@ -123,7 +139,7 @@ export const canvases = pgTable("canvases", {
   name: text("name").notNull(),
   graphJson: jsonb("graph_json").notNull(),
   yjsState: text("yjs_state"), // Base64 encoded Yjs document state for collaboration
-  createdBy: uuid("created_by").references(() => users.id),
+  createdBy: text("created_by").references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -135,7 +151,7 @@ export const canvases = pgTable("canvases", {
 export const runs = pgTable("runs", {
   id: uuid("id").primaryKey().defaultRandom(),
   canvasId: uuid("canvas_id").references(() => canvases.id),
-  triggeredBy: uuid("triggered_by").references(() => users.id),
+  triggeredBy: text("triggered_by").references(() => users.id),
   input: jsonb("input"),
   status: text("status"), // 'pending', 'running', 'completed', 'failed'
   startedAt: timestamp("started_at"),

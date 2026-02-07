@@ -1,4 +1,4 @@
-import { Play, Cpu, FileJson, Zap, Shield, Check } from "lucide-react";
+import { Play, Cpu, Zap, Shield, Check, GitBranch, RefreshCw } from "lucide-react";
 import { FeaturePoint } from "./shared";
 
 export const ExecutionSection = () => {
@@ -12,30 +12,35 @@ export const ExecutionSection = () => {
             </div>
             <h2 className="text-3xl sm:text-4xl font-bold mb-4">Real Execution</h2>
             <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
-              This isn&apos;t a simulation. Run actual LLM calls against real embedding models
-              with your documents. See real latency, real costs, and real results.
+              Not a simulation. Execute against real APIs with your documents.
+              See actual latency, token counts, and costs. P50: 1.2s, P99: 3.4s.
             </p>
 
             <div className="space-y-6">
               <FeaturePoint
                 icon={<Cpu className="size-4" />}
                 title="Real API calls"
-                description="Execute against OpenAI, Anthropic, Cohere, or your own models. Real tokens, real responses."
+                description="Execute against OpenAI, Anthropic, Cohere, or OpenAI-compatible APIs (Azure, local LLMs via Ollama)."
               />
               <FeaturePoint
-                icon={<FileJson className="size-4" />}
-                title="Your own data"
-                description="Upload your documents or connect to your vector store. Test against your actual use case."
+                icon={<GitBranch className="size-4" />}
+                title="Parallel execution"
+                description="Nodes without dependencies run concurrently. HyDE and direct retrieval execute simultaneously."
               />
               <FeaturePoint
                 icon={<Zap className="size-4" />}
-                title="Streaming results"
-                description="Watch results stream in via SSE. See progress through each node as it executes."
+                title="Streaming + SSE"
+                description="Watch LLM output stream in real-time. Progress through each node as it executes."
+              />
+              <FeaturePoint
+                icon={<RefreshCw className="size-4" />}
+                title="Automatic retries"
+                description="Exponential backoff for transient failures. Circuit breaker for consistently failing nodes."
               />
               <FeaturePoint
                 icon={<Shield className="size-4" />}
-                title="Safe experimentation"
-                description="Experiment freely without affecting production. Your API keys stay local, never sent to our servers."
+                title="Zero-knowledge security"
+                description="API keys stored in browser localStorage with AES-256. Never sent to our servers. Audit our code."
               />
             </div>
           </div>
@@ -51,7 +56,7 @@ export const ExecutionSection = () => {
 
 const ExecutionDemo = () => {
   return (
-    <div className="h-96 rounded-2xl border bg-muted/30 overflow-hidden shadow-xl relative">
+    <div className="h-[420px] rounded-2xl border bg-muted/30 overflow-hidden shadow-xl relative">
       {/* Header */}
       <div className="px-4 py-3 border-b bg-background/50 flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -66,20 +71,23 @@ const ExecutionDemo = () => {
 
       {/* Timeline */}
       <div className="p-4 space-y-3">
-        <ExecutionStep status="complete" name="Query" time="2ms" detail="Input received" />
-        <ExecutionStep status="complete" name="HyDE" time="890ms" detail="Generated hypothetical document" />
-        <ExecutionStep status="complete" name="Embedding" time="124ms" detail="text-embedding-3-small" />
-        <ExecutionStep status="complete" name="Retriever" time="67ms" detail="Retrieved 5 documents from Pinecone" />
-        <ExecutionStep status="running" name="Reranker" time="..." detail="Reranking with cohere-rerank-v3" />
-        <ExecutionStep status="pending" name="LLM" time="-" detail="Waiting..." />
+        <ExecutionStep status="complete" name="Query" time="2ms" detail="Input received" tokens={12} />
+        <ExecutionStep status="complete" name="HyDE" time="890ms" detail="gpt-4o-mini" tokens={247} cost={0.0003} />
+        <ExecutionStep status="complete" name="Embedding" time="124ms" detail="text-embedding-3-small" tokens={312} cost={0.00006} />
+        <ExecutionStep status="complete" name="Retriever" time="67ms" detail="Pinecone (5 docs, k=10)" />
+        <ExecutionStep status="running" name="Reranker" time="..." detail="cohere-rerank-v3" />
+        <ExecutionStep status="pending" name="LLM" time="-" detail="gpt-4o" />
         <ExecutionStep status="pending" name="Output" time="-" detail="Waiting..." />
       </div>
 
-      {/* Footer */}
+      {/* Footer with metrics */}
       <div className="absolute bottom-0 left-0 right-0 px-4 py-3 border-t bg-background/50">
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">Total time: <span className="text-foreground font-medium">1.08s</span></span>
-          <span className="text-muted-foreground">Est. cost: <span className="text-foreground font-medium">$0.002</span></span>
+        <div className="flex items-center justify-between text-xs">
+          <div className="flex items-center gap-4">
+            <span className="text-muted-foreground">Time: <span className="text-foreground font-medium">1.08s</span></span>
+            <span className="text-muted-foreground">Tokens: <span className="text-foreground font-medium">571</span></span>
+          </div>
+          <span className="text-muted-foreground">Est. cost: <span className="text-green-500 font-medium">$0.00036</span></span>
         </div>
       </div>
     </div>
@@ -91,11 +99,15 @@ const ExecutionStep = ({
   name,
   time,
   detail,
+  tokens,
+  cost,
 }: {
   status: "complete" | "running" | "pending";
   name: string;
   time: string;
   detail: string;
+  tokens?: number;
+  cost?: number;
 }) => {
   return (
     <div className="flex items-center gap-3">
@@ -106,7 +118,7 @@ const ExecutionStep = ({
           </div>
         )}
         {status === "running" && (
-          <div className="size-5 rounded-full border-2 border-blue-500 border-t-transparent animate-spin" />
+          <div className="size-5 rounded-full border-2 border-orange-500 border-t-transparent animate-spin" />
         )}
         {status === "pending" && (
           <div className="size-5 rounded-full border-2 border-muted-foreground/30" />
@@ -117,9 +129,13 @@ const ExecutionStep = ({
           <span className={`font-medium text-sm ${status === "pending" ? "text-muted-foreground" : ""}`}>
             {name}
           </span>
-          <span className={`text-xs ${status === "complete" ? "text-emerald-500" : "text-muted-foreground"}`}>
-            {time}
-          </span>
+          <div className="flex items-center gap-3 text-xs">
+            {tokens && <span className="text-muted-foreground">{tokens} tok</span>}
+            {cost && <span className="text-green-500">${cost.toFixed(5)}</span>}
+            <span className={`${status === "complete" ? "text-emerald-500" : "text-muted-foreground"} w-14 text-right`}>
+              {time}
+            </span>
+          </div>
         </div>
         <p className="text-xs text-muted-foreground truncate">{detail}</p>
       </div>

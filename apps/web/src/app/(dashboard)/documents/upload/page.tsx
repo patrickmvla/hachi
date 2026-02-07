@@ -166,13 +166,14 @@ export default function UploadDocumentPage() {
       <div className="flex items-center gap-4">
         <Link
           href="/documents"
-          className="p-2 rounded-md hover:bg-[var(--muted)] text-[var(--muted-foreground)] transition-colors"
+          className="p-2 rounded-md hover:bg-muted text-muted-foreground transition-colors"
+          aria-label="Back to documents"
         >
-          <ArrowLeft size={20} />
+          <ArrowLeft size={20} aria-hidden="true" />
         </Link>
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Upload Documents</h1>
-          <p className="text-[var(--muted-foreground)]">
+          <p className="text-muted-foreground">
             Add files to your knowledge base.
           </p>
         </div>
@@ -183,38 +184,41 @@ export default function UploadDocumentPage() {
           border-2 border-dashed rounded-xl p-12 text-center transition-all duration-200
           ${
             isDragging
-              ? "border-[var(--primary)] bg-[var(--primary)]/5 scale-[1.02]"
-              : "border-[var(--border)] bg-[var(--card)] hover:border-[var(--primary)]/50"
+              ? "border-primary bg-primary/5 scale-[1.02]"
+              : "border-border bg-card hover:border-primary/50"
           }
         `}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
+        role="button"
+        tabIndex={0}
+        aria-label="Drop zone for file upload"
       >
         <div className="flex flex-col items-center gap-4">
           <div
-            className={`p-4 rounded-full bg-[var(--muted)] ${
-              isDragging ? "text-[var(--primary)]" : "text-[var(--muted-foreground)]"
+            className={`p-4 rounded-full bg-muted ${
+              isDragging ? "text-primary" : "text-muted-foreground"
             }`}
           >
-            <UploadCloud size={32} />
+            <UploadCloud size={32} aria-hidden="true" />
           </div>
           <div>
             <h3 className="text-lg font-semibold mb-1">
               Drag and drop files here
             </h3>
-            <p className="text-[var(--muted-foreground)] text-sm">
+            <p className="text-muted-foreground text-sm">
               Support for TXT, Markdown, CSV, and JSON (max 10MB)
             </p>
           </div>
-          <div className="flex items-center gap-2 w-full max-w-xs my-4">
-            <div className="h-px bg-[var(--border)] flex-1" />
-            <span className="text-xs text-[var(--muted-foreground)] uppercase font-medium">
+          <div className="flex items-center gap-2 w-full max-w-xs my-4" aria-hidden="true">
+            <div className="h-px bg-border flex-1" />
+            <span className="text-xs text-muted-foreground uppercase font-medium">
               Or
             </span>
-            <div className="h-px bg-[var(--border)] flex-1" />
+            <div className="h-px bg-border flex-1" />
           </div>
-          <label className="px-4 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-md font-medium hover:bg-[var(--primary)]/90 transition-colors cursor-pointer">
+          <label className="px-4 py-2 bg-primary text-primary-foreground rounded-md font-medium hover:bg-primary/90 transition-colors cursor-pointer">
             Browse Files
             <input
               type="file"
@@ -222,6 +226,7 @@ export default function UploadDocumentPage() {
               accept=".txt,.md,.markdown,.csv,.json"
               onChange={handleFileSelect}
               className="hidden"
+              aria-label="Select files to upload"
             />
           </label>
         </div>
@@ -241,17 +246,18 @@ export default function UploadDocumentPage() {
             {completedCount === files.length && files.length > 0 && (
               <Link
                 href="/documents"
-                className="text-sm text-[var(--primary)] hover:underline"
+                className="text-sm text-primary hover:underline"
               >
                 View Documents
               </Link>
             )}
           </div>
-          <div className="space-y-2">
+          <div className="space-y-2" role="list" aria-label="Files to upload">
             {files.map((uploadedFile, i) => (
               <div
                 key={i}
-                className="flex items-center justify-between p-3 rounded-lg border border-[var(--border)] bg-[var(--card)]"
+                className="flex items-center justify-between p-3 rounded-lg border border-border bg-card"
+                role="listitem"
               >
                 <div className="flex items-center gap-3">
                   <div
@@ -260,8 +266,9 @@ export default function UploadDocumentPage() {
                         ? "bg-green-500/10 text-green-600"
                         : uploadedFile.status === "error"
                           ? "bg-red-500/10 text-red-600"
-                          : "bg-[var(--primary)]/10 text-[var(--primary)]"
+                          : "bg-primary/10 text-primary"
                     }`}
+                    aria-hidden="true"
                   >
                     {uploadedFile.status === "done" ? (
                       <CheckCircle2 size={16} />
@@ -278,7 +285,7 @@ export default function UploadDocumentPage() {
                     <div className="text-sm font-medium">
                       {uploadedFile.file.name}
                     </div>
-                    <div className="text-xs text-[var(--muted-foreground)]">
+                    <div className="text-xs text-muted-foreground">
                       {uploadedFile.status === "error"
                         ? uploadedFile.error
                         : uploadedFile.progress ||
@@ -289,9 +296,10 @@ export default function UploadDocumentPage() {
                 {uploadedFile.status === "pending" && (
                   <button
                     onClick={() => removeFile(i)}
-                    className="p-1 hover:bg-[var(--muted)] rounded text-[var(--muted-foreground)]"
+                    className="p-1 hover:bg-muted rounded text-muted-foreground"
+                    aria-label={`Remove ${uploadedFile.file.name}`}
                   >
-                    <X size={16} />
+                    <X size={16} aria-hidden="true" />
                   </button>
                 )}
               </div>
@@ -302,9 +310,9 @@ export default function UploadDocumentPage() {
               <button
                 onClick={uploadFiles}
                 disabled={isUploading}
-                className="px-6 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-md font-medium hover:bg-[var(--primary)]/90 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                className="px-6 py-2 bg-primary text-primary-foreground rounded-md font-medium hover:bg-primary/90 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               >
-                {isUploading && <Loader2 size={16} className="animate-spin" />}
+                {isUploading && <Loader2 size={16} className="animate-spin" aria-hidden="true" />}
                 {isUploading ? "Uploading..." : `Upload ${pendingCount} Files`}
               </button>
             </div>

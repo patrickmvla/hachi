@@ -1,66 +1,225 @@
 "use client";
 
 import Link from "next/link";
-import { Github, Mail } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
+import { Github, Loader2 } from "lucide-react";
+import { cn } from "@hachi/ui/lib/utils";
+import { Button } from "@hachi/ui/components/button";
+import { Card, CardContent } from "@hachi/ui/components/card";
+import {
+  Field,
+  FieldDescription,
+  FieldGroup,
+  FieldLabel,
+  FieldSeparator,
+} from "@hachi/ui/components/field";
+import { Input } from "@hachi/ui/components/input";
+import { authClient } from "@hachi/auth/client";
+
+interface FormErrors {
+  email?: string;
+  password?: string;
+  general?: string;
+}
+
+function LoginForm({
+  className,
+  ...props
+}: React.ComponentProps<"div">) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get("redirect") || "/dashboard";
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const validateForm = (): boolean => {
+    const newErrors: FormErrors = {};
+
+    if (!email) {
+      newErrors.email = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      newErrors.email = "Please enter a valid email address";
+    }
+
+    if (!password) {
+      newErrors.password = "Password is required";
+    } else if (password.length < 8) {
+      newErrors.password = "Password must be at least 8 characters";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!validateForm()) return;
+
+    setIsSubmitting(true);
+    setErrors({});
+
+    try {
+      const { error } = await authClient.signIn.email({
+        email,
+        password,
+      });
+
+      if (error) {
+        setErrors({ general: error.message || "Invalid email or password. Please try again." });
+        return;
+      }
+
+      // Redirect to the original page or dashboard
+      router.push(redirectTo);
+    } catch {
+      setErrors({ general: "An error occurred. Please try again." });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleGitHubSignIn = async () => {
+    setIsSubmitting(true);
+    try {
+      await authClient.signIn.social({
+        provider: "github",
+        callbackURL: redirectTo,
+      });
+    } catch {
+      setErrors({ general: "Failed to sign in with GitHub. Please try again." });
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className={cn("flex flex-col gap-6", className)} {...props}>
+      <Card className="overflow-hidden p-0">
+        <CardContent className="grid p-0 md:grid-cols-2">
+          <form className="p-6 md:p-8" onSubmit={handleSubmit} noValidate>
+            <FieldGroup>
+              <div className="flex flex-col items-center gap-2 text-center">
+                <h1 className="text-2xl font-bold">Welcome back</h1>
+                <p className="text-muted-foreground text-balance">
+                  Sign in to your Hachi account
+                </p>
+              </div>
+              {errors.general && (
+                <div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm" role="alert">
+                  {errors.general}
+                </div>
+              )}
+              <Field>
+                <FieldLabel htmlFor="email">Email</FieldLabel>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="name@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  aria-invalid={!!errors.email}
+                  aria-describedby={errors.email ? "email-error" : undefined}
+                  className={errors.email ? "border-destructive" : ""}
+                />
+                {errors.email && (
+                  <p id="email-error" className="text-sm text-destructive" role="alert">
+                    {errors.email}
+                  </p>
+                )}
+              </Field>
+              <Field>
+                <div className="flex items-center">
+                  <FieldLabel htmlFor="password">Password</FieldLabel>
+                  <Link
+                    href="/forgot-password"
+                    className="ml-auto text-sm underline-offset-2 hover:underline"
+                  >
+                    Forgot your password?
+                  </Link>
+                </div>
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  aria-invalid={!!errors.password}
+                  aria-describedby={errors.password ? "password-error" : undefined}
+                  className={errors.password ? "border-destructive" : ""}
+                />
+                {errors.password && (
+                  <p id="password-error" className="text-sm text-destructive" role="alert">
+                    {errors.password}
+                  </p>
+                )}
+              </Field>
+              <Field>
+                <Button type="submit" className="w-full" disabled={isSubmitting}>
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                      Signing in...
+                    </>
+                  ) : (
+                    "Sign In"
+                  )}
+                </Button>
+              </Field>
+              <FieldSeparator>Or continue with</FieldSeparator>
+              <Field>
+                <Button
+                  variant="outline"
+                  type="button"
+                  className="w-full"
+                  disabled={isSubmitting}
+                  onClick={handleGitHubSignIn}
+                >
+                  <Github className="size-4" aria-hidden="true" />
+                  Continue with GitHub
+                </Button>
+              </Field>
+              <FieldDescription className="text-center">
+                Don&apos;t have an account?{" "}
+                <Link href="/signup" className="underline underline-offset-4">
+                  Sign up
+                </Link>
+              </FieldDescription>
+            </FieldGroup>
+          </form>
+          <div className="bg-muted relative hidden md:block">
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="text-center p-8">
+                <div className="w-16 h-16 bg-primary rounded-xl mx-auto mb-4 flex items-center justify-center text-primary-foreground font-bold text-2xl">
+                  H
+                </div>
+                <h2 className="text-xl font-semibold mb-2">Hachi</h2>
+                <p className="text-muted-foreground text-sm">
+                  The Agentic AI Coding Assistant Platform
+                </p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      <FieldDescription className="px-6 text-center">
+        By clicking continue, you agree to our{" "}
+        <Link href="#" className="underline underline-offset-4">Terms of Service</Link>{" "}
+        and{" "}
+        <Link href="#" className="underline underline-offset-4">Privacy Policy</Link>.
+      </FieldDescription>
+    </div>
+  );
+}
 
 export default function LoginPage() {
   return (
-    <div className="bg-[var(--background)] border border-[var(--border)] rounded-xl shadow-sm p-6">
-      <div className="text-center mb-6">
-        <h2 className="text-xl font-semibold">Welcome back</h2>
-        <p className="text-sm text-[var(--muted-foreground)] mt-1">
-          Sign in to your account to continue
-        </p>
-      </div>
-
-      <div className="space-y-4">
-        <button className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-[var(--border)] hover:bg-[var(--muted)] transition-colors font-medium">
-          <Github size={20} />
-          Continue with GitHub
-        </button>
-        
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t border-[var(--border)]" />
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-[var(--background)] px-2 text-[var(--muted-foreground)]">Or continue with email</span>
-          </div>
-        </div>
-
-        <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
-          <div className="space-y-2">
-            <label className="text-sm font-medium" htmlFor="email">Email</label>
-            <input
-              id="email"
-              type="email"
-              placeholder="name@example.com"
-              className="w-full px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--background)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
-            />
-          </div>
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <label className="text-sm font-medium" htmlFor="password">Password</label>
-              <Link href="#" className="text-xs text-[var(--primary)] hover:underline">Forgot password?</Link>
-            </div>
-            <input
-              id="password"
-              type="password"
-              className="w-full px-3 py-2 rounded-md border border-[var(--border)] bg-[var(--background)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
-            />
-          </div>
-          <button className="w-full py-2.5 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-lg font-medium hover:bg-[var(--primary)]/90 transition-colors">
-            Sign In
-          </button>
-        </form>
-      </div>
-
-      <div className="mt-6 text-center text-sm">
-        <span className="text-[var(--muted-foreground)]">Don't have an account? </span>
-        <Link href="/signup" className="text-[var(--primary)] font-medium hover:underline">
-          Sign up
-        </Link>
-      </div>
+    <div className="w-full max-w-sm md:max-w-4xl">
+      <Suspense>
+        <LoginForm />
+      </Suspense>
     </div>
   );
 }

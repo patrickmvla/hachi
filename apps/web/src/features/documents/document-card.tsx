@@ -17,12 +17,15 @@ interface DocumentCardProps {
 
 export const DocumentCard = ({ document }: DocumentCardProps) => {
   return (
-    <div className="group relative p-4 rounded-lg border border-[var(--border)] bg-[var(--card)] hover:border-[var(--primary)] transition-all hover:shadow-sm">
+    <div className="group relative p-4 rounded-lg border border-border bg-card hover:border-primary transition-all hover:shadow-sm">
       <div className="flex items-start justify-between mb-4">
-        <div className="p-2.5 rounded-lg bg-[var(--primary)]/10 text-[var(--primary)]">
+        <div className="p-2.5 rounded-lg bg-primary/10 text-primary">
           <FileText size={20} />
         </div>
-        <button className="p-1 hover:bg-[var(--muted)] rounded text-[var(--muted-foreground)] opacity-0 group-hover:opacity-100 transition-opacity">
+        <button
+          className="p-1 hover:bg-muted rounded text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+          aria-label="More options"
+        >
           <MoreVertical size={16} />
         </button>
       </div>
@@ -31,13 +34,13 @@ export const DocumentCard = ({ document }: DocumentCardProps) => {
         {document.title}
       </h3>
 
-      <div className="flex items-center gap-2 text-xs text-[var(--muted-foreground)] mb-4">
+      <div className="flex items-center gap-2 text-xs text-muted-foreground mb-4">
         <span className="uppercase">{document.type}</span>
         <span>•</span>
         <span>{document.size}</span>
       </div>
 
-      <div className="flex items-center justify-between pt-3 border-t border-[var(--border)] text-xs text-[var(--muted-foreground)]">
+      <div className="flex items-center justify-between pt-3 border-t border-border text-xs text-muted-foreground">
         <div className="flex items-center gap-1.5">
           <Database size={12} />
           <span>{document.chunks} chunks</span>

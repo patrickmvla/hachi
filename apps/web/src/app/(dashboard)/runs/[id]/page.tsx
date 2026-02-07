@@ -105,8 +105,8 @@ export default function RunDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-[var(--muted-foreground)]" />
+      <div className="flex items-center justify-center h-64" role="status" aria-label="Loading run details">
+        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" aria-hidden="true" />
       </div>
     );
   }
@@ -117,13 +117,14 @@ export default function RunDetailPage() {
         <div className="flex items-center gap-4">
           <Link
             href="/runs"
-            className="p-2 rounded-md hover:bg-[var(--muted)] text-[var(--muted-foreground)] transition-colors"
+            className="p-2 rounded-md hover:bg-muted text-muted-foreground transition-colors"
+            aria-label="Back to runs"
           >
-            <ArrowLeft size={20} />
+            <ArrowLeft size={20} aria-hidden="true" />
           </Link>
           <h1 className="text-2xl font-bold tracking-tight">Run Details</h1>
         </div>
-        <div className="p-4 rounded-lg bg-red-500/10 text-red-600 text-sm">
+        <div className="p-4 rounded-lg bg-red-500/10 text-red-600 text-sm" role="alert">
           {error || "Run not found"}
         </div>
       </div>
@@ -138,9 +139,10 @@ export default function RunDetailPage() {
         <div className="flex items-center gap-4">
           <Link
             href="/runs"
-            className="p-2 rounded-md hover:bg-[var(--muted)] text-[var(--muted-foreground)] transition-colors"
+            className="p-2 rounded-md hover:bg-muted text-muted-foreground transition-colors"
+            aria-label="Back to runs"
           >
-            <ArrowLeft size={20} />
+            <ArrowLeft size={20} aria-hidden="true" />
           </Link>
           <div>
             <div className="flex items-center gap-3">
@@ -149,16 +151,16 @@ export default function RunDetailPage() {
               </h1>
               {getStatusBadge(run.status)}
             </div>
-            <div className="flex items-center gap-2 text-sm text-[var(--muted-foreground)] mt-1">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
               <span>Canvas: {run.canvasId.slice(0, 8)}...</span>
-              <span>•</span>
+              <span aria-hidden="true">•</span>
               <span>{formatTime(run.startedAt)}</span>
-              <span>•</span>
+              <span aria-hidden="true">•</span>
               <span>{duration}</span>
             </div>
           </div>
         </div>
-        <button className="px-4 py-2 bg-[var(--primary)] text-[var(--primary-foreground)] rounded-md font-medium hover:bg-[var(--primary)]/90 transition-colors shadow-sm">
+        <button className="px-4 py-2 bg-primary text-primary-foreground rounded-md font-medium hover:bg-primary/90 transition-colors shadow-sm">
           Rerun
         </button>
       </div>
@@ -167,11 +169,11 @@ export default function RunDetailPage() {
         <div className="lg:col-span-1 space-y-4">
           <h2 className="text-lg font-semibold">Execution Steps</h2>
           {stepOutputs.length === 0 ? (
-            <div className="p-4 rounded-lg border border-[var(--border)] text-[var(--muted-foreground)] text-sm text-center">
+            <div className="p-4 rounded-lg border border-border text-muted-foreground text-sm text-center">
               No step outputs recorded
             </div>
           ) : (
-            <div className="relative pl-4 border-l border-[var(--border)] space-y-6">
+            <div className="relative pl-4 border-l border-border space-y-6" role="list" aria-label="Execution steps">
               {stepOutputs.map((step, i) => (
                 <button
                   key={step.id}
@@ -181,13 +183,15 @@ export default function RunDetailPage() {
                       ? "opacity-100"
                       : "opacity-70 hover:opacity-100"
                   }`}
+                  role="listitem"
+                  aria-selected={selectedStep?.id === step.id}
                 >
-                  <div className="absolute left-[-21px] top-0 w-10 h-10 rounded-full border-4 border-[var(--background)] flex items-center justify-center bg-green-500 text-white">
+                  <div className="absolute left-[-21px] top-0 w-10 h-10 rounded-full border-4 border-background flex items-center justify-center bg-green-500 text-white" aria-hidden="true">
                     <CheckCircle2 size={20} />
                   </div>
                   <div className="pt-2">
                     <div className="font-medium">{step.nodeId}</div>
-                    <div className="text-xs text-[var(--muted-foreground)]">
+                    <div className="text-xs text-muted-foreground">
                       Completed in {step.latencyMs}ms
                     </div>
                   </div>
@@ -199,23 +203,23 @@ export default function RunDetailPage() {
 
         <div className="lg:col-span-2 space-y-4">
           <h2 className="text-lg font-semibold">Step Output</h2>
-          <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border)] bg-[var(--muted)]/30">
+          <div className="rounded-xl border border-border bg-card overflow-hidden">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/30">
               <div className="flex items-center gap-2 text-sm font-medium">
-                <Terminal size={16} />
+                <Terminal size={16} aria-hidden="true" />
                 {selectedStep?.nodeId || "No step selected"}
               </div>
-              <div className="text-xs text-[var(--muted-foreground)]">
+              <div className="text-xs text-muted-foreground">
                 {selectedStep ? `${selectedStep.latencyMs}ms` : ""}
               </div>
             </div>
-            <div className="p-4 font-mono text-sm overflow-x-auto bg-[var(--muted)]/10 max-h-96">
+            <div className="p-4 font-mono text-sm overflow-x-auto bg-muted/10 max-h-96">
               {selectedStep ? (
                 <pre className="whitespace-pre-wrap">
                   {JSON.stringify(selectedStep.output, null, 2)}
                 </pre>
               ) : (
-                <div className="text-[var(--muted-foreground)] text-center py-8">
+                <div className="text-muted-foreground text-center py-8">
                   Select a step to view its output
                 </div>
               )}
@@ -224,14 +228,14 @@ export default function RunDetailPage() {
 
           {/* Input Section */}
           <h2 className="text-lg font-semibold">Run Input</h2>
-          <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border)] bg-[var(--muted)]/30">
+          <div className="rounded-xl border border-border bg-card overflow-hidden">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/30">
               <div className="flex items-center gap-2 text-sm font-medium">
-                <Terminal size={16} />
+                <Terminal size={16} aria-hidden="true" />
                 Input Data
               </div>
             </div>
-            <div className="p-4 font-mono text-sm overflow-x-auto bg-[var(--muted)]/10">
+            <div className="p-4 font-mono text-sm overflow-x-auto bg-muted/10">
               <pre className="whitespace-pre-wrap">
                 {JSON.stringify(run.input, null, 2)}
               </pre>

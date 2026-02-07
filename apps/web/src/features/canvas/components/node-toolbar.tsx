@@ -29,29 +29,32 @@ export const NodeToolbar = ({ nodeId, isVisible }: NodeToolbarProps) => {
       isVisible={isVisible}
       position={Position.Top}
       offset={10}
-      className="flex items-center gap-1 p-1 rounded-lg border border-[var(--border)] bg-[var(--background)] shadow-lg"
+      className="flex items-center gap-1 p-1 rounded-lg border border-border bg-background shadow-lg"
     >
       <button
         onClick={handleDuplicate}
-        className="p-1.5 hover:bg-[var(--muted)] rounded-md text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+        className="p-1.5 hover:bg-muted rounded-md text-muted-foreground hover:text-foreground transition-colors"
         title="Duplicate"
+        aria-label="Duplicate node"
       >
-        <Copy size={14} />
+        <Copy size={14} aria-hidden="true" />
       </button>
       <button
         onClick={handleSettings}
-        className="p-1.5 hover:bg-[var(--muted)] rounded-md text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+        className="p-1.5 hover:bg-muted rounded-md text-muted-foreground hover:text-foreground transition-colors"
         title="Settings"
+        aria-label="Node settings"
       >
-        <Settings size={14} />
+        <Settings size={14} aria-hidden="true" />
       </button>
-      <div className="w-px h-4 bg-[var(--border)]" />
+      <div className="w-px h-4 bg-border" aria-hidden="true" />
       <button
         onClick={handleDelete}
-        className="p-1.5 hover:bg-red-500/10 rounded-md text-[var(--muted-foreground)] hover:text-red-500 transition-colors"
+        className="p-1.5 hover:bg-red-500/10 rounded-md text-muted-foreground hover:text-red-500 transition-colors"
         title="Delete"
+        aria-label="Delete node"
       >
-        <Trash2 size={14} />
+        <Trash2 size={14} aria-hidden="true" />
       </button>
     </ReactFlowNodeToolbar>
   );

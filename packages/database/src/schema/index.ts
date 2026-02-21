@@ -38,6 +38,8 @@ export const sessions = pgTable("session", {
   expiresAt: timestamp("expires_at").notNull(),
   ipAddress: text("ip_address"),
   userAgent: text("user_agent"),
+  activeOrganizationId: text("active_organization_id"),
+  activeTeamId: text("active_team_id"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -70,42 +72,64 @@ export const verifications = pgTable("verification", {
 });
 
 // ============================================================================
-// Workspaces
+// Organizations (Better Auth Organization Plugin)
 // ============================================================================
 
-export const workspaces = pgTable("workspaces", {
-  id: uuid("id").primaryKey().defaultRandom(),
+export const organization = pgTable("organization", {
+  id: text("id").primaryKey(),
   name: text("name").notNull(),
+  slug: text("slug").unique(),
+  logo: text("logo"),
+  metadata: text("metadata"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const workspaceMembers = pgTable(
-  "workspace_members",
-  {
-    workspaceId: uuid("workspace_id")
-      .references(() => workspaces.id, { onDelete: "cascade" })
-      .notNull(),
-    userId: text("user_id")
-      .references(() => users.id, { onDelete: "cascade" })
-      .notNull(),
-    role: text("role").notNull(), // 'owner', 'admin', 'editor', 'viewer'
-    invitedBy: text("invited_by").references(() => users.id),
-    joinedAt: timestamp("joined_at").defaultNow(),
-  },
-  (table) => [unique().on(table.workspaceId, table.userId)]
-);
-
-export const workspaceInvites = pgTable("workspace_invites", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  workspaceId: uuid("workspace_id")
-    .references(() => workspaces.id, { onDelete: "cascade" })
+export const member = pgTable("member", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .references(() => users.id, { onDelete: "cascade" })
     .notNull(),
+  organizationId: text("organization_id")
+    .references(() => organization.id, { onDelete: "cascade" })
+    .notNull(),
+  role: text("role").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const invitation = pgTable("invitation", {
+  id: text("id").primaryKey(),
   email: text("email").notNull(),
-  role: text("role").notNull(), // 'admin', 'editor', 'viewer'
-  invitedBy: text("invited_by").references(() => users.id),
-  token: text("token").unique().notNull(),
+  inviterId: text("inviter_id")
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull(),
+  organizationId: text("organization_id")
+    .references(() => organization.id, { onDelete: "cascade" })
+    .notNull(),
+  role: text("role").notNull(),
+  status: text("status").notNull(),
+  teamId: text("team_id"),
   expiresAt: timestamp("expires_at").notNull(),
-  acceptedAt: timestamp("accepted_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const team = pgTable("team", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  organizationId: text("organization_id")
+    .references(() => organization.id, { onDelete: "cascade" })
+    .notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const teamMember = pgTable("team_member", {
+  id: text("id").primaryKey(),
+  teamId: text("team_id")
+    .references(() => team.id, { onDelete: "cascade" })
+    .notNull(),
+  userId: text("user_id")
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -113,12 +137,12 @@ export const workspaceInvites = pgTable("workspace_invites", {
 // Credentials & Configuration
 // ============================================================================
 
-export const workspaceCredentials = pgTable(
-  "workspace_credentials",
+export const organizationCredentials = pgTable(
+  "organization_credentials",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    workspaceId: uuid("workspace_id")
-      .references(() => workspaces.id, { onDelete: "cascade" })
+    organizationId: text("organization_id")
+      .references(() => organization.id, { onDelete: "cascade" })
       .notNull(),
     provider: text("provider").notNull(), // 'openai', 'anthropic', 'pinecone', etc.
     credentialType: text("credential_type").notNull(), // 'api_key', 'connection_string'
@@ -126,7 +150,7 @@ export const workspaceCredentials = pgTable(
     createdAt: timestamp("created_at").defaultNow(),
     updatedAt: timestamp("updated_at").defaultNow(),
   },
-  (table) => [unique().on(table.workspaceId, table.provider, table.credentialType)]
+  (table) => [unique().on(table.organizationId, table.provider, table.credentialType)]
 );
 
 // ============================================================================
@@ -135,7 +159,9 @@ export const workspaceCredentials = pgTable(
 
 export const canvases = pgTable("canvases", {
   id: uuid("id").primaryKey().defaultRandom(),
-  workspaceId: uuid("workspace_id").references(() => workspaces.id),
+  organizationId: text("organization_id")
+    .references(() => organization.id, { onDelete: "cascade" })
+    .notNull(),
   name: text("name").notNull(),
   graphJson: jsonb("graph_json").notNull(),
   yjsState: text("yjs_state"), // Base64 encoded Yjs document state for collaboration
@@ -174,7 +200,9 @@ export const stepOutputs = pgTable("step_outputs", {
 
 export const documents = pgTable("documents", {
   id: uuid("id").primaryKey().defaultRandom(),
-  workspaceId: uuid("workspace_id").references(() => workspaces.id),
+  organizationId: text("organization_id")
+    .references(() => organization.id, { onDelete: "cascade" })
+    .notNull(),
   content: text("content").notNull(),
   metadata: jsonb("metadata"),
   embedding: vector("embedding", { dimensions: 1536 }),

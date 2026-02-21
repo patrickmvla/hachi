@@ -5,11 +5,15 @@ import { Handle, Position, NodeResizeControl, type NodeProps } from "@xyflow/rea
 import { Search, GripVertical } from "lucide-react";
 import type { HachiNode } from "@/stores/canvas-store";
 import { NodeToolbar } from "../components/node-toolbar";
+import { NodeStatusIndicator } from "../components/node-status-indicator";
 
 export const QueryNode = memo(({ id, data, selected }: NodeProps<HachiNode>) => {
+  const status = data.status || "initial";
+
   return (
     <>
       <NodeToolbar nodeId={id} isVisible={selected ?? false} />
+      <NodeStatusIndicator status={status} variant="overlay">
       <div
         className={`relative rounded-lg border-2 bg-background min-w-[200px] min-h-[80px] shadow-sm transition-all group ${
           selected ? "border-primary ring-2 ring-primary/20" : "border-border"
@@ -48,6 +52,7 @@ export const QueryNode = memo(({ id, data, selected }: NodeProps<HachiNode>) => 
           className="!w-3 !h-3 !bg-primary !border-2 !border-background"
         />
       </div>
+      </NodeStatusIndicator>
     </>
   );
 });

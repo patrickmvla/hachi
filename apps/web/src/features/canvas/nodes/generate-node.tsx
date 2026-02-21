@@ -6,9 +6,14 @@ import { Cpu, Sparkles, GripVertical } from "lucide-react";
 import type { HachiNode } from "@/stores/canvas-store";
 import { NodeToolbar } from "../components/node-toolbar";
 import { NodeStatusIndicator } from "../components/node-status-indicator";
+import { getConfigValue, nodeDefaults } from "../config/node-defaults";
 
 export const GenerateNode = memo(({ id, data, selected }: NodeProps<HachiNode>) => {
   const status = data.status || "initial";
+  const defaults = nodeDefaults.llm;
+  const cfg = data.config ?? {};
+  const model = getConfigValue<string>(cfg, defaults, "model");
+  const temperature = getConfigValue<number>(cfg, defaults, "temperature");
 
   return (
     <>
@@ -54,11 +59,11 @@ export const GenerateNode = memo(({ id, data, selected }: NodeProps<HachiNode>) 
           <div className="space-y-2">
             <div className="flex items-center justify-between text-[10px] text-muted-foreground">
               <span>Model</span>
-              <span className="font-mono text-foreground">gpt-4-turbo</span>
+              <span className="font-mono text-foreground">{model}</span>
             </div>
             <div className="flex items-center justify-between text-[10px] text-muted-foreground">
               <span>Temp</span>
-              <span className="font-mono text-foreground">0.7</span>
+              <span className="font-mono text-foreground">{temperature.toFixed(1)}</span>
             </div>
           </div>
         </div>

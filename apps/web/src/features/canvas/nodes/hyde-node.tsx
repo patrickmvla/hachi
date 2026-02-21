@@ -5,11 +5,17 @@ import { Handle, Position, NodeResizeControl, type NodeProps } from "@xyflow/rea
 import { FileText, GripVertical } from "lucide-react";
 import type { HachiNode } from "@/stores/canvas-store";
 import { NodeToolbar } from "../components/node-toolbar";
+import { NodeStatusIndicator } from "../components/node-status-indicator";
+import { getConfigValue, nodeDefaults } from "../config/node-defaults";
 
 export const HyDENode = memo(({ id, data, selected }: NodeProps<HachiNode>) => {
+  const status = data.status || "initial";
+  const model = getConfigValue<string>(data.config ?? {}, nodeDefaults.hyde, "model");
+
   return (
     <>
       <NodeToolbar nodeId={id} isVisible={selected ?? false} />
+      <NodeStatusIndicator status={status} variant="overlay">
       <div
         className={`relative rounded-lg border-2 bg-background min-w-[200px] min-h-[80px] shadow-sm transition-all group ${
           selected ? "border-primary ring-2 ring-primary/20" : "border-border"
@@ -43,9 +49,9 @@ export const HyDENode = memo(({ id, data, selected }: NodeProps<HachiNode>) => {
 
         <div className="p-4">
           <div className="text-sm font-medium mb-1">{data.label}</div>
-          <p className="text-[10px] text-muted-foreground">
-            Generates hypothetical documents to improve retrieval
-          </p>
+          <div className="text-[10px] text-muted-foreground">
+            Model: <span className="font-mono text-foreground">{model}</span>
+          </div>
         </div>
 
         <Handle
@@ -54,6 +60,7 @@ export const HyDENode = memo(({ id, data, selected }: NodeProps<HachiNode>) => {
           className="!w-3 !h-3 !bg-primary !border-2 !border-background"
         />
       </div>
+      </NodeStatusIndicator>
     </>
   );
 });

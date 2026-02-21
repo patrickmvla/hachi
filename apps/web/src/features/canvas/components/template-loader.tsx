@@ -3,17 +3,28 @@
 import { useState } from "react";
 import { LayoutTemplate, ChevronDown } from "lucide-react";
 import { useCanvasStore, type HachiNode, type HachiEdge } from "@/stores/canvas-store";
+import { nodeDefaults } from "../config/node-defaults";
 
-const templates = [
+export interface Template {
+  id: string;
+  name: string;
+  description: string;
+  defaultQuery: string;
+  nodes: Array<{ id: string; type: string; position: { x: number; y: number }; data: { label: string; type: string; config?: Record<string, unknown> } }>;
+  edges: Array<{ id: string; source: string; target: string; type: string }>;
+}
+
+export const templates: Template[] = [
   {
     id: "naive-rag",
     name: "Naive RAG",
     description: "Simple retrieval and generation",
+    defaultQuery: "What are the benefits of vector databases?",
     nodes: [
-      { id: "1", type: "query", position: { x: 100, y: 100 }, data: { label: "User Query", type: "query" } },
-      { id: "2", type: "embed", position: { x: 100, y: 300 }, data: { label: "Embed Query", type: "embedding" } },
-      { id: "3", type: "retrieve", position: { x: 100, y: 500 }, data: { label: "Retrieve Docs", type: "retriever" } },
-      { id: "4", type: "generate", position: { x: 100, y: 700 }, data: { label: "Generate Answer", type: "llm" } },
+      { id: "1", type: "query", position: { x: 100, y: 100 }, data: { label: "User Query", type: "query", config: { ...nodeDefaults.query } } },
+      { id: "2", type: "embedding", position: { x: 100, y: 300 }, data: { label: "Embed Query", type: "embedding", config: { ...nodeDefaults.embedding } } },
+      { id: "3", type: "retriever", position: { x: 100, y: 500 }, data: { label: "Retrieve Docs", type: "retriever", config: { ...nodeDefaults.retriever } } },
+      { id: "4", type: "llm", position: { x: 100, y: 700 }, data: { label: "Generate Answer", type: "llm", config: { ...nodeDefaults.llm } } },
     ],
     edges: [
       { id: "e1-2", source: "1", target: "2", type: "data" },
@@ -25,12 +36,51 @@ const templates = [
     id: "hyde",
     name: "HyDE RAG",
     description: "Hypothetical Document Embeddings",
+    defaultQuery: "How does transformer attention work?",
     nodes: [
-      { id: "1", type: "query", position: { x: 100, y: 100 }, data: { label: "User Query", type: "query" } },
-      { id: "2", type: "hyde", position: { x: 100, y: 300 }, data: { label: "Generate Hypothetical", type: "hyde" } },
-      { id: "3", type: "embed", position: { x: 100, y: 500 }, data: { label: "Embed Both", type: "embedding" } },
-      { id: "4", type: "retrieve", position: { x: 100, y: 700 }, data: { label: "Retrieve Docs", type: "retriever" } },
-      { id: "5", type: "generate", position: { x: 100, y: 900 }, data: { label: "Generate Answer", type: "llm" } },
+      { id: "1", type: "query", position: { x: 100, y: 100 }, data: { label: "User Query", type: "query", config: { ...nodeDefaults.query } } },
+      { id: "2", type: "hyde", position: { x: 100, y: 300 }, data: { label: "Generate Hypothetical", type: "hyde", config: { ...nodeDefaults.hyde } } },
+      { id: "3", type: "embedding", position: { x: 100, y: 500 }, data: { label: "Embed Both", type: "embedding", config: { ...nodeDefaults.embedding } } },
+      { id: "4", type: "retriever", position: { x: 100, y: 700 }, data: { label: "Retrieve Docs", type: "retriever", config: { ...nodeDefaults.retriever } } },
+      { id: "5", type: "llm", position: { x: 100, y: 900 }, data: { label: "Generate Answer", type: "llm", config: { ...nodeDefaults.llm } } },
+    ],
+    edges: [
+      { id: "e1-2", source: "1", target: "2", type: "data" },
+      { id: "e2-3", source: "2", target: "3", type: "data" },
+      { id: "e3-4", source: "3", target: "4", type: "data" },
+      { id: "e4-5", source: "4", target: "5", type: "data" },
+    ]
+  },
+  {
+    id: "rag-reranking",
+    name: "RAG + Reranking",
+    description: "Retrieval with reranking for better relevance",
+    defaultQuery: "Explain the difference between L1 and L2 regularization",
+    nodes: [
+      { id: "1", type: "query", position: { x: 100, y: 100 }, data: { label: "User Query", type: "query", config: { ...nodeDefaults.query } } },
+      { id: "2", type: "embedding", position: { x: 100, y: 300 }, data: { label: "Embed Query", type: "embedding", config: { ...nodeDefaults.embedding } } },
+      { id: "3", type: "retriever", position: { x: 100, y: 500 }, data: { label: "Retrieve Docs", type: "retriever", config: { ...nodeDefaults.retriever } } },
+      { id: "4", type: "reranker", position: { x: 100, y: 700 }, data: { label: "Rerank Results", type: "reranker", config: { ...nodeDefaults.reranker } } },
+      { id: "5", type: "llm", position: { x: 100, y: 900 }, data: { label: "Generate Answer", type: "llm", config: { ...nodeDefaults.llm } } },
+    ],
+    edges: [
+      { id: "e1-2", source: "1", target: "2", type: "data" },
+      { id: "e2-3", source: "2", target: "3", type: "data" },
+      { id: "e3-4", source: "3", target: "4", type: "data" },
+      { id: "e4-5", source: "4", target: "5", type: "data" },
+    ]
+  },
+  {
+    id: "agentic-rag",
+    name: "Agentic RAG",
+    description: "Agent-driven retrieval with quality judging",
+    defaultQuery: "What are best practices for prompt engineering?",
+    nodes: [
+      { id: "1", type: "query", position: { x: 100, y: 100 }, data: { label: "User Query", type: "query", config: { ...nodeDefaults.query } } },
+      { id: "2", type: "agent", position: { x: 100, y: 300 }, data: { label: "Plan Retrieval", type: "agent", config: { ...nodeDefaults.agent } } },
+      { id: "3", type: "retriever", position: { x: 100, y: 500 }, data: { label: "Retrieve Docs", type: "retriever", config: { ...nodeDefaults.retriever } } },
+      { id: "4", type: "judge", position: { x: 100, y: 700 }, data: { label: "Judge Relevance", type: "judge", config: { ...nodeDefaults.judge } } },
+      { id: "5", type: "llm", position: { x: 100, y: 900 }, data: { label: "Generate Answer", type: "llm", config: { ...nodeDefaults.llm } } },
     ],
     edges: [
       { id: "e1-2", source: "1", target: "2", type: "data" },
@@ -45,7 +95,7 @@ export const TemplateLoader = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { setNodes, setEdges } = useCanvasStore();
 
-  const loadTemplate = (template: typeof templates[0]) => {
+  const loadTemplate = (template: Template) => {
     setNodes(template.nodes as HachiNode[]);
     setEdges(template.edges as HachiEdge[]);
     setIsOpen(false);

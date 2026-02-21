@@ -5,11 +5,20 @@ import { Handle, Position, NodeResizeControl, type NodeProps } from "@xyflow/rea
 import { Scale, GripVertical } from "lucide-react";
 import type { HachiNode } from "@/stores/canvas-store";
 import { NodeToolbar } from "../components/node-toolbar";
+import { NodeStatusIndicator } from "../components/node-status-indicator";
+import { getConfigValue, nodeDefaults } from "../config/node-defaults";
 
 export const JudgeNode = memo(({ id, data, selected }: NodeProps<HachiNode>) => {
+  const status = data.status || "initial";
+  const defaults = nodeDefaults.judge;
+  const cfg = data.config ?? {};
+  const criteria = getConfigValue<string>(cfg, defaults, "criteria");
+  const threshold = getConfigValue<number>(cfg, defaults, "confidenceThreshold");
+
   return (
     <>
       <NodeToolbar nodeId={id} isVisible={selected ?? false} />
+      <NodeStatusIndicator status={status} variant="overlay">
       <div
         className={`relative rounded-lg border-2 bg-background min-w-[200px] min-h-[80px] shadow-sm transition-all group ${
           selected ? "border-primary ring-2 ring-primary/20" : "border-border"
@@ -43,9 +52,14 @@ export const JudgeNode = memo(({ id, data, selected }: NodeProps<HachiNode>) => 
 
         <div className="p-4">
           <div className="text-sm font-medium mb-1">{data.label}</div>
-          <p className="text-[10px] text-muted-foreground">
-            Evaluates relevance and routes accordingly
-          </p>
+          <div className="flex items-center gap-2 mt-2">
+            <span className="text-[10px] bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 px-1.5 py-0.5 rounded capitalize">
+              {criteria}
+            </span>
+            <span className="text-[10px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded">
+              {(threshold * 100).toFixed(0)}%
+            </span>
+          </div>
         </div>
 
         <Handle
@@ -54,6 +68,7 @@ export const JudgeNode = memo(({ id, data, selected }: NodeProps<HachiNode>) => 
           className="!w-3 !h-3 !bg-primary !border-2 !border-background"
         />
       </div>
+      </NodeStatusIndicator>
     </>
   );
 });

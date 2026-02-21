@@ -5,11 +5,17 @@ import { Handle, Position, NodeResizeControl, type NodeProps } from "@xyflow/rea
 import { ArrowRightLeft, GripVertical } from "lucide-react";
 import type { HachiNode } from "@/stores/canvas-store";
 import { NodeToolbar } from "../components/node-toolbar";
+import { NodeStatusIndicator } from "../components/node-status-indicator";
+import { getConfigValue, nodeDefaults } from "../config/node-defaults";
 
 export const RerankNode = memo(({ id, data, selected }: NodeProps<HachiNode>) => {
+  const status = data.status || "initial";
+  const topN = getConfigValue<number>(data.config ?? {}, nodeDefaults.reranker, "topN");
+
   return (
     <>
       <NodeToolbar nodeId={id} isVisible={selected ?? false} />
+      <NodeStatusIndicator status={status} variant="overlay">
       <div
         className={`relative rounded-lg border-2 bg-background min-w-[200px] min-h-[80px] shadow-sm transition-all group ${
           selected ? "border-primary ring-2 ring-primary/20" : "border-border"
@@ -45,7 +51,7 @@ export const RerankNode = memo(({ id, data, selected }: NodeProps<HachiNode>) =>
           <div className="text-sm font-medium mb-1">{data.label}</div>
           <div className="flex items-center gap-2 mt-2">
             <span className="text-[10px] bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 px-1.5 py-0.5 rounded">
-              Top N: 3
+              Top N: {topN}
             </span>
           </div>
         </div>
@@ -56,6 +62,7 @@ export const RerankNode = memo(({ id, data, selected }: NodeProps<HachiNode>) =>
           className="!w-3 !h-3 !bg-primary !border-2 !border-background"
         />
       </div>
+      </NodeStatusIndicator>
     </>
   );
 });

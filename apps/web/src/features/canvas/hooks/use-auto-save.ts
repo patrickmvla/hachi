@@ -1,6 +1,6 @@
 import { useEffect, useRef, useCallback, useState } from "react";
 import { useCanvasStore } from "@/stores/canvas-store";
-import { canvasesApi } from "@/lib/api";
+import { updateCanvas } from "../api/canvas-api";
 
 interface UseAutoSaveOptions {
   canvasId: string;
@@ -41,19 +41,15 @@ export function useBackendAutoSave({
     setState((prev) => ({ ...prev, isSaving: true, error: null }));
 
     try {
-      const { error } = await canvasesApi.update(canvasId, {
+      await updateCanvas(canvasId, {
         graphJson: { nodes, edges },
       });
 
-      if (error) {
-        setState((prev) => ({ ...prev, isSaving: false, error }));
-      } else {
-        setState({
-          isSaving: false,
-          lastSaved: new Date(),
-          error: null,
-        });
-      }
+      setState({
+        isSaving: false,
+        lastSaved: new Date(),
+        error: null,
+      });
     } catch {
       setState((prev) => ({
         ...prev,

@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { Plus, Search, FileText, MoreHorizontal, Clock, Grid, List, X, Loader2, AlertCircle } from "lucide-react";
-import { useState, useMemo, useEffect } from "react";
-import { canvasesApi, type Canvas } from "@/lib/api";
+import { useState, useMemo } from "react";
 import { authClient } from "@hachi/auth/client";
+import { useCanvasList } from "@/features/canvas/hooks";
+import type { Canvas } from "@/features/canvas/api/canvas-api";
 import {
   PageHeader,
   PageHeaderContent,
@@ -22,36 +23,9 @@ type ViewMode = "grid" | "list";
 
 export default function CanvasesPage() {
   const { data: activeOrg } = authClient.useActiveOrganization();
+  const { data: canvases = [], isLoading, error } = useCanvasList(activeOrg?.id);
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
-  const [canvases, setCanvases] = useState<Canvas[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  // Fetch canvases from API
-  useEffect(() => {
-    if (!activeOrg?.id) {
-      setIsLoading(false);
-      return;
-    }
-
-    async function fetchCanvases() {
-      setIsLoading(true);
-      setError(null);
-
-      const { data, error: apiError } = await canvasesApi.list(activeOrg!.id);
-
-      if (apiError) {
-        setError(apiError);
-      } else if (data?.canvases) {
-        setCanvases(data.canvases);
-      }
-
-      setIsLoading(false);
-    }
-
-    fetchCanvases();
-  }, [activeOrg?.id]);
 
   // Filter canvases based on search
   const filteredCanvases = useMemo(() => {
@@ -127,7 +101,7 @@ export default function CanvasesPage() {
               <AlertCircle className="w-8 h-8 text-destructive" />
             </div>
             <h2 className="text-lg font-semibold">Failed to load canvases</h2>
-            <p className="text-muted-foreground">{error}</p>
+            <p className="text-muted-foreground">{error.message}</p>
             <button
               onClick={() => window.location.reload()}
               className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"

@@ -16,3 +16,5 @@ export {
   useAutoSave,
 } from "./use-flow-persistence";
 export { useBackendAutoSave } from "./use-auto-save";
+export { useCanvasList, useCanvas } from "./use-canvas-queries";
+export { useCanvasEditor } from "./use-canvas-editor";

@@ -4,7 +4,7 @@ import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Loader2, FileText, Sparkles } from "lucide-react";
-import { canvasesApi } from "@/lib/api";
+import { createCanvas } from "@/features/canvas/api/canvas-api";
 import { authClient } from "@hachi/auth/client";
 import { templates } from "@/lib/mock-data";
 import {
@@ -49,20 +49,13 @@ function NewCanvasForm() {
         ? getTemplateGraph(selectedTemplate)
         : { nodes: [], edges: [] };
 
-      const { data, error: apiError } = await canvasesApi.create(
+      const canvas = await createCanvas(
         activeOrg?.id || "",
         name.trim(),
         initialGraph
       );
 
-      if (apiError) {
-        setError(apiError);
-        return;
-      }
-
-      if (data?.canvas) {
-        router.push(`/canvases/${data.canvas.id}`);
-      }
+      router.push(`/canvases/${canvas.id}`);
     } catch {
       setError("Failed to create canvas. Please try again.");
     } finally {

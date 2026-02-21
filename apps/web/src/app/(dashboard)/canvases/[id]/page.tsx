@@ -1,54 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { Loader2, AlertCircle, Cloud, CloudOff, Check } from "lucide-react";
 import { Canvas } from "@/features/canvas/canvas";
 import { PresenceAvatars } from "@/features/collaboration/presence-avatars";
 import { CursorOverlay } from "@/features/collaboration/cursor-overlay";
-import { useBackendAutoSave } from "@/features/canvas/hooks";
-import { canvasesApi, type Canvas as CanvasData } from "@/lib/api";
-import { useCanvasStore, type HachiNode, type HachiEdge } from "@/stores/canvas-store";
+import { useBackendAutoSave, useCanvasEditor } from "@/features/canvas/hooks";
 
 export default function CanvasEditorPage() {
   const params = useParams();
   const canvasId = params.id as string;
 
-  const [canvas, setCanvas] = useState<CanvasData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const setNodes = useCanvasStore((state) => state.setNodes);
-  const setEdges = useCanvasStore((state) => state.setEdges);
-
-  // Load canvas from API
-  useEffect(() => {
-    async function loadCanvas() {
-      setIsLoading(true);
-      setError(null);
-
-      const { data, error: apiError } = await canvasesApi.get(canvasId);
-
-      if (apiError) {
-        setError(apiError);
-        setIsLoading(false);
-        return;
-      }
-
-      if (data?.canvas) {
-        setCanvas(data.canvas);
-
-        // Initialize store with canvas data
-        const graphJson = data.canvas.graphJson || { nodes: [], edges: [] };
-        setNodes((graphJson.nodes || []) as HachiNode[]);
-        setEdges((graphJson.edges || []) as HachiEdge[]);
-      }
-
-      setIsLoading(false);
-    }
-
-    loadCanvas();
-  }, [canvasId, setNodes, setEdges]);
+  const { isLoading, error } = useCanvasEditor(canvasId);
 
   // Auto-save to backend
   const { isSaving, lastSaved, error: saveError } = useBackendAutoSave({
@@ -86,7 +49,7 @@ export default function CanvasEditorPage() {
             <AlertCircle className="w-8 h-8 text-destructive" />
           </div>
           <h2 className="text-lg font-semibold">Failed to load canvas</h2>
-          <p className="text-muted-foreground">{error}</p>
+          <p className="text-muted-foreground">{error.message}</p>
           <button
             onClick={() => window.location.reload()}
             className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"

@@ -5,33 +5,17 @@ import {
   Settings,
   Users,
   Key,
-  Activity,
   FileText,
   Zap,
-  CheckCircle2,
-  MoreHorizontal,
   Loader2
 } from "lucide-react";
-import { authClient } from "@hachi/auth/client";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useOrganization } from "@/features/workspaces/hooks/use-workspace-queries";
 
 export default function OrganizationDetailPage() {
   const params = useParams();
   const id = params.id as string;
-  const [org, setOrg] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchOrg() {
-      const { data } = await authClient.organization.getFullOrganization({
-        query: { organizationId: id },
-      });
-      setOrg(data);
-      setIsLoading(false);
-    }
-    fetchOrg();
-  }, [id]);
+  const { data: org, isLoading } = useOrganization(id);
 
   if (isLoading) {
     return (

@@ -4,32 +4,23 @@ import Link from "next/link";
 import { ArrowLeft, Mail, Plus, MoreHorizontal, Shield, User, Loader2 } from "lucide-react";
 import { authClient } from "@hachi/auth/client";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useMembers, useInvitations } from "@/features/workspaces/hooks/use-workspace-queries";
+import { queryKeys } from "@/lib/query-keys";
 
 export default function OrganizationMembersPage() {
   const params = useParams();
   const id = params.id as string;
   const { data: session } = authClient.useSession();
-  const [members, setMembers] = useState<any[]>([]);
-  const [invitations, setInvitations] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { data: members = [], isLoading: membersLoading } = useMembers(id);
+  const { data: invitations = [], isLoading: invitationsLoading } = useInvitations(id);
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    async function fetchData() {
-      const [membersRes, invitationsRes] = await Promise.all([
-        authClient.organization.listMembers({ query: { organizationId: id } }),
-        authClient.organization.listInvitations({ query: { organizationId: id } }),
-      ]);
-      setMembers((membersRes.data as any)?.members || membersRes.data || []);
-      setInvitations((invitationsRes.data || []).filter((inv: any) => inv.status === "pending"));
-      setIsLoading(false);
-    }
-    fetchData();
-  }, [id]);
+  const isLoading = membersLoading || invitationsLoading;
 
   const handleCancelInvitation = async (invitationId: string) => {
     await authClient.organization.cancelInvitation({ invitationId });
-    setInvitations((prev) => prev.filter((inv) => inv.id !== invitationId));
+    queryClient.invalidateQueries({ queryKey: queryKeys.organizations.invitations(id) });
   };
 
   if (isLoading) {
@@ -67,7 +58,7 @@ export default function OrganizationMembersPage() {
           <div className="p-6 border-b border-border bg-muted/30">
             <h3 className="font-semibold">Pending Invites</h3>
             <div className="mt-4 space-y-3">
-              {invitations.map((inv) => (
+              {invitations.map((inv: any) => (
                 <div key={inv.id} className="flex items-center justify-between p-3 bg-background rounded-lg border border-border">
                   <div className="flex items-center gap-3">
                     <div className="p-2 rounded-full bg-muted">
@@ -93,7 +84,7 @@ export default function OrganizationMembersPage() {
         )}
 
         <div className="divide-y divide-border" role="list" aria-label="Organization members">
-          {members.map((member) => (
+          {members.map((member: any) => (
             <div key={member.id} className="flex items-center justify-between p-4 hover:bg-muted/30 transition-colors" role="listitem">
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground font-medium">

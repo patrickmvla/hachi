@@ -4,14 +4,14 @@ import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
 import { ArrowLeft, Save, Trash2, Loader2 } from "lucide-react";
 import { authClient } from "@hachi/auth/client";
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
+import { useOrganization } from "@/features/workspaces/hooks/use-workspace-queries";
 
 export default function WorkspaceSettingsPage() {
   const params = useParams();
   const router = useRouter();
   const id = params.id as string;
-  const [org, setOrg] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const { data: org, isLoading } = useOrganization(id);
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [isSaving, setIsSaving] = useState(false);
@@ -20,19 +20,11 @@ export default function WorkspaceSettingsPage() {
   const [success, setSuccess] = useState(false);
 
   useEffect(() => {
-    async function fetchOrg() {
-      const { data } = await authClient.organization.getFullOrganization({
-        query: { organizationId: id },
-      });
-      if (data) {
-        setOrg(data);
-        setName(data.name);
-        setSlug(data.slug || "");
-      }
-      setIsLoading(false);
+    if (org) {
+      setName(org.name);
+      setSlug(org.slug || "");
     }
-    fetchOrg();
-  }, [id]);
+  }, [org]);
 
   const handleSave = async () => {
     if (!name.trim()) return;

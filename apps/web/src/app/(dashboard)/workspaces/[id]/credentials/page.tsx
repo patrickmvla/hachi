@@ -2,46 +2,19 @@
 
 import Link from "next/link";
 import { ArrowLeft, Plus, Eye, EyeOff, Copy, Trash2, Loader2 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useParams } from "next/navigation";
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-
-interface Credential {
-  id: string;
-  provider: string;
-  type: string;
-  createdAt: string;
-  lastUsedAt: string | null;
-  maskedValue: string;
-}
+import { useQueryClient } from "@tanstack/react-query";
+import { useCredentials } from "@/features/workspaces/hooks/use-workspace-queries";
+import { queryKeys } from "@/lib/query-keys";
+import { API_BASE_URL } from "@/lib/api";
 
 export default function WorkspaceCredentialsPage() {
   const params = useParams();
   const id = params.id as string;
   const [showKey, setShowKey] = useState<string | null>(null);
-  const [credentials, setCredentials] = useState<Credential[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchCredentials() {
-      try {
-        const res = await fetch(
-          `${API_BASE_URL}/api/organizations/${id}/credentials`,
-          { credentials: "include" }
-        );
-        if (res.ok) {
-          const data = await res.json();
-          setCredentials(data.credentials || []);
-        }
-      } catch {
-        // silently fail for now
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    fetchCredentials();
-  }, [id]);
+  const { data: credentials = [], isLoading } = useCredentials(id);
+  const queryClient = useQueryClient();
 
   const handleDelete = async (credentialId: string) => {
     if (!confirm("Are you sure you want to delete this credential?")) return;
@@ -51,7 +24,7 @@ export default function WorkspaceCredentialsPage() {
         { method: "DELETE", credentials: "include" }
       );
       if (res.ok) {
-        setCredentials((prev) => prev.filter((c) => c.id !== credentialId));
+        queryClient.invalidateQueries({ queryKey: queryKeys.organizations.credentials(id) });
       }
     } catch {
       // silently fail for now

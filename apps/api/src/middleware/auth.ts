@@ -35,6 +35,11 @@ export const requireAuth = async (c: Context, next: Next) => {
     c.set("user", session.user);
     c.set("session", session.session);
 
+    // Extract organization context from session
+    const s = session.session as Record<string, unknown>;
+    c.set("activeOrganizationId", s.activeOrganizationId ?? null);
+    c.set("activeTeamId", s.activeTeamId ?? null);
+
     await next();
   } catch (error) {
     console.error("Auth middleware error:", error);

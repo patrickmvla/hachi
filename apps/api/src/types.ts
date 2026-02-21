@@ -14,11 +14,8 @@ export interface Session {
   id: string;
   userId: string;
   expiresAt: Date;
-}
-
-export interface Workspace {
-  id: string;
-  name: string;
+  activeOrganizationId: string | null;
+  activeTeamId: string | null;
 }
 
 export type MemberRole = "owner" | "admin" | "editor" | "viewer";
@@ -29,8 +26,9 @@ export type MemberRole = "owner" | "admin" | "editor" | "viewer";
 export interface AppVariables {
   user: User;
   session: Session;
-  workspace: Workspace;
-  memberRole: MemberRole;
+  activeOrganizationId: string | null;
+  activeTeamId: string | null;
+  organizationId: string;
 }
 
 /**

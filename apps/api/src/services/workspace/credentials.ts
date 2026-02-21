@@ -1,11 +1,11 @@
 import { db } from "@hachi/database/client";
-import { workspaceCredentials } from "@hachi/database/schema";
+import { organizationCredentials } from "@hachi/database/schema";
 import { encrypt, decrypt } from "@hachi/encryption";
 import { eq, and } from "drizzle-orm";
 
 export interface Credential {
   id: string;
-  workspaceId: string;
+  organizationId: string;
   provider: string;
   credentialType: string;
   createdAt: Date | null;
@@ -17,37 +17,48 @@ export interface CredentialWithValue extends Credential {
 }
 
 /**
- * Store encrypted credential for workspace
+ * Store encrypted credential for organization
  */
 export const storeCredential = async (
-  workspaceId: string,
+  organizationId: string,
   provider: string,
   credentialType: string,
   value: string
 ): Promise<Credential> => {
   const encryptedValue = await encrypt(value);
 
-  const [credential] = await db
-    .insert(workspaceCredentials)
-    .values({
-      workspaceId,
-      provider,
-      credentialType,
-      encryptedValue,
-      updatedAt: new Date(),
-    })
-    .onConflictDoUpdate({
-      target: [
-        workspaceCredentials.workspaceId,
-        workspaceCredentials.provider,
-        workspaceCredentials.credentialType,
-      ],
-      set: {
+  // Check if credential already exists for this org
+  const existing = await db
+    .select()
+    .from(organizationCredentials)
+    .where(
+      and(
+        eq(organizationCredentials.organizationId, organizationId),
+        eq(organizationCredentials.provider, provider),
+        eq(organizationCredentials.credentialType, credentialType)
+      )
+    )
+    .limit(1);
+
+  let credential;
+  if (existing[0]) {
+    [credential] = await db
+      .update(organizationCredentials)
+      .set({ encryptedValue, updatedAt: new Date() })
+      .where(eq(organizationCredentials.id, existing[0].id))
+      .returning();
+  } else {
+    [credential] = await db
+      .insert(organizationCredentials)
+      .values({
+        organizationId,
+        provider,
+        credentialType,
         encryptedValue,
         updatedAt: new Date(),
-      },
-    })
-    .returning();
+      })
+      .returning();
+  }
 
   if (!credential) {
     throw new Error("Failed to store credential");
@@ -55,7 +66,7 @@ export const storeCredential = async (
 
   return {
     id: credential.id,
-    workspaceId: credential.workspaceId,
+    organizationId: credential.organizationId,
     provider: credential.provider,
     credentialType: credential.credentialType,
     createdAt: credential.createdAt,
@@ -67,18 +78,18 @@ export const storeCredential = async (
  * Get and decrypt credential
  */
 export const getCredential = async (
-  workspaceId: string,
+  organizationId: string,
   provider: string,
   credentialType: string
 ): Promise<CredentialWithValue | null> => {
   const [credential] = await db
     .select()
-    .from(workspaceCredentials)
+    .from(organizationCredentials)
     .where(
       and(
-        eq(workspaceCredentials.workspaceId, workspaceId),
-        eq(workspaceCredentials.provider, provider),
-        eq(workspaceCredentials.credentialType, credentialType)
+        eq(organizationCredentials.organizationId, organizationId),
+        eq(organizationCredentials.provider, provider),
+        eq(organizationCredentials.credentialType, credentialType)
       )
     )
     .limit(1);
@@ -91,7 +102,7 @@ export const getCredential = async (
 
   return {
     id: credential.id,
-    workspaceId: credential.workspaceId,
+    organizationId: credential.organizationId,
     provider: credential.provider,
     credentialType: credential.credentialType,
     value: decryptedValue,
@@ -101,22 +112,22 @@ export const getCredential = async (
 };
 
 /**
- * List all credentials for workspace (without values)
+ * List all credentials for organization (without values)
  */
 export const listCredentials = async (
-  workspaceId: string
+  organizationId: string
 ): Promise<Credential[]> => {
   const credentials = await db
     .select({
-      id: workspaceCredentials.id,
-      workspaceId: workspaceCredentials.workspaceId,
-      provider: workspaceCredentials.provider,
-      credentialType: workspaceCredentials.credentialType,
-      createdAt: workspaceCredentials.createdAt,
-      updatedAt: workspaceCredentials.updatedAt,
+      id: organizationCredentials.id,
+      organizationId: organizationCredentials.organizationId,
+      provider: organizationCredentials.provider,
+      credentialType: organizationCredentials.credentialType,
+      createdAt: organizationCredentials.createdAt,
+      updatedAt: organizationCredentials.updatedAt,
     })
-    .from(workspaceCredentials)
-    .where(eq(workspaceCredentials.workspaceId, workspaceId));
+    .from(organizationCredentials)
+    .where(eq(organizationCredentials.organizationId, organizationId));
 
   return credentials;
 };
@@ -125,17 +136,17 @@ export const listCredentials = async (
  * Delete credential
  */
 export const deleteCredential = async (
-  workspaceId: string,
+  organizationId: string,
   provider: string,
   credentialType: string
 ): Promise<boolean> => {
-  const result = await db
-    .delete(workspaceCredentials)
+  await db
+    .delete(organizationCredentials)
     .where(
       and(
-        eq(workspaceCredentials.workspaceId, workspaceId),
-        eq(workspaceCredentials.provider, provider),
-        eq(workspaceCredentials.credentialType, credentialType)
+        eq(organizationCredentials.organizationId, organizationId),
+        eq(organizationCredentials.provider, provider),
+        eq(organizationCredentials.credentialType, credentialType)
       )
     );
 

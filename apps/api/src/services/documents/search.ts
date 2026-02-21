@@ -7,8 +7,8 @@ import { embedQuery, type EmbedOptions } from "./embedder";
  * Search options for vector similarity search
  */
 export interface SearchOptions {
-  /** Workspace ID to search within */
-  workspaceId: string;
+  /** Organization ID to search within */
+  organizationId: string;
   /** Number of results to return */
   topK?: number;
   /** Minimum similarity score (0-1) */
@@ -25,7 +25,7 @@ export interface SearchResult {
   content: string;
   metadata: Record<string, unknown> | null;
   score: number;
-  workspaceId: string;
+  organizationId: string;
 }
 
 /**
@@ -36,44 +36,39 @@ export const searchDocuments = async (
   embedOptions: EmbedOptions,
   searchOptions: SearchOptions
 ): Promise<SearchResult[]> => {
-  const { workspaceId, topK = 10, minScore = 0.5 } = searchOptions;
+  const { organizationId, topK = 10, minScore = 0.5 } = searchOptions;
 
   // Generate query embedding
   const queryEmbedding = await embedQuery(query, embedOptions);
 
   // Search using pgvector cosine distance
-  // Note: pgvector uses <=> for cosine distance (1 - similarity)
-  // So we need to convert: similarity = 1 - distance
   const results = await db
     .select({
       id: documents.id,
       content: documents.content,
       metadata: documents.metadata,
-      workspaceId: documents.workspaceId,
-      // Calculate similarity: 1 - cosine_distance
+      organizationId: documents.organizationId,
       score: sql<number>`1 - (${documents.embedding} <=> ${JSON.stringify(queryEmbedding)}::vector)`,
     })
     .from(documents)
     .where(
       and(
-        eq(documents.workspaceId, workspaceId),
+        eq(documents.organizationId, organizationId),
         sql`${documents.embedding} IS NOT NULL`
       )
     )
     .orderBy(
-      // Order by cosine distance (ascending = most similar first)
       sql`${documents.embedding} <=> ${JSON.stringify(queryEmbedding)}::vector`
     )
     .limit(topK);
 
-  // Filter by minimum score and transform types
   return results
     .filter((result) => result.score >= minScore)
     .map((result) => ({
       id: result.id,
       content: result.content,
       metadata: (result.metadata as Record<string, unknown>) || null,
-      workspaceId: result.workspaceId || workspaceId,
+      organizationId: result.organizationId || organizationId,
       score: result.score,
     }));
 };
@@ -86,19 +81,16 @@ export const hybridSearch = async (
   embedOptions: EmbedOptions,
   searchOptions: SearchOptions
 ): Promise<SearchResult[]> => {
-  const { workspaceId, topK = 10, minScore = 0.3 } = searchOptions;
+  const { organizationId, topK = 10, minScore = 0.3 } = searchOptions;
 
-  // Generate query embedding
   const queryEmbedding = await embedQuery(query, embedOptions);
 
-  // Hybrid search: combine vector similarity with text search
   const results = await db
     .select({
       id: documents.id,
       content: documents.content,
       metadata: documents.metadata,
-      workspaceId: documents.workspaceId,
-      // Combined score: vector similarity + text relevance
+      organizationId: documents.organizationId,
       score: sql<number>`
         CASE
           WHEN ${documents.embedding} IS NOT NULL THEN
@@ -116,7 +108,7 @@ export const hybridSearch = async (
       `,
     })
     .from(documents)
-    .where(eq(documents.workspaceId, workspaceId))
+    .where(eq(documents.organizationId, organizationId))
     .orderBy(
       desc(sql`
         CASE
@@ -136,14 +128,13 @@ export const hybridSearch = async (
     )
     .limit(topK);
 
-  // Filter by minimum score and transform types
   return results
     .filter((result) => result.score >= minScore)
     .map((result) => ({
       id: result.id,
       content: result.content,
       metadata: (result.metadata as Record<string, unknown>) || null,
-      workspaceId: result.workspaceId || workspaceId,
+      organizationId: result.organizationId || organizationId,
       score: result.score,
     }));
 };
@@ -157,7 +148,7 @@ export const getDocumentsByIds = async (
   id: string;
   content: string;
   metadata: Record<string, unknown> | null;
-  workspaceId: string;
+  organizationId: string;
 }>> => {
   if (ids.length === 0) return [];
 
@@ -166,7 +157,7 @@ export const getDocumentsByIds = async (
       id: documents.id,
       content: documents.content,
       metadata: documents.metadata,
-      workspaceId: documents.workspaceId,
+      organizationId: documents.organizationId,
     })
     .from(documents)
     .where(sql`${documents.id} = ANY(${ids})`);
@@ -175,34 +166,34 @@ export const getDocumentsByIds = async (
     id: result.id,
     content: result.content,
     metadata: (result.metadata as Record<string, unknown>) || null,
-    workspaceId: result.workspaceId || "",
+    organizationId: result.organizationId || "",
   }));
 };
 
 /**
- * Count documents in a workspace
+ * Count documents in an organization
  */
-export const countDocuments = async (workspaceId: string): Promise<number> => {
+export const countDocuments = async (organizationId: string): Promise<number> => {
   const result = await db
     .select({ count: sql<number>`count(*)` })
     .from(documents)
-    .where(eq(documents.workspaceId, workspaceId));
+    .where(eq(documents.organizationId, organizationId));
 
   return result[0]?.count || 0;
 };
 
 /**
- * Count documents with embeddings in a workspace
+ * Count documents with embeddings in an organization
  */
 export const countEmbeddedDocuments = async (
-  workspaceId: string
+  organizationId: string
 ): Promise<number> => {
   const result = await db
     .select({ count: sql<number>`count(*)` })
     .from(documents)
     .where(
       and(
-        eq(documents.workspaceId, workspaceId),
+        eq(documents.organizationId, organizationId),
         sql`${documents.embedding} IS NOT NULL`
       )
     );

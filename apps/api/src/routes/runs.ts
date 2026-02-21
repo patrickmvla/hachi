@@ -6,6 +6,7 @@ import { db } from "@hachi/database/client";
 import { runs, stepOutputs } from "@hachi/database/schema";
 import type { AppEnv } from "../types";
 import { requireAuth } from "../middleware/auth";
+import { requireOrganization, requirePermission } from "../middleware/organization";
 import { eq, and } from "drizzle-orm";
 
 const executeRunSchema = z.object({
@@ -56,7 +57,7 @@ export const runRoutes = new Hono<AppEnv>()
   })
 
   // Execute run (create run and stream execution)
-  .post("/execute", requireAuth, zValidator("json", executeRunSchema), async (c) => {
+  .post("/execute", requireAuth, requireOrganization, requirePermission({ canvas: ["execute"] }), zValidator("json", executeRunSchema), async (c) => {
     const { canvasId, input } = c.req.valid("json");
     const user = c.get("user");
 

@@ -3,7 +3,7 @@ import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import type { AppEnv } from "./types";
 import { authRoutes } from "./routes/auth";
-import { workspaceRoutes } from "./routes/workspaces";
+import { organizationRoutes } from "./routes/organizations";
 import { canvasRoutes } from "./routes/canvas";
 import { runRoutes } from "./routes/runs";
 import { documentRoutes } from "./routes/documents";
@@ -21,7 +21,7 @@ const app = new Hono<AppEnv>()
   )
   .get("/health", (c) => c.json({ status: "ok", timestamp: new Date().toISOString() }))
   .route("/api/auth", authRoutes)
-  .route("/api/workspaces", workspaceRoutes)
+  .route("/api/organizations", organizationRoutes)
   .route("/api/canvases", canvasRoutes)
   .route("/api/runs", runRoutes)
   .route("/api/documents", documentRoutes)

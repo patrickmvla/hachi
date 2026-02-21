@@ -5,7 +5,7 @@ import { db } from "@hachi/database/client";
 import { documents } from "@hachi/database/schema";
 import type { AppEnv } from "../types";
 import { requireAuth } from "../middleware/auth";
-import { requireWorkspace } from "../middleware/workspace";
+import { requireOrganization, requirePermission } from "../middleware/organization";
 import { eq, sql } from "drizzle-orm";
 import {
   processDocument,
@@ -33,29 +33,29 @@ const processDocumentSchema = z.object({
 });
 
 export const documentRoutes = new Hono<AppEnv>()
-  // List documents for workspace
-  .get("/", requireAuth, requireWorkspace, async (c) => {
-    const workspace = c.get("workspace");
+  // List documents for active organization
+  .get("/", requireAuth, requireOrganization, async (c) => {
+    const organizationId = c.get("organizationId");
 
-    const workspaceDocuments = await db
+    const orgDocuments = await db
       .select({
         id: documents.id,
-        workspaceId: documents.workspaceId,
+        organizationId: documents.organizationId,
         content: documents.content,
         metadata: documents.metadata,
         hasEmbedding: sql<boolean>`${documents.embedding} IS NOT NULL`,
         createdAt: documents.createdAt,
       })
       .from(documents)
-      .where(eq(documents.workspaceId, workspace.id))
+      .where(eq(documents.organizationId, organizationId))
       .orderBy(documents.createdAt);
 
     // Get counts
-    const totalCount = await countDocuments(workspace.id);
-    const embeddedCount = await countEmbeddedDocuments(workspace.id);
+    const totalCount = await countDocuments(organizationId);
+    const embeddedCount = await countEmbeddedDocuments(organizationId);
 
     return c.json({
-      documents: workspaceDocuments,
+      documents: orgDocuments,
       stats: {
         total: totalCount,
         embedded: embeddedCount,
@@ -86,16 +86,17 @@ export const documentRoutes = new Hono<AppEnv>()
   .post(
     "/",
     requireAuth,
-    requireWorkspace,
+    requireOrganization,
+    requirePermission({ document: ["upload"] }),
     zValidator("json", uploadDocumentSchema),
     async (c) => {
-      const workspace = c.get("workspace");
+      const organizationId = c.get("organizationId");
       const { filename, content, metadata } = c.req.valid("json");
 
       const result = await db
         .insert(documents)
         .values({
-          workspaceId: workspace.id,
+          organizationId,
           content,
           metadata: {
             ...metadata,
@@ -135,7 +136,7 @@ export const documentRoutes = new Hono<AppEnv>()
         return c.json({ error: "Document not found" }, 404);
       }
 
-      // Get OpenAI API key from environment or workspace credentials
+      // Get OpenAI API key from environment or organization credentials
       const apiKey = process.env.OPENAI_API_KEY;
       if (!apiKey) {
         return c.json({ error: "OpenAI API key not configured" }, 500);
@@ -157,7 +158,6 @@ export const documentRoutes = new Hono<AppEnv>()
         const embeddedChunks = await embedChunks(chunks, { apiKey });
 
         // For now, we'll use the average of all chunk embeddings
-        // In a more sophisticated system, we'd store each chunk separately
         if (embeddedChunks.length > 0) {
           const avgEmbedding = new Array(embeddedChunks[0]!.dimensions).fill(0);
           for (const chunk of embeddedChunks) {
@@ -203,33 +203,38 @@ export const documentRoutes = new Hono<AppEnv>()
   )
 
   // Delete document
-  .delete("/:id", requireAuth, async (c) => {
-    const id = c.req.param("id");
+  .delete(
+    "/:id",
+    requireAuth,
+    requirePermission({ document: ["delete"] }),
+    async (c) => {
+      const id = c.req.param("id");
 
-    const result = await db
-      .select()
-      .from(documents)
-      .where(eq(documents.id, id))
-      .limit(1);
+      const result = await db
+        .select()
+        .from(documents)
+        .where(eq(documents.id, id))
+        .limit(1);
 
-    const existing = result[0];
-    if (!existing) {
-      return c.json({ error: "Document not found" }, 404);
+      const existing = result[0];
+      if (!existing) {
+        return c.json({ error: "Document not found" }, 404);
+      }
+
+      await db.delete(documents).where(eq(documents.id, id));
+
+      return c.json({ deleted: true, id });
     }
-
-    await db.delete(documents).where(eq(documents.id, id));
-
-    return c.json({ deleted: true, id });
-  })
+  )
 
   // Vector search
   .post(
     "/search",
     requireAuth,
-    requireWorkspace,
+    requireOrganization,
     zValidator("json", searchSchema),
     async (c) => {
-      const workspace = c.get("workspace");
+      const organizationId = c.get("organizationId");
       const { query, limit, minScore } = c.req.valid("json");
 
       // Get OpenAI API key
@@ -243,7 +248,7 @@ export const documentRoutes = new Hono<AppEnv>()
           query,
           { apiKey },
           {
-            workspaceId: workspace.id,
+            organizationId,
             topK: limit,
             minScore,
           }

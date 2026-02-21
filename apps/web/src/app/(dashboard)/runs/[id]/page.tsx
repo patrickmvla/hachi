@@ -3,66 +3,33 @@
 import Link from "next/link";
 import { ArrowLeft, Clock, CheckCircle2, AlertCircle, Activity, Terminal, Loader2 } from "lucide-react";
 import { useParams } from "next/navigation";
-import { useState, useEffect } from "react";
-import { runsApi, type Run, type StepOutput } from "@/lib/api";
-
-interface RunDetails {
-  run: Run;
-  stepOutputs: StepOutput[];
-  duration?: string;
-}
+import { useState, useMemo } from "react";
+import { useRunDetails } from "@/features/runs/hooks/use-run-queries";
+import type { Run, StepOutput } from "@/features/runs/api/runs-api";
 
 export default function RunDetailPage() {
   const params = useParams();
   const id = params.id as string;
 
-  const [runDetails, setRunDetails] = useState<RunDetails | null>(null);
+  const { data, isLoading, error } = useRunDetails(id);
   const [selectedStep, setSelectedStep] = useState<StepOutput | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadRunDetails();
-  }, [id]);
+  // Select the first step once data arrives
+  const activeStep = selectedStep ?? data?.stepOutputs[0] ?? null;
 
-  const loadRunDetails = async () => {
-    setIsLoading(true);
-    setError(null);
+  const duration = useMemo(() => {
+    if (!data) return "N/A";
+    const { run } = data;
+    const startTime = run.startedAt ? new Date(run.startedAt) : null;
+    const endTime = run.completedAt ? new Date(run.completedAt) : null;
 
-    try {
-      const result = await runsApi.get(id);
-
-      if (result.error || !result.data) {
-        setError(result.error || "Failed to load run details");
-        return;
-      }
-
-      const { run, stepOutputs } = result.data;
-
-      // Calculate duration
-      const startTime = run.startedAt ? new Date(run.startedAt) : null;
-      const endTime = run.completedAt ? new Date(run.completedAt) : null;
-      let duration = "N/A";
-
-      if (startTime && endTime) {
-        const ms = endTime.getTime() - startTime.getTime();
-        duration = ms < 1000 ? `${ms}ms` : `${(ms / 1000).toFixed(1)}s`;
-      } else if (run.status === "running") {
-        duration = "Running...";
-      }
-
-      setRunDetails({ run, stepOutputs, duration });
-
-      // Select first step by default
-      if (stepOutputs.length > 0) {
-        setSelectedStep(stepOutputs[0]!);
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load run details");
-    } finally {
-      setIsLoading(false);
+    if (startTime && endTime) {
+      const ms = endTime.getTime() - startTime.getTime();
+      return ms < 1000 ? `${ms}ms` : `${(ms / 1000).toFixed(1)}s`;
     }
-  };
+    if (run.status === "running") return "Running...";
+    return "N/A";
+  }, [data]);
 
   const formatTime = (timestamp: string | null) => {
     if (!timestamp) return "N/A";
@@ -111,7 +78,7 @@ export default function RunDetailPage() {
     );
   }
 
-  if (error || !runDetails) {
+  if (error || !data) {
     return (
       <div className="space-y-8">
         <div className="flex items-center gap-4">
@@ -125,13 +92,13 @@ export default function RunDetailPage() {
           <h1 className="text-2xl font-bold tracking-tight">Run Details</h1>
         </div>
         <div className="p-4 rounded-lg bg-red-500/10 text-red-600 text-sm" role="alert">
-          {error || "Run not found"}
+          {error?.message || "Run not found"}
         </div>
       </div>
     );
   }
 
-  const { run, stepOutputs, duration } = runDetails;
+  const { run, stepOutputs } = data;
 
   return (
     <div className="space-y-8">
@@ -174,17 +141,17 @@ export default function RunDetailPage() {
             </div>
           ) : (
             <div className="relative pl-4 border-l border-border space-y-6" role="list" aria-label="Execution steps">
-              {stepOutputs.map((step, i) => (
+              {stepOutputs.map((step) => (
                 <button
                   key={step.id}
                   onClick={() => setSelectedStep(step)}
                   className={`relative pl-6 w-full text-left transition-colors ${
-                    selectedStep?.id === step.id
+                    activeStep?.id === step.id
                       ? "opacity-100"
                       : "opacity-70 hover:opacity-100"
                   }`}
                   role="listitem"
-                  aria-selected={selectedStep?.id === step.id}
+                  aria-selected={activeStep?.id === step.id}
                 >
                   <div className="absolute left-[-21px] top-0 w-10 h-10 rounded-full border-4 border-background flex items-center justify-center bg-green-500 text-white" aria-hidden="true">
                     <CheckCircle2 size={20} />
@@ -207,16 +174,16 @@ export default function RunDetailPage() {
             <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/30">
               <div className="flex items-center gap-2 text-sm font-medium">
                 <Terminal size={16} aria-hidden="true" />
-                {selectedStep?.nodeId || "No step selected"}
+                {activeStep?.nodeId || "No step selected"}
               </div>
               <div className="text-xs text-muted-foreground">
-                {selectedStep ? `${selectedStep.latencyMs}ms` : ""}
+                {activeStep ? `${activeStep.latencyMs}ms` : ""}
               </div>
             </div>
             <div className="p-4 font-mono text-sm overflow-x-auto bg-muted/10 max-h-96">
-              {selectedStep ? (
+              {activeStep ? (
                 <pre className="whitespace-pre-wrap">
-                  {JSON.stringify(selectedStep.output, null, 2)}
+                  {JSON.stringify(activeStep.output, null, 2)}
                 </pre>
               ) : (
                 <div className="text-muted-foreground text-center py-8">

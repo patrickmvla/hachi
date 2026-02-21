@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { Activity, CheckCircle2, AlertCircle, Clock, Filter, ArrowRight, Loader2 } from "lucide-react";
-import { useState, useEffect } from "react";
-import { runsApi, canvasesApi, type Run, type Canvas } from "@/lib/api";
+import { useMemo } from "react";
+import { useRunsList } from "@/features/runs/hooks/use-run-queries";
+import type { Run } from "@/features/runs/api/runs-api";
 import {
   PageHeader,
   PageHeaderContent,
@@ -21,63 +22,34 @@ import {
 // TODO: Get from context or URL params
 const CANVAS_ID = "00000000-0000-0000-0000-000000000000";
 
-interface RunWithCanvas extends Run {
-  canvasName?: string;
-  duration?: string;
-  cost?: string;
+interface RunWithMeta extends Run {
+  duration: string;
+  cost: string;
 }
 
 export default function RunsPage() {
-  const [runs, setRuns] = useState<RunWithCanvas[]>([]);
-  const [canvases, setCanvases] = useState<Map<string, Canvas>>(new Map());
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data: rawRuns = [], isLoading, error, refetch } = useRunsList(CANVAS_ID);
 
-  useEffect(() => {
-    loadRuns();
-  }, []);
+  const runs: RunWithMeta[] = useMemo(() => {
+    return rawRuns.map((run) => {
+      const startTime = run.startedAt ? new Date(run.startedAt) : null;
+      const endTime = run.completedAt ? new Date(run.completedAt) : null;
+      let duration = "N/A";
 
-  const loadRuns = async () => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      // Load runs for all canvases
-      // In a real app, we'd load runs for the current workspace
-      const result = await runsApi.list(CANVAS_ID);
-
-      if (result.error) {
-        setError(result.error);
-        return;
+      if (startTime && endTime) {
+        const ms = endTime.getTime() - startTime.getTime();
+        duration = ms < 1000 ? `${ms}ms` : `${(ms / 1000).toFixed(1)}s`;
+      } else if (run.status === "running" && startTime) {
+        duration = "Running...";
       }
 
-      // Calculate duration and format runs
-      const formattedRuns: RunWithCanvas[] = (result.data?.runs || []).map((run) => {
-        const startTime = run.startedAt ? new Date(run.startedAt) : null;
-        const endTime = run.completedAt ? new Date(run.completedAt) : null;
-        let duration = "N/A";
-
-        if (startTime && endTime) {
-          const ms = endTime.getTime() - startTime.getTime();
-          duration = ms < 1000 ? `${ms}ms` : `${(ms / 1000).toFixed(1)}s`;
-        } else if (run.status === "running" && startTime) {
-          duration = "Running...";
-        }
-
-        return {
-          ...run,
-          duration,
-          cost: "$0.00", // TODO: Calculate from token usage
-        };
-      });
-
-      setRuns(formattedRuns);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load runs");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      return {
+        ...run,
+        duration,
+        cost: "$0.00", // TODO: Calculate from token usage
+      };
+    });
+  }, [rawRuns]);
 
   const formatTime = (timestamp: string | null) => {
     if (!timestamp) return "N/A";
@@ -89,32 +61,6 @@ export default function RunsPage() {
     if (diff < 3600000) return `${Math.floor(diff / 60000)} mins ago`;
     if (diff < 86400000) return `${Math.floor(diff / 3600000)} hours ago`;
     return date.toLocaleDateString();
-  };
-
-  const getStatusColor = (status: Run["status"]) => {
-    switch (status) {
-      case "completed":
-        return "bg-green-500/10 text-green-600 dark:text-green-400";
-      case "failed":
-        return "bg-red-500/10 text-red-600 dark:text-red-400";
-      case "running":
-        return "bg-blue-500/10 text-blue-600 dark:text-blue-400";
-      default:
-        return "bg-gray-500/10 text-gray-600 dark:text-gray-400";
-    }
-  };
-
-  const getStatusIcon = (status: Run["status"]) => {
-    switch (status) {
-      case "completed":
-        return <CheckCircle2 size={14} />;
-      case "failed":
-        return <AlertCircle size={14} />;
-      case "running":
-        return <Activity size={14} className="animate-pulse" />;
-      default:
-        return <Clock size={14} />;
-    }
   };
 
   if (isLoading) {
@@ -134,7 +80,7 @@ export default function RunsPage() {
         </PageHeaderContent>
         <PageHeaderActions>
           <button
-            onClick={loadRuns}
+            onClick={() => refetch()}
             className="flex items-center gap-2 px-3 py-2 rounded-md border border-border bg-background hover:bg-muted transition-colors text-sm font-medium"
           >
             <Activity size={16} aria-hidden="true" />
@@ -145,7 +91,7 @@ export default function RunsPage() {
 
       {error && (
         <div className="p-4 rounded-lg bg-red-500/10 text-red-600 dark:text-red-400 text-sm" role="alert">
-          {error}
+          {error.message}
         </div>
       )}
 
@@ -198,7 +144,7 @@ export default function RunsPage() {
                       <StatusBadge status={run.status} />
                     </td>
                     <td className="px-6 py-4 font-medium">
-                      {run.canvasName || run.canvasId.slice(0, 8)}
+                      {run.canvasId.slice(0, 8)}
                     </td>
                     <td className="px-6 py-4 text-muted-foreground font-mono text-xs">
                       {run.id.slice(0, 8)}...

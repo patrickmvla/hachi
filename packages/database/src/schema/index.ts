@@ -155,6 +155,21 @@ export const organizationCredentials = pgTable(
 );
 
 // ============================================================================
+// Templates
+// ============================================================================
+
+export const templates = pgTable("templates", {
+  id: text("id").primaryKey(), // e.g. "naive-rag", "hyde"
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  difficulty: text("difficulty").notNull(), // 'Beginner', 'Intermediate', 'Advanced', 'Expert'
+  nodes: integer("nodes").notNull(),
+  tags: jsonb("tags").$type<string[]>().notNull().default([]),
+  graphJson: jsonb("graph_json").$type<{ nodes: unknown[]; edges: unknown[] }>().notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// ============================================================================
 // Canvases
 // ============================================================================
 

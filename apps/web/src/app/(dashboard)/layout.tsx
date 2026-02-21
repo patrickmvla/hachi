@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutGrid,
   FileText,
@@ -26,6 +26,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
   const { data: session } = authClient.useSession();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -100,6 +101,10 @@ export default function DashboardLayout({
 
       <div className="p-3 border-t border-border">
         <button
+          onClick={async () => {
+            await authClient.signOut();
+            router.push("/login");
+          }}
           className={`flex items-center gap-3 px-3 py-2.5 w-full rounded-md text-sm font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors group ${!sidebarOpen && !isMobile && "justify-center"}`}
           title={!sidebarOpen && !isMobile ? "Sign Out" : undefined}
           aria-label="Sign out"

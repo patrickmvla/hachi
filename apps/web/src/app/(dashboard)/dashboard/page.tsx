@@ -9,7 +9,8 @@ import {
   ArrowRight,
   Zap,
   CheckCircle2,
-  Loader2
+  Loader2,
+  Building2,
 } from "lucide-react";
 import { authClient } from "@hachi/auth/client";
 import { useCanvasList } from "@/features/canvas/hooks";
@@ -90,13 +91,16 @@ export default function DashboardPage() {
           <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
         </div>
       ) : !activeOrg ? (
-        <div className="text-center py-12">
-          <p className="text-muted-foreground mb-4">No organization selected.</p>
+        <div className="rounded-xl border border-dashed border-border p-12 text-center">
+          <Building2 size={48} className="mx-auto text-muted-foreground mb-4" />
+          <h2 className="text-xl font-semibold mb-2">Create your first workspace</h2>
+          <p className="text-muted-foreground mb-6">You need an organization to start building pipelines.</p>
           <Link
-            href="/workspaces"
-            className="text-primary hover:underline"
+            href="/workspaces/new"
+            className="inline-flex items-center gap-2 px-6 py-2.5 bg-primary text-primary-foreground rounded-md font-medium hover:bg-primary/90 transition-colors shadow-sm"
           >
-            Go to Organizations
+            <Plus size={16} aria-hidden="true" />
+            Create Organization
           </Link>
         </div>
       ) : (

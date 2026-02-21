@@ -1,4 +1,8 @@
 
+## Git
+
+Do not include `Co-Authored-By` lines in commit messages.
+
 Default to using Bun instead of Node.js.
 
 - Use `bun <file>` instead of `node <file>` or `ts-node <file>`

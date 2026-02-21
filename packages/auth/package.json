@@ -6,7 +6,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./server": "./src/auth.ts",
-    "./client": "./src/client.ts"
+    "./client": "./src/client.ts",
+    "./permissions": "./src/permissions.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"

@@ -82,10 +82,10 @@ export const Hero = () => {
           style={mounted ? { animation: "fadeInUp 0.7s ease-out 300ms forwards", opacity: 0 } : { opacity: 0 }}
         >
           <Link
-            href="/mini-map"
+            href="/signup"
             className="group inline-flex items-center gap-2 px-7 py-3 text-[14px] font-semibold rounded-full bg-black text-white hover:bg-black/85 transition-all shadow-[0_1px_2px_rgba(0,0,0,0.1),0_4px_12px_rgba(0,0,0,0.1)]"
           >
-            Try it out
+            Get started
             <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
           </Link>
           <Link

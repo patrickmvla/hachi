@@ -40,14 +40,14 @@ export const Navbar = () => {
             href="/mini-map"
             className="px-3 py-1.5 text-[13px] text-black/50 hover:text-black transition-colors"
           >
-            Mini Map
+            Playground
           </Link>
           <div className="w-px h-4 bg-black/10 mx-2" />
           <Link
-            href="/mini-map"
+            href="/signup"
             className="inline-flex items-center gap-1.5 px-4 py-1.5 text-[13px] font-medium rounded-full bg-black text-white hover:bg-black/80 transition-colors"
           >
-            Try it out
+            Get started
             <ArrowRight className="size-3" />
           </Link>
         </div>
@@ -88,15 +88,15 @@ export const Navbar = () => {
               className="text-[14px] text-black/60 hover:text-black transition-colors px-3 py-2.5"
               onClick={() => setMobileMenuOpen(false)}
             >
-              Mini Map
+              Playground
             </Link>
             <div className="h-px bg-black/[0.06] my-2" />
             <Link
-              href="/mini-map"
+              href="/signup"
               className="inline-flex items-center justify-center gap-2 px-4 py-2.5 text-[14px] font-medium rounded-full bg-black text-white"
               onClick={() => setMobileMenuOpen(false)}
             >
-              Try it out
+              Get started
               <ArrowRight className="size-3.5" />
             </Link>
           </div>

@@ -45,7 +45,7 @@ export const CTA = () => {
             href="/mini-map"
             className="group inline-flex items-center gap-2 px-8 py-3.5 text-[14px] font-semibold rounded-full bg-white text-black hover:bg-white/90 transition-all shadow-[0_0_0_1px_rgba(255,255,255,0.1),0_4px_16px_rgba(0,0,0,0.3)]"
           >
-            Try Mini Map
+            Try Playground
             <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
           </Link>
           <Link

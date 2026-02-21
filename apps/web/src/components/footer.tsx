@@ -20,7 +20,7 @@ export const Footer = () => {
           <div className="flex items-center gap-6 text-[12px] text-white/25">
             <Link href="/features" className="hover:text-white/60 transition-colors">Features</Link>
             <Link href="/templates" className="hover:text-white/60 transition-colors">Templates</Link>
-            <Link href="/mini-map" className="hover:text-white/60 transition-colors">Mini Map</Link>
+            <Link href="/mini-map" className="hover:text-white/60 transition-colors">Playground</Link>
             <span>&copy; {new Date().getFullYear()}</span>
           </div>
         </div>

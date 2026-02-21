@@ -81,7 +81,7 @@ export const WorkspaceSwitcher = () => {
             ))}
             <div className="h-px bg-border my-1" />
             <Link
-              href="/organizations/new"
+              href="/workspaces/new"
               onClick={() => setIsOpen(false)}
               className="w-full flex items-center gap-2 px-2 py-2 rounded-md hover:bg-accent hover:text-accent-foreground transition-colors text-sm text-muted-foreground"
             >

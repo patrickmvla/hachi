@@ -6,15 +6,15 @@ import {
   Clock,
   MoreHorizontal,
   FileText,
-  Activity,
   ArrowRight,
   Zap,
   CheckCircle2,
   Loader2
 } from "lucide-react";
-import { useState, useEffect } from "react";
 import { authClient } from "@hachi/auth/client";
-import { canvasesApi, documentsApi, type Canvas } from "@/lib/api";
+import { useCanvasList } from "@/features/canvas/hooks";
+import { useDocumentList } from "@/features/documents/hooks/use-document-queries";
+import type { Canvas } from "@/features/canvas/api/canvas-api";
 import {
   PageHeader,
   PageHeaderContent,
@@ -27,30 +27,13 @@ import {
 export default function DashboardPage() {
   const { data: session } = authClient.useSession();
   const { data: activeOrg } = authClient.useActiveOrganization();
-  const [canvases, setCanvases] = useState<Canvas[]>([]);
-  const [docCount, setDocCount] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
 
+  const { data: canvases = [], isLoading: canvasesLoading } = useCanvasList(activeOrg?.id);
+  const { data: docData, isLoading: docsLoading } = useDocumentList(activeOrg?.id);
+  const docCount = docData?.stats?.total ?? docData?.documents?.length ?? 0;
+
+  const isLoading = canvasesLoading || docsLoading;
   const firstName = session?.user?.name?.split(" ")[0] || "there";
-
-  useEffect(() => {
-    if (!activeOrg?.id) {
-      setIsLoading(false);
-      return;
-    }
-
-    async function fetchData() {
-      setIsLoading(true);
-      const [canvasRes, docRes] = await Promise.all([
-        canvasesApi.list(activeOrg!.id),
-        documentsApi.list(activeOrg!.id),
-      ]);
-      setCanvases(canvasRes.data?.canvases || []);
-      setDocCount(docRes.data?.stats?.total || docRes.data?.documents?.length || 0);
-      setIsLoading(false);
-    }
-    fetchData();
-  }, [activeOrg?.id]);
 
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return "Unknown";

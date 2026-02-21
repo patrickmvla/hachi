@@ -1,25 +1,53 @@
 "use client";
 
 import Link from "next/link";
-import { 
-  Settings, 
-  Users, 
-  Key, 
-  Activity, 
-  FileText, 
-  Zap, 
+import {
+  Settings,
+  Users,
+  Key,
+  Activity,
+  FileText,
+  Zap,
   CheckCircle2,
-  MoreHorizontal
+  MoreHorizontal,
+  Loader2
 } from "lucide-react";
-import { workspaces, recentCanvases, recentRuns } from "@/lib/mock-data";
-
+import { authClient } from "@hachi/auth/client";
 import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
-export default function WorkspaceDetailPage() {
+export default function OrganizationDetailPage() {
   const params = useParams();
   const id = params.id as string;
-  // Mock finding workspace
-  const workspace = workspaces.find(w => w.id === id) || workspaces[0]!;
+  const [org, setOrg] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchOrg() {
+      const { data } = await authClient.organization.getFullOrganization({
+        query: { organizationId: id },
+      });
+      setOrg(data);
+      setIsLoading(false);
+    }
+    fetchOrg();
+  }, [id]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (!org) {
+    return (
+      <div className="text-center py-12 text-muted-foreground">
+        Organization not found
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -27,36 +55,38 @@ export default function WorkspaceDetailPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center text-white text-2xl font-bold shadow-sm">
-            {workspace.name.charAt(0)}
+            {org.logo ? (
+              <img src={org.logo} alt="" className="w-full h-full rounded-xl object-cover" />
+            ) : (
+              org.name.charAt(0)
+            )}
           </div>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">{workspace.name}</h1>
+            <h1 className="text-2xl font-bold tracking-tight">{org.name}</h1>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <span className="px-2 py-0.5 rounded-full bg-muted text-xs font-medium">
-                {workspace.plan} Plan
-              </span>
-              <span>•</span>
-              <span>{workspace.members} members</span>
+              <span className="font-mono text-xs">{org.slug}</span>
+              <span>·</span>
+              <span>{org.members?.length || 0} members</span>
             </div>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <Link
-            href={`/workspaces/${params.id}/members`}
+            href={`/workspaces/${id}/members`}
             className="flex items-center gap-2 px-3 py-2 rounded-md border border-border bg-background hover:bg-muted transition-colors text-sm font-medium"
           >
             <Users size={16} aria-hidden="true" />
             Members
           </Link>
           <Link
-            href={`/workspaces/${params.id}/credentials`}
+            href={`/workspaces/${id}/credentials`}
             className="flex items-center gap-2 px-3 py-2 rounded-md border border-border bg-background hover:bg-muted transition-colors text-sm font-medium"
           >
             <Key size={16} aria-hidden="true" />
             Keys
           </Link>
           <Link
-            href={`/workspaces/${params.id}/settings`}
+            href={`/workspaces/${id}/settings`}
             className="p-2 rounded-md border border-border bg-background hover:bg-muted transition-colors text-muted-foreground"
             aria-label="Settings"
           >
@@ -72,9 +102,9 @@ export default function WorkspaceDetailPage() {
             <div className="text-sm font-medium text-muted-foreground">Active Canvases</div>
             <FileText size={16} className="text-muted-foreground" aria-hidden="true" />
           </div>
-          <div className="text-3xl font-bold">8</div>
+          <div className="text-3xl font-bold">-</div>
           <div className="mt-2 text-xs text-muted-foreground">
-            <span className="text-green-500 font-medium">+2</span> this week
+            Across this organization
           </div>
         </div>
         <div className="p-6 rounded-xl border border-border bg-card shadow-sm">
@@ -82,70 +112,48 @@ export default function WorkspaceDetailPage() {
             <div className="text-sm font-medium text-muted-foreground">Total Runs</div>
             <Zap size={16} className="text-muted-foreground" aria-hidden="true" />
           </div>
-          <div className="text-3xl font-bold">1,240</div>
+          <div className="text-3xl font-bold">-</div>
           <div className="mt-2 text-xs text-muted-foreground">
-            <span className="text-green-500 font-medium">+12%</span> vs last month
+            All time
           </div>
         </div>
         <div className="p-6 rounded-xl border border-border bg-card shadow-sm">
           <div className="flex items-center justify-between mb-4">
-            <div className="text-sm font-medium text-muted-foreground">API Usage</div>
-            <Activity size={16} className="text-muted-foreground" aria-hidden="true" />
+            <div className="text-sm font-medium text-muted-foreground">Members</div>
+            <Users size={16} className="text-muted-foreground" aria-hidden="true" />
           </div>
-          <div className="text-3xl font-bold">$42.50</div>
+          <div className="text-3xl font-bold">{org.members?.length || 0}</div>
           <div className="mt-2 text-xs text-muted-foreground">
-            Est. cost this month
+            In this organization
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Recent Activity */}
-        <div className="space-y-4">
-          <h2 className="text-lg font-semibold">Recent Activity</h2>
-          <div className="rounded-xl border border-border bg-card overflow-hidden">
-            {recentRuns.slice(0, 3).map((run, i) => (
-              <div key={run.id} className={`p-4 flex items-center justify-between hover:bg-muted/50 transition-colors ${i !== 2 ? 'border-b border-border' : ''}`}>
-                <div className="flex items-center gap-3">
-                  {run.status === 'success' ? (
-                    <CheckCircle2 size={16} className="text-green-500" aria-hidden="true" />
-                  ) : (
-                    <Activity size={16} className="text-blue-500" aria-hidden="true" />
-                  )}
-                  <div>
-                    <div className="text-sm font-medium">{run.canvasName}</div>
-                    <div className="text-xs text-muted-foreground">Run {run.id} • {run.startedAt}</div>
-                  </div>
-                </div>
-                <div className="text-xs font-mono text-muted-foreground">
-                  {run.duration}
-                </div>
-              </div>
-            ))}
-          </div>
+      {/* Members Preview */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold">Members</h2>
+          <Link
+            href={`/workspaces/${id}/members`}
+            className="text-sm text-primary hover:underline"
+          >
+            View all
+          </Link>
         </div>
-
-        {/* Top Canvases */}
-        <div className="space-y-4">
-          <h2 className="text-lg font-semibold">Top Canvases</h2>
-          <div className="rounded-xl border border-border bg-card overflow-hidden">
-            {recentCanvases.slice(0, 3).map((canvas, i) => (
-              <div key={canvas.id} className={`p-4 flex items-center justify-between hover:bg-muted/50 transition-colors ${i !== 2 ? 'border-b border-border' : ''}`}>
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded bg-primary/10 text-primary">
-                    <FileText size={16} aria-hidden="true" />
-                  </div>
-                  <div>
-                    <div className="text-sm font-medium">{canvas.name}</div>
-                    <div className="text-xs text-muted-foreground">{canvas.nodes} nodes</div>
-                  </div>
+        <div className="rounded-xl border border-border bg-card overflow-hidden">
+          {(org.members || []).slice(0, 5).map((member: any, i: number) => (
+            <div key={member.id} className={`p-4 flex items-center justify-between hover:bg-muted/50 transition-colors ${i !== Math.min((org.members?.length || 1) - 1, 4) ? 'border-b border-border' : ''}`}>
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground text-sm font-medium">
+                  {member.user?.name?.charAt(0) || member.user?.email?.charAt(0) || "?"}
                 </div>
-                <button className="p-1 hover:bg-muted rounded text-muted-foreground" aria-label={`More options for ${canvas.name}`}>
-                  <MoreHorizontal size={16} aria-hidden="true" />
-                </button>
+                <div>
+                  <div className="text-sm font-medium">{member.user?.name || member.user?.email}</div>
+                  <div className="text-xs text-muted-foreground">{member.role}</div>
+                </div>
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>

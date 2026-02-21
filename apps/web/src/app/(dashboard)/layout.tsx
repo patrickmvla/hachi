@@ -16,7 +16,7 @@ import {
   X
 } from "lucide-react";
 import { WorkspaceSwitcher } from "@/features/workspace/workspace-switcher";
-import { currentUser } from "@/lib/mock-data";
+import { authClient } from "@hachi/auth/client";
 import { useState, useEffect } from "react";
 
 
@@ -26,8 +26,15 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const { data: session } = authClient.useSession();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const currentUser = {
+    name: session?.user?.name || "User",
+    email: session?.user?.email || "",
+    avatar: session?.user?.image || "",
+    role: "",
+  };
 
   // Close mobile menu on route change
   useEffect(() => {
@@ -48,7 +55,7 @@ export default function DashboardLayout({
     { href: "/canvases", label: "Canvases", icon: FileText },
     { href: "/documents", label: "Documents", icon: FileText },
     { href: "/runs", label: "Runs", icon: History },
-    { href: "/workspaces", label: "Workspaces", icon: Settings },
+    { href: "/organizations", label: "Organizations", icon: Settings },
   ];
 
   const SidebarContent = ({ isMobile = false }: { isMobile?: boolean }) => (

@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Loader2, FileText, Sparkles } from "lucide-react";
 import { canvasesApi } from "@/lib/api";
+import { authClient } from "@hachi/auth/client";
 import { templates } from "@/lib/mock-data";
 import {
   PageHeader,
@@ -24,7 +25,7 @@ export default function NewCanvasPage() {
 function NewCanvasForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const workspaceId = searchParams.get("workspaceId") || "00000000-0000-0000-0000-000000000001";
+  const { data: activeOrg } = authClient.useActiveOrganization();
 
   const [name, setName] = useState("");
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
@@ -49,7 +50,7 @@ function NewCanvasForm() {
         : { nodes: [], edges: [] };
 
       const { data, error: apiError } = await canvasesApi.create(
-        workspaceId,
+        activeOrg?.id || "",
         name.trim(),
         initialGraph
       );

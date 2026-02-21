@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Plus, Search, FileText, MoreHorizontal, Clock, Grid, List, X, Loader2, AlertCircle } from "lucide-react";
 import { useState, useMemo, useEffect } from "react";
 import { canvasesApi, type Canvas } from "@/lib/api";
+import { authClient } from "@hachi/auth/client";
 import {
   PageHeader,
   PageHeaderContent,
@@ -19,10 +20,8 @@ import {
 
 type ViewMode = "grid" | "list";
 
-// Default workspace ID (will be replaced with actual workspace context)
-const DEFAULT_WORKSPACE_ID = "00000000-0000-0000-0000-000000000001";
-
 export default function CanvasesPage() {
+  const { data: activeOrg } = authClient.useActiveOrganization();
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [canvases, setCanvases] = useState<Canvas[]>([]);
@@ -31,11 +30,16 @@ export default function CanvasesPage() {
 
   // Fetch canvases from API
   useEffect(() => {
+    if (!activeOrg?.id) {
+      setIsLoading(false);
+      return;
+    }
+
     async function fetchCanvases() {
       setIsLoading(true);
       setError(null);
 
-      const { data, error: apiError } = await canvasesApi.list(DEFAULT_WORKSPACE_ID);
+      const { data, error: apiError } = await canvasesApi.list(activeOrg!.id);
 
       if (apiError) {
         setError(apiError);
@@ -47,7 +51,7 @@ export default function CanvasesPage() {
     }
 
     fetchCanvases();
-  }, []);
+  }, [activeOrg?.id]);
 
   // Filter canvases based on search
   const filteredCanvases = useMemo(() => {

@@ -41,7 +41,7 @@ async function apiFetch<T>(
 // Document types
 export interface Document {
   id: string;
-  workspaceId: string | null;
+  organizationId: string | null;
   content: string;
   metadata: Record<string, unknown> | null;
   hasEmbedding: boolean;
@@ -59,45 +59,33 @@ export interface SearchResult {
   content: string;
   metadata: Record<string, unknown> | null;
   score: number;
-  workspaceId: string;
+  organizationId: string;
 }
 
 // Document API
 export const documentsApi = {
-  /**
-   * List documents in a workspace
-   */
-  list: async (workspaceId: string) => {
+  list: async (organizationId: string) => {
     return apiFetch<{ documents: Document[]; stats: DocumentStats }>(
-      `/api/documents?workspaceId=${workspaceId}`
+      `/api/documents?organizationId=${organizationId}`
     );
   },
 
-  /**
-   * Get a document by ID
-   */
   get: async (id: string) => {
     return apiFetch<{ document: Document }>(`/api/documents/${id}`);
   },
 
-  /**
-   * Upload a new document
-   */
   upload: async (
-    workspaceId: string,
+    organizationId: string,
     filename: string,
     content: string,
     metadata?: Record<string, unknown>
   ) => {
-    return apiFetch<{ document: Document }>(`/api/documents?workspaceId=${workspaceId}`, {
+    return apiFetch<{ document: Document }>(`/api/documents?organizationId=${organizationId}`, {
       method: "POST",
       body: JSON.stringify({ filename, content, metadata }),
     });
   },
 
-  /**
-   * Process a document (chunk + embed)
-   */
   process: async (
     id: string,
     options?: { chunkSize?: number; chunkOverlap?: number }
@@ -114,25 +102,19 @@ export const documentsApi = {
     });
   },
 
-  /**
-   * Delete a document
-   */
   delete: async (id: string) => {
     return apiFetch<{ deleted: boolean; id: string }>(`/api/documents/${id}`, {
       method: "DELETE",
     });
   },
 
-  /**
-   * Search documents
-   */
   search: async (
-    workspaceId: string,
+    organizationId: string,
     query: string,
     options?: { limit?: number; minScore?: number }
   ) => {
     return apiFetch<{ results: SearchResult[] }>(
-      `/api/documents/search?workspaceId=${workspaceId}`,
+      `/api/documents/search?organizationId=${organizationId}`,
       {
         method: "POST",
         body: JSON.stringify({ query, ...options }),
@@ -164,23 +146,14 @@ export interface StepOutput {
 
 // Runs API
 export const runsApi = {
-  /**
-   * List runs for a canvas
-   */
   list: async (canvasId: string) => {
     return apiFetch<{ runs: Run[] }>(`/api/runs?canvasId=${canvasId}`);
   },
 
-  /**
-   * Get a run by ID
-   */
   get: async (id: string) => {
     return apiFetch<{ run: Run; stepOutputs: StepOutput[] }>(`/api/runs/${id}`);
   },
 
-  /**
-   * Execute a canvas (returns SSE stream)
-   */
   execute: (canvasId: string, input: Record<string, unknown>) => {
     return new EventSource(
       `${API_BASE_URL}/api/runs/execute?canvasId=${canvasId}&input=${encodeURIComponent(
@@ -194,7 +167,7 @@ export const runsApi = {
 export interface Canvas {
   id: string;
   name: string;
-  workspaceId: string | null;
+  organizationId: string | null;
   graphJson: { nodes: unknown[]; edges: unknown[] };
   createdBy: string | null;
   createdAt: string | null;
@@ -203,39 +176,27 @@ export interface Canvas {
 
 // Canvases API
 export const canvasesApi = {
-  /**
-   * List canvases for a workspace
-   */
-  list: async (workspaceId: string) => {
+  list: async (organizationId: string) => {
     return apiFetch<{ canvases: Canvas[] }>(
-      `/api/canvases?workspaceId=${workspaceId}`
+      `/api/canvases?organizationId=${organizationId}`
     );
   },
 
-  /**
-   * Get a canvas by ID
-   */
   get: async (id: string) => {
     return apiFetch<{ canvas: Canvas }>(`/api/canvases/${id}`);
   },
 
-  /**
-   * Create a new canvas
-   */
   create: async (
-    workspaceId: string,
+    organizationId: string,
     name: string,
     graphJson: { nodes: unknown[]; edges: unknown[] }
   ) => {
-    return apiFetch<{ canvas: Canvas }>(`/api/canvases?workspaceId=${workspaceId}`, {
+    return apiFetch<{ canvas: Canvas }>(`/api/canvases?organizationId=${organizationId}`, {
       method: "POST",
-      body: JSON.stringify({ name, workspaceId, graphJson }),
+      body: JSON.stringify({ name, graphJson }),
     });
   },
 
-  /**
-   * Update a canvas
-   */
   update: async (
     id: string,
     data: Partial<{
@@ -249,9 +210,6 @@ export const canvasesApi = {
     });
   },
 
-  /**
-   * Delete a canvas
-   */
   delete: async (id: string) => {
     return apiFetch<{ deleted: boolean; id: string }>(`/api/canvases/${id}`, {
       method: "DELETE",
@@ -259,58 +217,41 @@ export const canvasesApi = {
   },
 };
 
-// Workspaces API
-export interface Workspace {
+// Organizations API
+export interface Organization {
   id: string;
   name: string;
+  slug: string | null;
+  logo: string | null;
   createdAt: string | null;
-  role: string;
-  joinedAt: string | null;
 }
 
-export const workspacesApi = {
-  /**
-   * List user's workspaces
-   */
+export const organizationsApi = {
   list: async () => {
-    return apiFetch<{ workspaces: Workspace[] }>("/api/workspaces");
+    return apiFetch<{ organizations: Organization[] }>("/api/organizations");
   },
 
-  /**
-   * Get workspace by ID
-   */
   get: async (id: string) => {
-    return apiFetch<{
-      workspace: Workspace & { memberCount: number; userRole: string };
-    }>(`/api/workspaces/${id}`);
+    return apiFetch<{ organization: Organization }>(`/api/organizations/${id}`);
   },
 
-  /**
-   * Create a workspace
-   */
-  create: async (name: string) => {
-    return apiFetch<{ workspace: Workspace }>("/api/workspaces", {
+  create: async (name: string, slug: string) => {
+    return apiFetch<{ organization: Organization }>("/api/organizations", {
       method: "POST",
-      body: JSON.stringify({ name }),
+      body: JSON.stringify({ name, slug }),
     });
   },
 
-  /**
-   * Update a workspace
-   */
-  update: async (id: string, data: { name?: string }) => {
-    return apiFetch<{ workspace: Workspace }>(`/api/workspaces/${id}`, {
+  update: async (id: string, data: { name?: string; slug?: string }) => {
+    return apiFetch<{ organization: Organization }>(`/api/organizations/${id}`, {
       method: "PUT",
       body: JSON.stringify(data),
     });
   },
 
-  /**
-   * Delete a workspace
-   */
   delete: async (id: string) => {
     return apiFetch<{ success: boolean; deleted: string }>(
-      `/api/workspaces/${id}`,
+      `/api/organizations/${id}`,
       { method: "DELETE" }
     );
   },

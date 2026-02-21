@@ -22,32 +22,6 @@ export const currentUser = {
   role: "Senior Architect"
 };
 
-export const workspaces = [
-  { 
-    id: "1", 
-    name: "Acme Corp", 
-    plan: "Pro", 
-    members: 5, 
-    role: "Owner",
-    description: "Main workspace for Acme Corp engineering team"
-  },
-  { 
-    id: "2", 
-    name: "Personal Projects", 
-    plan: "Free", 
-    members: 1, 
-    role: "Owner",
-    description: "My personal experiments and learning"
-  },
-  { 
-    id: "3", 
-    name: "Freelance Client A", 
-    plan: "Team", 
-    members: 3, 
-    role: "Member",
-    description: "Contract work for Client A"
-  },
-];
 
 export const recentCanvases = [
   { 

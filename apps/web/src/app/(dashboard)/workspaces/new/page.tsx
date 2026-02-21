@@ -1,13 +1,53 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, Building2, Check, ChevronRight } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ArrowLeft, Building2, Check, ChevronRight, Loader2 } from "lucide-react";
 import { useState } from "react";
+import { authClient } from "@hachi/auth/client";
 
-export default function NewWorkspacePage() {
+export default function NewOrganizationPage() {
+  const router = useRouter();
   const [step, setStep] = useState(1);
   const [name, setName] = useState("");
   const [useCase, setUseCase] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const slug = name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+
+  const handleCreate = async () => {
+    if (!name.trim()) return;
+    setIsCreating(true);
+    setError(null);
+
+    try {
+      const { data, error: apiError } = await authClient.organization.create({
+        name: name.trim(),
+        slug,
+        metadata: { useCase },
+      });
+
+      if (apiError) {
+        setError(apiError.message || "Failed to create organization");
+        setIsCreating(false);
+        return;
+      }
+
+      if (data) {
+        await authClient.organization.setActive({
+          organizationId: data.id,
+        });
+        router.push(`/workspaces/${data.id}`);
+      }
+    } catch {
+      setError("Failed to create organization. Please try again.");
+      setIsCreating(false);
+    }
+  };
 
   return (
     <div className="max-w-xl mx-auto py-12 space-y-8">
@@ -15,11 +55,11 @@ export default function NewWorkspacePage() {
         <Link
           href="/workspaces"
           className="p-2 rounded-md hover:bg-muted text-muted-foreground transition-colors"
-          aria-label="Back to workspaces"
+          aria-label="Back to organizations"
         >
           <ArrowLeft size={20} aria-hidden="true" />
         </Link>
-        <h1 className="text-2xl font-bold tracking-tight">Create New Workspace</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Create New Organization</h1>
       </div>
 
       {/* Progress Steps */}
@@ -47,12 +87,18 @@ export default function NewWorkspacePage() {
       </div>
 
       <div className="p-8 rounded-xl border border-border bg-card shadow-sm">
+        {error && (
+          <div className="mb-4 p-4 rounded-lg bg-destructive/10 text-destructive text-sm" role="alert">
+            {error}
+          </div>
+        )}
+
         {step === 1 && (
           <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
             <div>
-              <label htmlFor="workspace-name" className="block text-sm font-medium mb-2">Workspace Name</label>
+              <label htmlFor="org-name" className="block text-sm font-medium mb-2">Organization Name</label>
               <input
-                id="workspace-name"
+                id="org-name"
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -60,9 +106,11 @@ export default function NewWorkspacePage() {
                 className="w-full px-4 py-2 rounded-md border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary"
                 autoFocus
               />
-              <p className="text-xs text-muted-foreground mt-2">
-                This will be the name of your team's shared environment.
-              </p>
+              {name && (
+                <p className="text-xs text-muted-foreground mt-2">
+                  Slug: <span className="font-mono">{slug}</span>
+                </p>
+              )}
             </div>
             <div className="flex justify-end">
               <button
@@ -129,8 +177,8 @@ export default function NewWorkspacePage() {
 
             <div className="bg-muted/50 rounded-lg p-4 text-sm space-y-2">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Plan</span>
-                <span className="font-medium">Free Trial</span>
+                <span className="text-muted-foreground">Slug</span>
+                <span className="font-mono font-medium">{slug}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Members</span>
@@ -146,9 +194,18 @@ export default function NewWorkspacePage() {
                 Back
               </button>
               <button
-                className="flex items-center gap-2 px-8 py-2 bg-primary text-primary-foreground rounded-md font-medium hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20"
+                onClick={handleCreate}
+                disabled={isCreating}
+                className="flex items-center gap-2 px-8 py-2 bg-primary text-primary-foreground rounded-md font-medium hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20 disabled:opacity-50"
               >
-                Create Workspace
+                {isCreating ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  "Create Organization"
+                )}
               </button>
             </div>
           </div>

@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { ChevronsUpDown, Check, Plus, Building2 } from "lucide-react";
-import { workspaces } from "@/lib/mock-data";
+import { authClient } from "@hachi/auth/client";
 import Link from "next/link";
 
 export const WorkspaceSwitcher = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [activeWorkspace, setActiveWorkspace] = useState(workspaces[0]!);
+  const { data: organizations } = authClient.useListOrganizations();
+  const { data: activeOrg } = authClient.useActiveOrganization();
 
   // Close on escape key
   useEffect(() => {
@@ -20,6 +21,8 @@ export const WorkspaceSwitcher = () => {
     }
   }, [isOpen]);
 
+  const displayName = activeOrg?.name || "Select Organization";
+
   return (
     <div className="relative">
       <button
@@ -30,11 +33,11 @@ export const WorkspaceSwitcher = () => {
       >
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-md bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center text-white font-bold shadow-sm">
-            {activeWorkspace.name.charAt(0)}
+            {displayName.charAt(0)}
           </div>
           <div className="flex flex-col items-start text-left">
-            <span className="text-sm font-semibold group-hover:text-foreground transition-colors">{activeWorkspace.name}</span>
-            <span className="text-xs text-muted-foreground">{activeWorkspace.plan} Plan</span>
+            <span className="text-sm font-semibold group-hover:text-foreground transition-colors">{displayName}</span>
+            <span className="text-xs text-muted-foreground">{activeOrg?.slug || ""}</span>
           </div>
         </div>
         <ChevronsUpDown size={16} className="text-muted-foreground opacity-50 group-hover:opacity-100 transition-opacity" />
@@ -52,38 +55,40 @@ export const WorkspaceSwitcher = () => {
             role="listbox"
           >
             <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
-              Workspaces
+              Organizations
             </div>
-            {workspaces.map((ws) => (
+            {(organizations || []).map((org) => (
               <button
-                key={ws.id}
-                onClick={() => {
-                  setActiveWorkspace(ws);
+                key={org.id}
+                onClick={async () => {
+                  await authClient.organization.setActive({
+                    organizationId: org.id,
+                  });
                   setIsOpen(false);
                 }}
                 className="w-full flex items-center justify-between px-2 py-2 rounded-md hover:bg-accent hover:text-accent-foreground transition-colors text-sm group"
                 role="option"
-                aria-selected={activeWorkspace.id === ws.id}
+                aria-selected={activeOrg?.id === org.id}
               >
                 <div className="flex items-center gap-2">
                   <div className="flex items-center justify-center w-6 h-6 rounded bg-muted group-hover:bg-background">
                     <Building2 size={14} className="text-muted-foreground" />
                   </div>
-                  {ws.name}
+                  {org.name}
                 </div>
-                {activeWorkspace.id === ws.id && <Check size={14} className="text-primary" />}
+                {activeOrg?.id === org.id && <Check size={14} className="text-primary" />}
               </button>
             ))}
             <div className="h-px bg-border my-1" />
             <Link
-              href="/workspaces/new"
+              href="/organizations/new"
               onClick={() => setIsOpen(false)}
               className="w-full flex items-center gap-2 px-2 py-2 rounded-md hover:bg-accent hover:text-accent-foreground transition-colors text-sm text-muted-foreground"
             >
               <div className="flex items-center justify-center w-6 h-6 rounded border border-dashed border-muted-foreground">
                 <Plus size={14} />
               </div>
-              Create Workspace
+              Create Organization
             </Link>
           </div>
         </>

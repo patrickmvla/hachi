@@ -1,24 +1,49 @@
 "use client";
 
 import { useState } from "react";
-import { X, Mail, Link as LinkIcon, Check } from "lucide-react";
+import { X, Mail, Loader2 } from "lucide-react";
+import { authClient } from "@hachi/auth/client";
 
 interface InviteModalProps {
   isOpen: boolean;
   onClose: () => void;
+  organizationId: string;
 }
 
-export const InviteModal = ({ isOpen, onClose }: InviteModalProps) => {
+export const InviteModal = ({ isOpen, onClose, organizationId }: InviteModalProps) => {
   const [email, setEmail] = useState("");
-  const [role, setRole] = useState("member");
-  const [copied, setCopied] = useState(false);
+  const [role, setRole] = useState<"admin" | "editor" | "viewer">("editor");
+  const [isSending, setIsSending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
 
   if (!isOpen) return null;
 
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText("https://hachi.app/invite/abc-123");
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const handleInvite = async () => {
+    if (!email.trim()) return;
+    setIsSending(true);
+    setError(null);
+    setSuccess(false);
+
+    try {
+      const { error: apiError } = await authClient.organization.inviteMember({
+        email: email.trim(),
+        role,
+        organizationId,
+      });
+
+      if (apiError) {
+        setError(apiError.message || "Failed to send invitation");
+      } else {
+        setSuccess(true);
+        setEmail("");
+        setTimeout(() => setSuccess(false), 3000);
+      }
+    } catch {
+      setError("Failed to send invitation. Please try again.");
+    } finally {
+      setIsSending(false);
+    }
   };
 
   return (
@@ -37,6 +62,17 @@ export const InviteModal = ({ isOpen, onClose }: InviteModalProps) => {
         </div>
 
         <div className="p-6 space-y-6">
+          {error && (
+            <div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm" role="alert">
+              {error}
+            </div>
+          )}
+          {success && (
+            <div className="p-3 rounded-md bg-green-500/10 text-green-600 dark:text-green-400 text-sm" role="status">
+              Invitation sent successfully!
+            </div>
+          )}
+
           <div className="space-y-4">
             <div className="flex gap-2">
               <div className="relative flex-1">
@@ -52,42 +88,28 @@ export const InviteModal = ({ isOpen, onClose }: InviteModalProps) => {
               </div>
               <select
                 value={role}
-                onChange={(e) => setRole(e.target.value)}
+                onChange={(e) => setRole(e.target.value as "admin" | "editor" | "viewer")}
                 className="px-3 py-2 rounded-md border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary"
                 aria-label="Select role"
               >
-                <option value="member">Member</option>
                 <option value="admin">Admin</option>
+                <option value="editor">Editor</option>
+                <option value="viewer">Viewer</option>
               </select>
             </div>
-            <button className="w-full py-2 bg-primary text-primary-foreground rounded-md font-medium hover:bg-primary/90 transition-colors">
-              Send Invite
-            </button>
-          </div>
-
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-border" aria-hidden="true" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">Or share link</span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 p-3 rounded-md bg-muted/50 border border-border">
-            <div className="p-2 bg-background rounded-full border border-border">
-              <LinkIcon size={14} className="text-muted-foreground" aria-hidden="true" />
-            </div>
-            <div className="flex-1 text-sm font-mono text-muted-foreground truncate" aria-label="Invite link">
-              https://hachi.app/invite/abc-123
-            </div>
             <button
-              onClick={handleCopyLink}
-              className="px-3 py-1.5 text-xs font-medium bg-background border border-border rounded hover:bg-muted transition-colors flex items-center gap-1"
-              aria-label={copied ? "Link copied" : "Copy invite link"}
+              onClick={handleInvite}
+              disabled={isSending || !email.trim()}
+              className="w-full py-2 bg-primary text-primary-foreground rounded-md font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
             >
-              {copied ? <Check size={12} className="text-green-500" aria-hidden="true" /> : null}
-              {copied ? "Copied" : "Copy"}
+              {isSending ? (
+                <>
+                  <Loader2 size={16} className="animate-spin" />
+                  Sending...
+                </>
+              ) : (
+                "Send Invite"
+              )}
             </button>
           </div>
         </div>

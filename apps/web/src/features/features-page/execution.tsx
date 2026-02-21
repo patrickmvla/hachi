@@ -1,144 +1,115 @@
-import { Play, Cpu, Zap, Shield, Check, GitBranch, RefreshCw } from "lucide-react";
+import { Play, Check } from "lucide-react";
 import { FeaturePoint } from "./shared";
 
 export const ExecutionSection = () => {
   return (
-    <section id="execution" className="py-24 px-6 border-t">
-      <div className="max-w-6xl mx-auto">
-        <div className="grid lg:grid-cols-2 gap-16 items-center">
-          <div>
-            <div className="inline-flex items-center justify-center size-14 rounded-2xl bg-orange-500/10 text-orange-500 mb-6">
-              <Play className="size-7" />
+    <section id="execution" className="py-20 px-6 bg-white scroll-mt-16">
+      <div className="max-w-[1000px] mx-auto">
+        <div className="grid lg:grid-cols-[1fr_1.2fr] gap-12 lg:gap-16 items-start">
+          {/* Text */}
+          <div className="lg:sticky lg:top-24">
+            <div className="inline-flex items-center justify-center size-10 rounded-lg border border-black/[0.06] text-orange-500 mb-5">
+              <Play className="size-5" />
             </div>
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4">Real Execution</h2>
-            <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
+            <h2 className="text-[24px] sm:text-[28px] font-bold tracking-[-0.02em] text-black mb-3">
+              Real Execution
+            </h2>
+            <p className="text-[15px] text-black/40 mb-8 leading-relaxed">
               Not a simulation. Execute against real APIs with your documents.
-              See actual latency, token counts, and costs. P50: 1.2s, P99: 3.4s.
+              See actual latency, token counts, and costs.
             </p>
 
-            <div className="space-y-6">
+            <div className="space-y-5">
               <FeaturePoint
-                icon={<Cpu className="size-4" />}
                 title="Real API calls"
-                description="Execute against OpenAI, Anthropic, Cohere, or OpenAI-compatible APIs (Azure, local LLMs via Ollama)."
+                description="OpenAI, Anthropic, Cohere, or any OpenAI-compatible API (Azure, Ollama)."
               />
               <FeaturePoint
-                icon={<GitBranch className="size-4" />}
                 title="Parallel execution"
                 description="Nodes without dependencies run concurrently. HyDE and direct retrieval execute simultaneously."
               />
               <FeaturePoint
-                icon={<Zap className="size-4" />}
                 title="Streaming + SSE"
-                description="Watch LLM output stream in real-time. Progress through each node as it executes."
+                description="Watch LLM output stream in real-time. See progress through each node."
               />
               <FeaturePoint
-                icon={<RefreshCw className="size-4" />}
                 title="Automatic retries"
                 description="Exponential backoff for transient failures. Circuit breaker for consistently failing nodes."
               />
               <FeaturePoint
-                icon={<Shield className="size-4" />}
                 title="Zero-knowledge security"
-                description="API keys stored in browser localStorage with AES-256. Never sent to our servers. Audit our code."
+                description="API keys stored in browser localStorage with AES-256. Never sent to our servers."
               />
             </div>
           </div>
 
-          <div className="relative">
-            <ExecutionDemo />
+          {/* Demo */}
+          <div className="rounded-2xl border border-black/[0.08] bg-white shadow-[0_0_0_1px_rgba(0,0,0,0.02),0_2px_8px_rgba(0,0,0,0.04),0_12px_40px_rgba(0,0,0,0.06)] overflow-hidden">
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-3 border-b border-black/[0.06]">
+              <div className="flex items-center gap-2">
+                <Play className="size-3.5 text-orange-500" />
+                <span className="text-[12px] font-medium text-black/70">Execution Log</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-[11px] text-orange-500">
+                <div className="size-1.5 rounded-full bg-orange-500 animate-pulse" />
+                Running
+              </div>
+            </div>
+
+            {/* Steps */}
+            <div className="p-5 text-[12px] space-y-3">
+              {[
+                { status: "done", name: "Query", time: "2ms", detail: "Input received", tokens: 12 },
+                { status: "done", name: "HyDE", time: "890ms", detail: "gpt-4o-mini", tokens: 247, cost: "$0.0003" },
+                { status: "done", name: "Embedding", time: "124ms", detail: "text-embedding-3-small", tokens: 312, cost: "$0.00006" },
+                { status: "done", name: "Retriever", time: "67ms", detail: "Pinecone (5 docs, k=10)" },
+                { status: "running", name: "Reranker", time: "...", detail: "cohere-rerank-v3" },
+                { status: "pending", name: "LLM", time: "-", detail: "gpt-4o" },
+                { status: "pending", name: "Output", time: "-", detail: "Waiting..." },
+              ].map((step, i) => (
+                <div key={i} className="flex items-center gap-2.5">
+                  {step.status === "done" && (
+                    <div className="size-4 rounded-full flex items-center justify-center bg-emerald-500/10">
+                      <Check className="size-2.5 text-emerald-600" strokeWidth={3} />
+                    </div>
+                  )}
+                  {step.status === "running" && (
+                    <div className="size-4 rounded-full border-[1.5px] border-orange-400 border-t-transparent animate-spin" />
+                  )}
+                  {step.status === "pending" && (
+                    <div className="size-4 rounded-full border border-black/[0.08]" />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <span className={step.status === "pending" ? "text-black/20" : "text-black/70 font-medium"}>
+                        {step.name}
+                      </span>
+                      <div className="flex items-center gap-3 text-[11px]">
+                        {step.tokens && <span className="text-black/20">{step.tokens} tok</span>}
+                        {step.cost && <span className="text-emerald-600">{step.cost}</span>}
+                        <span className={`w-12 text-right tabular-nums ${step.status === "done" ? "text-emerald-600" : "text-black/20"}`}>
+                          {step.time}
+                        </span>
+                      </div>
+                    </div>
+                    <p className="text-[10px] text-black/20 truncate">{step.detail}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Footer */}
+            <div className="flex items-center justify-between px-5 py-3 border-t border-black/[0.06] bg-black/[0.01]">
+              <div className="flex items-center gap-4 text-[11px]">
+                <span className="text-black/25">Time: <span className="text-black/70 font-medium tabular-nums">1.08s</span></span>
+                <span className="text-black/25">Tokens: <span className="text-black/70 font-medium tabular-nums">571</span></span>
+              </div>
+              <span className="text-[11px] text-black/25">Est. cost: <span className="text-emerald-600 font-medium tabular-nums">$0.00036</span></span>
+            </div>
           </div>
         </div>
       </div>
     </section>
-  );
-};
-
-const ExecutionDemo = () => {
-  return (
-    <div className="h-[420px] rounded-2xl border bg-muted/30 overflow-hidden shadow-xl relative">
-      {/* Header */}
-      <div className="px-4 py-3 border-b bg-background/50 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Play className="size-4 text-orange-500" />
-          <span className="font-medium text-sm">Execution Log</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
-          <span className="text-xs text-muted-foreground">Running</span>
-        </div>
-      </div>
-
-      {/* Timeline */}
-      <div className="p-4 space-y-3">
-        <ExecutionStep status="complete" name="Query" time="2ms" detail="Input received" tokens={12} />
-        <ExecutionStep status="complete" name="HyDE" time="890ms" detail="gpt-4o-mini" tokens={247} cost={0.0003} />
-        <ExecutionStep status="complete" name="Embedding" time="124ms" detail="text-embedding-3-small" tokens={312} cost={0.00006} />
-        <ExecutionStep status="complete" name="Retriever" time="67ms" detail="Pinecone (5 docs, k=10)" />
-        <ExecutionStep status="running" name="Reranker" time="..." detail="cohere-rerank-v3" />
-        <ExecutionStep status="pending" name="LLM" time="-" detail="gpt-4o" />
-        <ExecutionStep status="pending" name="Output" time="-" detail="Waiting..." />
-      </div>
-
-      {/* Footer with metrics */}
-      <div className="absolute bottom-0 left-0 right-0 px-4 py-3 border-t bg-background/50">
-        <div className="flex items-center justify-between text-xs">
-          <div className="flex items-center gap-4">
-            <span className="text-muted-foreground">Time: <span className="text-foreground font-medium">1.08s</span></span>
-            <span className="text-muted-foreground">Tokens: <span className="text-foreground font-medium">571</span></span>
-          </div>
-          <span className="text-muted-foreground">Est. cost: <span className="text-green-500 font-medium">$0.00036</span></span>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const ExecutionStep = ({
-  status,
-  name,
-  time,
-  detail,
-  tokens,
-  cost,
-}: {
-  status: "complete" | "running" | "pending";
-  name: string;
-  time: string;
-  detail: string;
-  tokens?: number;
-  cost?: number;
-}) => {
-  return (
-    <div className="flex items-center gap-3">
-      <div className="shrink-0">
-        {status === "complete" && (
-          <div className="size-5 rounded-full bg-emerald-500/20 flex items-center justify-center">
-            <Check className="size-3 text-emerald-500" />
-          </div>
-        )}
-        {status === "running" && (
-          <div className="size-5 rounded-full border-2 border-orange-500 border-t-transparent animate-spin" />
-        )}
-        {status === "pending" && (
-          <div className="size-5 rounded-full border-2 border-muted-foreground/30" />
-        )}
-      </div>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center justify-between">
-          <span className={`font-medium text-sm ${status === "pending" ? "text-muted-foreground" : ""}`}>
-            {name}
-          </span>
-          <div className="flex items-center gap-3 text-xs">
-            {tokens && <span className="text-muted-foreground">{tokens} tok</span>}
-            {cost && <span className="text-green-500">${cost.toFixed(5)}</span>}
-            <span className={`${status === "complete" ? "text-emerald-500" : "text-muted-foreground"} w-14 text-right`}>
-              {time}
-            </span>
-          </div>
-        </div>
-        <p className="text-xs text-muted-foreground truncate">{detail}</p>
-      </div>
-    </div>
   );
 };

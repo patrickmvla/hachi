@@ -5,4 +5,3 @@ export { ExecutionSection } from "./execution";
 export { CollaborationSection } from "./collaboration";
 export { AdvancedPatternsSection } from "./advanced-patterns";
 export { IntegrationsSection } from "./integrations";
-export { FeaturesCTA } from "./cta";

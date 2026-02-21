@@ -6,8 +6,7 @@ import Link from "next/link";
 import { ArrowLeft, Loader2, FileText, Sparkles } from "lucide-react";
 import { createCanvas } from "@/features/canvas/api/canvas-api";
 import { authClient } from "@hachi/auth/client";
-import { templates } from "@/lib/mock-data";
-import { getTemplateGraph } from "@/lib/template-graphs";
+import { useTemplates } from "@/features/templates/hooks";
 import {
   PageHeader,
   PageHeaderContent,
@@ -27,6 +26,7 @@ function NewCanvasForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { data: activeOrg } = authClient.useActiveOrganization();
+  const { data: templates } = useTemplates();
 
   const [name, setName] = useState("");
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
@@ -46,9 +46,8 @@ function NewCanvasForm() {
 
     try {
       // Get initial graph from template or empty
-      const initialGraph = selectedTemplate
-        ? getTemplateGraph(selectedTemplate)
-        : { nodes: [], edges: [] };
+      const template = templates?.find((t) => t.id === selectedTemplate);
+      const initialGraph = template?.graphJson || { nodes: [], edges: [] };
 
       const canvas = await createCanvas(
         activeOrg?.id || "",
@@ -131,7 +130,7 @@ function NewCanvasForm() {
               </p>
             </button>
 
-            {templates.slice(0, 3).map((template) => (
+            {templates?.slice(0, 3).map((template) => (
               <button
                 key={template.id}
                 type="button"

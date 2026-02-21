@@ -18,8 +18,7 @@ import {
   Users,
 } from "lucide-react";
 import { authClient } from "@hachi/auth/client";
-import { templates } from "@/lib/mock-data";
-import { getTemplateGraph } from "@/lib/template-graphs";
+import { useTemplates } from "@/features/templates/hooks";
 import { createCanvas } from "@/features/canvas/api/canvas-api";
 
 const STEPS = [
@@ -59,6 +58,7 @@ export default function OnboardingPage() {
   const router = useRouter();
   const { data: session } = authClient.useSession();
   const { data: activeOrg } = authClient.useActiveOrganization();
+  const { data: templates } = useTemplates();
   const [mounted, setMounted] = useState(false);
 
   const [step, setStep] = useState(1);
@@ -208,8 +208,8 @@ export default function OnboardingPage() {
     setError(null);
 
     try {
-      const graph = getTemplateGraph(selectedTemplate);
-      const template = templates.find((t) => t.id === selectedTemplate);
+      const template = templates?.find((t) => t.id === selectedTemplate);
+      const graph = template?.graphJson || { nodes: [], edges: [] };
       const canvas = await createCanvas(
         createdOrgId,
         template?.name || "Untitled Canvas",
@@ -825,7 +825,7 @@ export default function OnboardingPage() {
                 </button>
 
                 {/* Template cards */}
-                {templates.map((template) => {
+                {templates?.map((template) => {
                   const color =
                     TEMPLATE_COLORS[template.id] || "#2563eb";
                   const isSelected =

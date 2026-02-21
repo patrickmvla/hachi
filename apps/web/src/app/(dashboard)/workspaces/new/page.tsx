@@ -2,17 +2,29 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Building2, Check, ChevronRight, Loader2 } from "lucide-react";
-import { useState } from "react";
+import { ArrowLeft, Check, ChevronRight, Loader2 } from "lucide-react";
+import { useState, useEffect } from "react";
 import { authClient } from "@hachi/auth/client";
 
 export default function NewOrganizationPage() {
   const router = useRouter();
+  const { data: session } = authClient.useSession();
   const [step, setStep] = useState(1);
   const [name, setName] = useState("");
+  const [domain, setDomain] = useState("");
   const [useCase, setUseCase] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Auto-suggest domain from user's email
+  useEffect(() => {
+    if (session?.user?.email && !domain) {
+      const emailDomain = session.user.email.split("@")[1];
+      if (emailDomain && !emailDomain.match(/^(gmail|yahoo|hotmail|outlook|icloud|proton)\./)) {
+        setDomain(emailDomain);
+      }
+    }
+  }, [session?.user?.email]);
 
   const slug = name
     .toLowerCase()
@@ -29,6 +41,7 @@ export default function NewOrganizationPage() {
         name: name.trim(),
         slug,
         metadata: { useCase },
+        domain: domain.trim() || undefined,
       });
 
       if (apiError) {
@@ -112,6 +125,20 @@ export default function NewOrganizationPage() {
                 </p>
               )}
             </div>
+            <div>
+              <label htmlFor="org-domain" className="block text-sm font-medium mb-2">Workspace Domain</label>
+              <input
+                id="org-domain"
+                type="text"
+                value={domain}
+                onChange={(e) => setDomain(e.target.value)}
+                placeholder="e.g. acme.com"
+                className="w-full px-4 py-2 rounded-md border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+              <p className="text-xs text-muted-foreground mt-2">
+                Users who sign up with this email domain will auto-join this organization.
+              </p>
+            </div>
             <div className="flex justify-end">
               <button
                 onClick={() => setStep(2)}
@@ -180,6 +207,12 @@ export default function NewOrganizationPage() {
                 <span className="text-muted-foreground">Slug</span>
                 <span className="font-mono font-medium">{slug}</span>
               </div>
+              {domain && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Domain</span>
+                  <span className="font-medium">{domain}</span>
+                </div>
+              )}
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Members</span>
                 <span className="font-medium">1 (You)</span>

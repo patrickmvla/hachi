@@ -14,6 +14,7 @@ export default function WorkspaceSettingsPage() {
   const { data: org, isLoading } = useOrganization(id);
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
+  const [domain, setDomain] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -23,6 +24,7 @@ export default function WorkspaceSettingsPage() {
     if (org) {
       setName(org.name);
       setSlug(org.slug || "");
+      setDomain((org as any).domain || "");
     }
   }, [org]);
 
@@ -34,7 +36,11 @@ export default function WorkspaceSettingsPage() {
 
     try {
       const { error: apiError } = await authClient.organization.update({
-        data: { name: name.trim(), slug: slug.trim() || undefined },
+        data: {
+          name: name.trim(),
+          slug: slug.trim() || undefined,
+          domain: domain.trim() || undefined,
+        },
         organizationId: id,
       });
       if (apiError) {
@@ -136,6 +142,21 @@ export default function WorkspaceSettingsPage() {
                 className="flex-1 px-3 py-2 rounded-md border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="org-domain" className="text-sm font-medium">Domain</label>
+            <input
+              id="org-domain"
+              type="text"
+              value={domain}
+              onChange={(e) => setDomain(e.target.value)}
+              placeholder="e.g. acme.com"
+              className="w-full px-3 py-2 rounded-md border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+            <p className="text-xs text-muted-foreground">
+              Users signing up with @{domain || "domain"} emails will automatically join this organization.
+            </p>
           </div>
 
           <div className="pt-4 border-t border-border flex justify-end">

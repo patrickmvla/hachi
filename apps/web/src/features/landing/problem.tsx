@@ -1,155 +1,89 @@
 "use client";
 
-import { AlertTriangle, Terminal, XCircle } from "lucide-react";
+import { useEffect, useState } from "react";
 
 const problems = [
   {
-    code: "ERR_NO_EXECUTION",
+    number: "01",
     title: "Whiteboards don't execute",
-    description: "You sketch architectures but can't test them. Ideas stay theoretical.",
-    line: 12,
+    description: "You sketch architectures but can't test them. Ideas stay theoretical forever.",
   },
   {
-    code: "ERR_BLACK_BOX",
-    title: "Failed experiments provide no insight",
-    description: "Pipeline returns bad results. You don't know which step failed or why.",
-    line: 47,
+    number: "02",
+    title: "Failures are invisible",
+    description: "Your pipeline returns bad results. You don't know which step failed or why.",
   },
   {
-    code: "ERR_COMPLEXITY",
-    title: "Advanced patterns are hard to visualize",
-    description: "HyDE, CRAG, Fusion - reading papers doesn't show how they connect.",
-    line: 89,
+    number: "03",
+    title: "Patterns stay on paper",
+    description: "HyDE, CRAG, Fusion — reading papers doesn't show how components actually connect.",
   },
 ];
 
 export const Problem = () => {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
   return (
-    <section className="relative py-32 px-6 overflow-hidden">
-      {/* Background pattern */}
-      <div className="absolute inset-0 -z-10">
-        <div
-          className="absolute inset-0 opacity-[0.02]"
-          style={{
-            backgroundImage: `
-              linear-gradient(hsl(var(--primary)) 1px, transparent 1px),
-              linear-gradient(90deg, hsl(var(--primary)) 1px, transparent 1px)
-            `,
-            backgroundSize: "40px 40px",
-          }}
-        />
-      </div>
+    <section className="relative py-28 sm:py-36 px-6 bg-[#fafafa]">
+      {/* Top edge line */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-black/[0.06] to-transparent" />
 
-      <div className="max-w-5xl mx-auto">
-        {/* Header - terminal style */}
-        <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded border border-red-500/30 bg-red-500/5 text-red-500 text-xs font-medium mb-6">
-            <AlertTriangle className="size-3.5" />
-            <span>DIAGNOSTIC_REPORT</span>
-          </div>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6">
-            You&apos;ve built naive RAG.
-            <br />
-            <span className="text-muted-foreground">Now what?</span>
+      <div className="max-w-[1000px] mx-auto">
+        {/* Header */}
+        <div className="max-w-[520px] mb-20">
+          <span
+            className="text-[12px] tracking-wide text-black/35 uppercase block mb-5"
+            style={mounted ? { animation: "fadeInUp 0.6s ease-out forwards" } : { opacity: 0 }}
+          >
+            The problem
+          </span>
+          <h2
+            className="text-[clamp(1.75rem,4vw,2.75rem)] font-bold tracking-[-0.03em] leading-[1.15] text-black mb-5"
+            style={mounted ? { animation: "fadeInUp 0.6s ease-out 80ms forwards", opacity: 0 } : { opacity: 0 }}
+          >
+            You built naive RAG.<br />
+            Now you&apos;re stuck.
           </h2>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto leading-relaxed">
-            Retrieve documents. Pass to LLM. Get mediocre results. Sound familiar?
+          <p
+            className="text-[16px] leading-relaxed text-black/40"
+            style={mounted ? { animation: "fadeInUp 0.6s ease-out 160ms forwards", opacity: 0 } : { opacity: 0 }}
+          >
+            Retrieve documents. Pass to an LLM. Get mediocre results. Sound familiar?
           </p>
         </div>
 
-        {/* Terminal-style error log */}
-        <div className="relative">
-          {/* Terminal window */}
-          <div className="rounded-xl border border-border/50 bg-card/80 backdrop-blur-sm overflow-hidden shadow-2xl">
-            {/* Terminal header */}
-            <div className="flex items-center gap-2 px-4 py-3 border-b border-border/50 bg-muted/30">
-              <div className="flex items-center gap-1.5">
-                <div className="size-3 rounded-full bg-red-500/80" />
-                <div className="size-3 rounded-full bg-amber-500/80" />
-                <div className="size-3 rounded-full bg-emerald-500/80" />
-              </div>
-              <div className="flex-1 text-center">
-                <span className="text-xs text-muted-foreground">rag_debugger.log</span>
-              </div>
-              <Terminal className="size-4 text-muted-foreground" />
+        {/* Problem cards */}
+        <div className="grid sm:grid-cols-3 gap-px bg-black/[0.06] rounded-2xl overflow-hidden border border-black/[0.06]">
+          {problems.map((problem, i) => (
+            <div
+              key={problem.number}
+              className="bg-white p-8 sm:p-10 flex flex-col"
+              style={mounted ? { animation: `fadeInUp 0.5s ease-out ${240 + i * 100}ms forwards`, opacity: 0 } : { opacity: 0 }}
+            >
+              <span className="text-[42px] font-bold text-black/[0.06] leading-none mb-6">
+                {problem.number}
+              </span>
+              <h3 className="text-[15px] font-semibold text-black mb-3 leading-snug">
+                {problem.title}
+              </h3>
+              <p className="text-[13px] leading-relaxed text-black/40 flex-1">
+                {problem.description}
+              </p>
             </div>
-
-            {/* Terminal content */}
-            <div className="p-6 space-y-1 font-mono text-sm">
-              {/* Timestamp header */}
-              <div className="text-muted-foreground text-xs mb-4">
-                <span className="text-primary">[{new Date().toISOString().split("T")[0]}]</span> Running diagnostics on RAG pipeline...
-              </div>
-
-              {problems.map((problem, index) => (
-                <div
-                  key={problem.code}
-                  className="group py-4 border-b border-border/30 last:border-0 hover:bg-muted/20 -mx-6 px-6 transition-colors"
-                  style={{
-                    animation: `fadeInUp 0.5s ease-out ${300 + index * 150}ms forwards`,
-                    opacity: 0,
-                  }}
-                >
-                  {/* Error line */}
-                  <div className="flex items-start gap-3">
-                    <XCircle className="size-4 text-red-500 mt-0.5 shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-red-500 font-semibold">{problem.code}</span>
-                        <span className="text-muted-foreground">at line {problem.line}</span>
-                      </div>
-                      <div className="mt-2">
-                        <span className="text-foreground font-medium">{problem.title}</span>
-                      </div>
-                      <div className="mt-1 text-muted-foreground text-xs leading-relaxed">
-                        {problem.description}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-
-              {/* Summary line */}
-              <div
-                className="pt-4 mt-4 border-t border-border/30 flex items-center justify-between text-xs"
-                style={{
-                  animation: "fadeInUp 0.5s ease-out 800ms forwards",
-                  opacity: 0,
-                }}
-              >
-                <div className="flex items-center gap-2">
-                  <span className="text-red-500">3 errors found</span>
-                  <span className="text-muted-foreground">|</span>
-                  <span className="text-muted-foreground">0 warnings</span>
-                </div>
-                <div className="text-muted-foreground">
-                  Pipeline status: <span className="text-amber-500">degraded</span>
-                </div>
-              </div>
-
-              {/* Blinking cursor */}
-              <div className="pt-4 flex items-center gap-2 text-muted-foreground">
-                <span className="text-primary">$</span>
-                <span className="animate-pulse">_</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Glow effect behind terminal */}
-          <div className="absolute inset-0 -z-10 bg-gradient-to-b from-red-500/5 via-transparent to-transparent blur-3xl" />
+          ))}
         </div>
 
-        {/* Solution hint */}
+        {/* Solution tease */}
         <div
-          className="mt-12 text-center"
-          style={{
-            animation: "fadeInUp 0.5s ease-out 1000ms forwards",
-            opacity: 0,
-          }}
+          className="mt-14 flex items-center gap-3"
+          style={mounted ? { animation: "fadeInUp 0.5s ease-out 600ms forwards", opacity: 0 } : { opacity: 0 }}
         >
-          <p className="text-sm text-muted-foreground">
-            What if you could <span className="text-primary font-medium">see</span> exactly where your pipeline fails?
+          <div className="h-px flex-1 bg-gradient-to-r from-black/[0.06] to-transparent" />
+          <p className="text-[13px] text-black/35 shrink-0">
+            What if you could <span className="text-black font-medium">see through</span> your entire pipeline?
           </p>
+          <div className="h-px flex-1 bg-gradient-to-l from-black/[0.06] to-transparent" />
         </div>
       </div>
     </section>

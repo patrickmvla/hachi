@@ -1,6 +1,7 @@
 "use client";
 
-import { Lightbulb, GitFork, Merge, Scale, Blocks } from "lucide-react";
+import { Lightbulb, GitFork, Merge, Scale } from "lucide-react";
+import { useEffect, useState } from "react";
 
 const nodes = [
   {
@@ -8,157 +9,99 @@ const nodes = [
     name: "HyDE",
     fullName: "Hypothetical Document Embeddings",
     description: "Generate hypothetical answers to improve short query embeddings",
-    color: "cyan",
+    color: "#2563eb",
   },
   {
     icon: GitFork,
     name: "Parent-Child",
     fullName: "Hierarchical Chunking",
     description: "Match on small chunks, return large chunks for context",
-    color: "violet",
+    color: "#7c3aed",
   },
   {
     icon: Merge,
     name: "Fusion",
     fullName: "Reciprocal Rank Fusion",
     description: "Combine BM25 + vector search with intelligent ranking",
-    color: "emerald",
+    color: "#059669",
   },
   {
     icon: Scale,
     name: "Judge",
     fullName: "CRAG Pattern",
     description: "Evaluate relevance and route to fallback if needed",
-    color: "amber",
+    color: "#d97706",
   },
 ];
 
-const colorStyles: Record<string, { border: string; bg: string; text: string; glow: string; shadow: string }> = {
-  cyan: {
-    border: "border-cyan-500/30 group-hover:border-cyan-500/60",
-    bg: "bg-gradient-to-br from-cyan-500/20 to-cyan-500/5",
-    text: "text-cyan-400",
-    glow: "bg-cyan-500/20",
-    shadow: "shadow-cyan-500/20",
-  },
-  violet: {
-    border: "border-violet-500/30 group-hover:border-violet-500/60",
-    bg: "bg-gradient-to-br from-violet-500/20 to-violet-500/5",
-    text: "text-violet-400",
-    glow: "bg-violet-500/20",
-    shadow: "shadow-violet-500/20",
-  },
-  emerald: {
-    border: "border-emerald-500/30 group-hover:border-emerald-500/60",
-    bg: "bg-gradient-to-br from-emerald-500/20 to-emerald-500/5",
-    text: "text-emerald-400",
-    glow: "bg-emerald-500/20",
-    shadow: "shadow-emerald-500/20",
-  },
-  amber: {
-    border: "border-amber-500/30 group-hover:border-amber-500/60",
-    bg: "bg-gradient-to-br from-amber-500/20 to-amber-500/5",
-    text: "text-amber-400",
-    glow: "bg-amber-500/20",
-    shadow: "shadow-amber-500/20",
-  },
-};
-
 export const AdvancedNodes = () => {
-  return (
-    <section className="relative py-32 px-6 overflow-hidden">
-      {/* Background */}
-      <div className="absolute inset-0 -z-10">
-        <div
-          className="absolute inset-0 opacity-[0.02]"
-          style={{
-            backgroundImage: `
-              linear-gradient(hsl(var(--primary)) 1px, transparent 1px),
-              linear-gradient(90deg, hsl(var(--primary)) 1px, transparent 1px)
-            `,
-            backgroundSize: "40px 40px",
-          }}
-        />
-        {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-muted/30 to-transparent" />
-      </div>
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
 
-      <div className="max-w-5xl mx-auto">
+  return (
+    <section className="relative py-28 sm:py-36 px-6 bg-[#fafafa]">
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-black/[0.06] to-transparent" />
+
+      <div className="max-w-[1000px] mx-auto">
         {/* Header */}
         <div className="text-center mb-20">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded border border-primary/30 bg-primary/5 text-xs font-medium text-primary mb-6">
-            <Blocks className="size-3.5" />
-            <span>BUILDING_BLOCKS</span>
-          </div>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6">
-            Advanced RAG patterns
-            <br />
-            <span className="text-primary">as drag-and-drop nodes</span>
+          <span className="text-[12px] tracking-wide text-black/35 uppercase block mb-5">
+            Building blocks
+          </span>
+          <h2 className="text-[clamp(1.75rem,4vw,2.75rem)] font-bold tracking-[-0.03em] leading-[1.15] text-black mb-5">
+            Advanced RAG patterns<br />
+            as drag-and-drop nodes
           </h2>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+          <p className="text-[16px] leading-relaxed text-black/40 max-w-[480px] mx-auto">
             Each node encapsulates a complex pattern. Connect them. Run them. Inspect them.
           </p>
         </div>
 
         {/* Nodes grid */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {nodes.map((node, index) => {
-            const styles = colorStyles[node.color]!;
             const Icon = node.icon;
 
             return (
               <div
                 key={node.name}
-                className={`group relative p-6 rounded-xl border ${styles.border} bg-card/50 backdrop-blur-sm transition-all duration-300 hover:shadow-xl ${styles.shadow} cursor-pointer`}
-                style={{
-                  animation: `fadeInUp 0.5s ease-out ${200 + index * 100}ms forwards`,
-                  opacity: 0,
-                }}
+                className="group relative p-6 rounded-2xl border border-black/[0.06] bg-white hover:border-black/[0.12] transition-all duration-300 hover:shadow-[0_2px_8px_rgba(0,0,0,0.04),0_12px_40px_rgba(0,0,0,0.06)] cursor-pointer"
+                style={mounted ? { animation: `fadeInUp 0.5s ease-out ${200 + index * 80}ms forwards`, opacity: 0 } : { opacity: 0 }}
               >
-                {/* Glow effect on hover */}
-                <div className={`absolute inset-0 ${styles.glow} blur-2xl rounded-xl opacity-0 group-hover:opacity-100 transition-opacity -z-10`} />
-
                 {/* Icon */}
-                <div className={`relative size-12 rounded-lg ${styles.bg} ${styles.text} flex items-center justify-center mb-5 border ${styles.border}`}>
-                  <Icon className="size-5" />
+                <div
+                  className="size-10 rounded-lg flex items-center justify-center mb-5"
+                  style={{ backgroundColor: `${node.color}08`, color: node.color }}
+                >
+                  <Icon className="size-[18px]" />
                 </div>
 
                 {/* Content */}
-                <div className="space-y-2">
-                  <div className="flex items-baseline gap-2">
-                    <h4 className="font-bold text-lg">{node.name}</h4>
-                  </div>
-                  <p className={`text-xs ${styles.text} font-medium uppercase tracking-wide`}>
-                    {node.fullName}
-                  </p>
-                  <p className="text-sm text-muted-foreground leading-relaxed pt-1">
-                    {node.description}
-                  </p>
-                </div>
+                <h4 className="font-bold text-[15px] text-black mb-1">{node.name}</h4>
+                <p className="text-[11px] uppercase tracking-wide mb-3" style={{ color: node.color }}>
+                  {node.fullName}
+                </p>
+                <p className="text-[13px] leading-relaxed text-black/40">
+                  {node.description}
+                </p>
 
-                {/* Connection indicator */}
-                <div className="absolute -right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <div className={`size-4 rounded-full ${styles.bg} border ${styles.border} flex items-center justify-center`}>
-                    <div className={`size-2 rounded-full ${styles.text.replace("text-", "bg-")}`} />
-                  </div>
-                </div>
+                {/* Hover connector dot */}
+                <div
+                  className="absolute -right-1.5 top-1/2 -translate-y-1/2 size-3 rounded-full border-2 border-white opacity-0 group-hover:opacity-100 transition-opacity"
+                  style={{ backgroundColor: node.color }}
+                />
               </div>
             );
           })}
         </div>
 
         {/* Bottom hint */}
-        <div
-          className="mt-16 text-center"
-          style={{
-            animation: "fadeInUp 0.5s ease-out 800ms forwards",
-            opacity: 0,
-          }}
+        <p
+          className="mt-14 text-center text-[13px] text-black/30"
+          style={mounted ? { animation: "fadeInUp 0.5s ease-out 600ms forwards", opacity: 0 } : { opacity: 0 }}
         >
-          <p className="text-sm text-muted-foreground">
-            Combine these patterns to build sophisticated retrieval pipelines
-          </p>
-        </div>
+          Combine these patterns to build sophisticated retrieval pipelines
+        </p>
       </div>
     </section>
   );

@@ -1,294 +1,176 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Terminal, Zap } from "lucide-react";
-import { useEffect, useState } from "react";
+import { ArrowRight, ArrowDown } from "lucide-react";
+import { useEffect, useState, useRef } from "react";
 
-// Animated typing effect for the terminal
-const TypeWriter = ({ text, delay = 50 }: { text: string; delay?: number }) => {
-  const [displayText, setDisplayText] = useState("");
-  const [currentIndex, setCurrentIndex] = useState(0);
-
-  useEffect(() => {
-    if (currentIndex < text.length) {
-      const timeout = setTimeout(() => {
-        setDisplayText((prev) => prev + text[currentIndex]);
-        setCurrentIndex((prev) => prev + 1);
-      }, delay);
-      return () => clearTimeout(timeout);
-    }
-  }, [currentIndex, text, delay]);
-
-  return (
-    <span>
-      {displayText}
-      <span className="animate-pulse">_</span>
-    </span>
-  );
-};
-
-// Floating node component
-const FloatingNode = ({
-  label,
-  color,
-  position,
-  delay,
-}: {
-  label: string;
-  color: string;
-  position: { top?: string; bottom?: string; left?: string; right?: string };
-  delay: number;
-}) => (
-  <div
-    className="absolute hidden lg:block"
-    style={{
-      ...position,
-      animation: `fadeInUp 0.6s ease-out ${delay}ms forwards`,
-      opacity: 0,
-    }}
-  >
-    <div
-      className={`px-3 py-1.5 rounded border backdrop-blur-sm text-xs font-medium ${color}`}
-    >
-      {label}
-    </div>
-  </div>
-);
+const PIPELINE_STEPS = [
+  { id: "Q", label: "Query", color: "#2563eb" },
+  { id: "E", label: "Embed", color: "#7c3aed" },
+  { id: "R", label: "Retrieve", color: "#059669" },
+  { id: "G", label: "Generate", color: "#d97706" },
+] as const;
 
 export const Hero = () => {
+  const [activeStep, setActiveStep] = useState(-1);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
+    const timer = setInterval(() => {
+      setActiveStep((prev) => (prev >= 3 ? -1 : prev + 1));
+    }, 1200);
+    return () => clearInterval(timer);
   }, []);
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-background">
-      {/* Animated grid background */}
-      <div className="absolute inset-0 -z-10">
-        {/* Base grid */}
-        <div
-          className="absolute inset-0 opacity-[0.03]"
-          style={{
-            backgroundImage: `
-              linear-gradient(hsl(var(--primary)) 1px, transparent 1px),
-              linear-gradient(90deg, hsl(var(--primary)) 1px, transparent 1px)
-            `,
-            backgroundSize: "60px 60px",
-          }}
-        />
-        {/* Dot pattern overlay */}
-        <div
-          className="absolute inset-0 opacity-20"
-          style={{
-            backgroundImage: `radial-gradient(circle at center, hsl(var(--primary)) 1px, transparent 1px)`,
-            backgroundSize: "30px 30px",
-          }}
-        />
-        {/* Radial gradient center glow */}
-        <div
-          className="absolute inset-0 opacity-[0.08]"
-          style={{
-            background: "radial-gradient(ellipse at center, hsl(var(--primary)) 0%, transparent 70%)",
-          }}
-        />
-        {/* Noise texture */}
-        <div
-          className="absolute inset-0 opacity-[0.015]"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
-          }}
-        />
+    <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-white">
+      {/* Subtle grain texture */}
+      <div
+        className="absolute inset-0 opacity-[0.03] pointer-events-none"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
+        }}
+      />
+
+      {/* Geometric accent - top right */}
+      <div className="absolute top-0 right-0 w-[600px] h-[600px] opacity-[0.04] pointer-events-none">
+        <svg viewBox="0 0 600 600" fill="none">
+          <circle cx="600" cy="0" r="300" stroke="black" strokeWidth="1" />
+          <circle cx="600" cy="0" r="200" stroke="black" strokeWidth="1" />
+          <circle cx="600" cy="0" r="100" stroke="black" strokeWidth="1" />
+        </svg>
       </div>
 
-      {/* Floating nodes - only render after mount to avoid hydration issues */}
-      {mounted && (
-        <>
-          <FloatingNode
-            label="QUERY"
-            color="border-cyan-500/50 bg-cyan-500/10 text-cyan-400"
-            position={{ top: "20%", left: "10%" }}
-            delay={800}
-          />
-          <FloatingNode
-            label="EMBED"
-            color="border-violet-500/50 bg-violet-500/10 text-violet-400"
-            position={{ top: "35%", right: "12%" }}
-            delay={1000}
-          />
-          <FloatingNode
-            label="RETRIEVE"
-            color="border-emerald-500/50 bg-emerald-500/10 text-emerald-400"
-            position={{ bottom: "30%", left: "8%" }}
-            delay={1200}
-          />
-          <FloatingNode
-            label="GENERATE"
-            color="border-amber-500/50 bg-amber-500/10 text-amber-400"
-            position={{ bottom: "25%", right: "15%" }}
-            delay={1400}
-          />
-        </>
-      )}
-
-      {/* Main content */}
-      <div className="relative z-10 max-w-5xl mx-auto px-6 pt-24 pb-16 text-center">
-        {/* Terminal badge */}
+      {/* Content */}
+      <div className="relative z-10 max-w-[900px] mx-auto px-6 pt-32 pb-20 text-center">
+        {/* Overline */}
         <div
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-primary/30 bg-primary/5 backdrop-blur-sm mb-10"
-          style={{ animation: "fadeInUp 0.6s ease-out 200ms forwards", opacity: 0 }}
+          className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-black/[0.04] mb-10"
+          style={mounted ? { animation: "fadeInUp 0.7s ease-out forwards" } : { opacity: 0 }}
         >
-          <Terminal className="size-4 text-primary" />
-          <span className="text-sm text-primary">
-            {mounted ? <TypeWriter text="visual_rag_debugger --mode=production" delay={40} /> : "visual_rag_debugger --mode=production"}
-          </span>
+          <div className="size-1.5 rounded-full bg-emerald-500" />
+          <span className="text-[12px] tracking-wide text-black/50 uppercase">Visual RAG Architecture Platform</span>
         </div>
 
         {/* Main heading */}
         <h1
-          className="text-4xl sm:text-5xl lg:text-7xl font-bold tracking-tight mb-8"
-          style={{ animation: "fadeInUp 0.6s ease-out 400ms forwards", opacity: 0 }}
+          className="text-[clamp(2.5rem,6vw,4.5rem)] font-bold tracking-[-0.035em] leading-[1.05] text-black mb-8"
+          style={mounted ? { animation: "fadeInUp 0.7s ease-out 100ms forwards", opacity: 0 } : { opacity: 0 }}
         >
-          <span className="block text-foreground">Design RAG architectures</span>
-          <span className="block mt-2 relative">
-            <span className="relative inline-block">
-              <span className="text-primary">you can actually debug</span>
-              {/* Underline glow effect */}
-              <span className="absolute -bottom-2 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary to-transparent" />
-            </span>
+          Design RAG pipelines<br />
+          <span className="relative">
+            you can see through
+            <svg className="absolute -bottom-1 left-0 w-full h-2 text-blue-500/30" viewBox="0 0 300 8" preserveAspectRatio="none">
+              <path d="M0 5 Q75 0 150 5 Q225 8 300 3" stroke="currentColor" strokeWidth="3" fill="none" />
+            </svg>
           </span>
         </h1>
 
-        {/* Description */}
+        {/* Subheading */}
         <p
-          className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-12 leading-relaxed"
-          style={{ animation: "fadeInUp 0.6s ease-out 600ms forwards", opacity: 0 }}
+          className="text-[17px] sm:text-[19px] leading-relaxed text-black/45 max-w-[560px] mx-auto mb-14"
+          style={mounted ? { animation: "fadeInUp 0.7s ease-out 200ms forwards", opacity: 0 } : { opacity: 0 }}
         >
-          Hachi is where engineering teams design, execute, and inspect advanced RAG
-          pipelines. See exactly why your retrieval fails. Understand your system.
+          Hachi lets engineering teams visually design, execute, and debug
+          advanced retrieval pipelines. See exactly where and why things fail.
         </p>
 
-        {/* CTA buttons */}
+        {/* CTA */}
         <div
-          className="flex flex-col sm:flex-row items-center justify-center gap-4"
-          style={{ animation: "fadeInUp 0.6s ease-out 800ms forwards", opacity: 0 }}
+          className="flex flex-col sm:flex-row items-center justify-center gap-3"
+          style={mounted ? { animation: "fadeInUp 0.7s ease-out 300ms forwards", opacity: 0 } : { opacity: 0 }}
         >
           <Link
-            href="/sandbox"
-            className="group relative inline-flex items-center gap-3 px-8 py-4 text-base font-medium rounded-lg overflow-hidden transition-all"
+            href="/mini-map"
+            className="group inline-flex items-center gap-2 px-7 py-3 text-[14px] font-semibold rounded-full bg-black text-white hover:bg-black/85 transition-all shadow-[0_1px_2px_rgba(0,0,0,0.1),0_4px_12px_rgba(0,0,0,0.1)]"
           >
-            {/* Button background with glow */}
-            <span className="absolute inset-0 bg-primary" />
-            <span className="absolute inset-0 bg-gradient-to-r from-primary via-cyan-400 to-primary opacity-0 group-hover:opacity-100 transition-opacity" />
-            <span className="absolute inset-0 shadow-[0_0_40px_hsl(var(--primary))] opacity-30 group-hover:opacity-50 transition-opacity" />
-            {/* Button content */}
-            <span className="relative flex items-center gap-3 text-primary-foreground">
-              <Zap className="size-4" />
-              Start Building
-              <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
-            </span>
+            Try it out
+            <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
           </Link>
-
           <Link
             href="/features"
-            className="group inline-flex items-center gap-2 px-8 py-4 text-base font-medium rounded-lg border border-border/50 hover:border-primary/50 hover:bg-primary/5 transition-all"
+            className="group inline-flex items-center gap-2 px-7 py-3 text-[14px] font-medium rounded-full border border-black/10 text-black/70 hover:border-black/20 hover:text-black hover:bg-black/[0.02] transition-all"
           >
-            See How It Works
-            <ArrowRight className="size-4 opacity-50 group-hover:opacity-100 transition-all group-hover:translate-x-1" />
+            How it works
+            <ArrowDown className="size-3.5 opacity-40 group-hover:opacity-70 transition-opacity" />
           </Link>
         </div>
+      </div>
 
-        {/* Animated flow diagram preview */}
-        <div
-          className="mt-20 relative"
-          style={{ animation: "fadeInUp 0.6s ease-out 1000ms forwards", opacity: 0 }}
-        >
-          <div className="relative mx-auto max-w-3xl">
-            {/* Glow backdrop */}
-            <div className="absolute inset-0 bg-gradient-to-b from-primary/20 via-primary/5 to-transparent blur-3xl -z-10" />
+      {/* Pipeline visualization */}
+      <div
+        className="relative w-full max-w-[700px] mx-auto px-6 pb-24"
+        style={mounted ? { animation: "fadeInUp 0.8s ease-out 500ms forwards", opacity: 0 } : { opacity: 0 }}
+      >
+        <div className="relative rounded-2xl border border-black/[0.08] bg-white shadow-[0_0_0_1px_rgba(0,0,0,0.02),0_2px_8px_rgba(0,0,0,0.04),0_12px_40px_rgba(0,0,0,0.06)] overflow-hidden">
+          {/* Toolbar */}
+          <div className="flex items-center justify-between px-5 py-3 border-b border-black/[0.06]">
+            <div className="flex items-center gap-1.5">
+              <div className="size-[9px] rounded-full bg-black/10" />
+              <div className="size-[9px] rounded-full bg-black/10" />
+              <div className="size-[9px] rounded-full bg-black/10" />
+            </div>
+            <span className="text-[11px] text-black/30 tracking-wide">naive-rag.hachi</span>
+            <div className="flex items-center gap-1.5 text-[11px] text-black/30">
+              <div className="size-1.5 rounded-full bg-emerald-500" />
+              ready
+            </div>
+          </div>
 
-            {/* Flow diagram */}
-            <div className="relative rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm p-8 overflow-hidden">
-              {/* Scan line effect */}
-              <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div
-                  className="absolute w-full h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent"
-                  style={{ animation: "scan 3s linear infinite" }}
-                />
-              </div>
-
-              <div className="flex items-center justify-between gap-4">
-                {/* Node: Query */}
-                <div className="flex flex-col items-center gap-2 group">
-                  <div className="relative">
-                    <div className="absolute inset-0 bg-cyan-500/20 blur-lg rounded-lg opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <div className="relative size-12 sm:size-14 rounded-lg border-2 border-cyan-500/50 bg-cyan-500/10 flex items-center justify-center">
-                      <span className="text-cyan-400 text-xs font-bold">Q</span>
+          {/* Pipeline flow */}
+          <div className="px-8 py-10 sm:py-14">
+            <div className="flex items-center justify-between gap-2 sm:gap-0">
+              {PIPELINE_STEPS.map((step, i) => (
+                <div key={step.id} className="flex items-center gap-2 sm:gap-4 flex-1 last:flex-none">
+                  {/* Node */}
+                  <div className="flex flex-col items-center gap-2.5">
+                    <div
+                      className="relative size-12 sm:size-14 rounded-xl border-2 flex items-center justify-center transition-all duration-500"
+                      style={{
+                        borderColor: activeStep >= i ? step.color : "rgba(0,0,0,0.08)",
+                        backgroundColor: activeStep >= i ? `${step.color}08` : "transparent",
+                        boxShadow: activeStep === i ? `0 0 0 4px ${step.color}15, 0 4px 16px ${step.color}20` : "none",
+                      }}
+                    >
+                      <span
+                        className="text-sm font-bold transition-colors duration-500"
+                        style={{ color: activeStep >= i ? step.color : "rgba(0,0,0,0.25)" }}
+                      >
+                        {step.id}
+                      </span>
                     </div>
+                    <span
+                      className="text-[10px] sm:text-[11px] tracking-wide uppercase transition-colors duration-500"
+                      style={{ color: activeStep >= i ? "rgba(0,0,0,0.7)" : "rgba(0,0,0,0.25)" }}
+                    >
+                      {step.label}
+                    </span>
                   </div>
-                  <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Query</span>
-                </div>
 
-                {/* Connection */}
-                <div className="flex-1 h-px bg-gradient-to-r from-cyan-500/50 via-cyan-500 to-violet-500/50 relative">
-                  <div className="absolute inset-0 animate-pulse" />
-                </div>
-
-                {/* Node: Embed */}
-                <div className="flex flex-col items-center gap-2 group">
-                  <div className="relative">
-                    <div className="absolute inset-0 bg-violet-500/20 blur-lg rounded-lg opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <div className="relative size-12 sm:size-14 rounded-lg border-2 border-violet-500/50 bg-violet-500/10 flex items-center justify-center">
-                      <span className="text-violet-400 text-xs font-bold">E</span>
+                  {/* Connector */}
+                  {i < PIPELINE_STEPS.length - 1 && (
+                    <div className="flex-1 h-[2px] rounded-full bg-black/[0.06] relative mx-1 sm:mx-0 overflow-hidden">
+                      <div
+                        className="absolute inset-y-0 left-0 rounded-full transition-all duration-700 ease-out"
+                        style={{
+                          width: activeStep > i ? "100%" : "0%",
+                          backgroundColor: PIPELINE_STEPS[i + 1]?.color,
+                        }}
+                      />
                     </div>
-                  </div>
-                  <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Embed</span>
+                  )}
                 </div>
+              ))}
+            </div>
+          </div>
 
-                {/* Connection */}
-                <div className="flex-1 h-px bg-gradient-to-r from-violet-500/50 via-violet-500 to-emerald-500/50 relative">
-                  <div className="absolute inset-0 animate-pulse" style={{ animationDelay: "200ms" }} />
-                </div>
-
-                {/* Node: Retrieve */}
-                <div className="flex flex-col items-center gap-2 group">
-                  <div className="relative">
-                    <div className="absolute inset-0 bg-emerald-500/20 blur-lg rounded-lg opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <div className="relative size-12 sm:size-14 rounded-lg border-2 border-emerald-500/50 bg-emerald-500/10 flex items-center justify-center">
-                      <span className="text-emerald-400 text-xs font-bold">R</span>
-                    </div>
-                  </div>
-                  <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Retrieve</span>
-                </div>
-
-                {/* Connection */}
-                <div className="flex-1 h-px bg-gradient-to-r from-emerald-500/50 via-emerald-500 to-amber-500/50 relative">
-                  <div className="absolute inset-0 animate-pulse" style={{ animationDelay: "400ms" }} />
-                </div>
-
-                {/* Node: Generate */}
-                <div className="flex flex-col items-center gap-2 group">
-                  <div className="relative">
-                    <div className="absolute inset-0 bg-amber-500/20 blur-lg rounded-lg opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <div className="relative size-12 sm:size-14 rounded-lg border-2 border-amber-500/50 bg-amber-500/10 flex items-center justify-center">
-                      <span className="text-amber-400 text-xs font-bold">G</span>
-                    </div>
-                  </div>
-                  <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Generate</span>
-                </div>
-              </div>
-
-              {/* Bottom status bar */}
-              <div className="mt-8 pt-4 border-t border-border/30 flex items-center justify-between text-xs text-muted-foreground">
-                <div className="flex items-center gap-2">
-                  <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <span>Pipeline ready</span>
-                </div>
-                <div className="flex items-center gap-4">
-                  <span>4 nodes</span>
-                  <span>3 connections</span>
-                </div>
-              </div>
+          {/* Status bar */}
+          <div className="flex items-center justify-between px-5 py-3 border-t border-black/[0.06] bg-black/[0.01]">
+            <span className="text-[11px] text-black/30">4 nodes &middot; 3 connections</span>
+            <div className="flex items-center gap-3 text-[11px] text-black/30">
+              <span>latency: 245ms</span>
+              <span className="text-emerald-600 font-medium">pipeline healthy</span>
             </div>
           </div>
         </div>

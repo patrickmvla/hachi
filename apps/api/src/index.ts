@@ -7,6 +7,7 @@ import { organizationRoutes } from "./routes/organizations";
 import { canvasRoutes } from "./routes/canvas";
 import { runRoutes } from "./routes/runs";
 import { documentRoutes } from "./routes/documents";
+import { templateRoutes } from "./routes/templates";
 
 const app = new Hono<AppEnv>()
   .use("*", logger())
@@ -25,6 +26,7 @@ const app = new Hono<AppEnv>()
   .route("/api/canvases", canvasRoutes)
   .route("/api/runs", runRoutes)
   .route("/api/documents", documentRoutes)
+  .route("/api/templates", templateRoutes)
   .notFound((c) => c.json({ error: "Not found" }, 404))
   .onError((err, c) => {
     console.error("Server error:", err);

@@ -14,6 +14,10 @@ export const queryKeys = {
     list: (canvasId: string) => ["runs", "list", canvasId] as const,
     detail: (id: string) => ["runs", "detail", id] as const,
   },
+  templates: {
+    all: ["templates"] as const,
+    detail: (id: string) => ["templates", "detail", id] as const,
+  },
   organizations: {
     all: ["organizations"] as const,
     detail: (id: string) => ["organizations", "detail", id] as const,

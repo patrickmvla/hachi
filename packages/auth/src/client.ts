@@ -1,6 +1,10 @@
 import { createAuthClient } from "better-auth/react";
-import { organizationClient } from "better-auth/client/plugins";
+import {
+  organizationClient,
+  inferOrgAdditionalFields,
+} from "better-auth/client/plugins";
 import { ac, owner, admin, editor, viewer } from "./permissions";
+import type { auth } from "./auth";
 
 export const authClient = createAuthClient({
   baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000",
@@ -10,6 +14,7 @@ export const authClient = createAuthClient({
       ac,
       roles: { owner, admin, editor, viewer },
       teams: { enabled: true },
+      schema: inferOrgAdditionalFields<typeof auth>(),
     }),
   ],
 });

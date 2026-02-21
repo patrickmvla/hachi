@@ -1,6 +1,7 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { organization } from "better-auth/plugins";
+import { eq } from "drizzle-orm";
 import { db } from "@hachi/database/client";
 import * as schema from "@hachi/database/schema";
 import { ac, owner, admin, editor, viewer } from "./permissions";
@@ -66,6 +67,63 @@ export const auth = betterAuth({
     },
   },
 
+  databaseHooks: {
+    user: {
+      create: {
+        after: async (user) => {
+          const emailDomain = user.email.split("@")[1];
+          if (!emailDomain) return;
+
+          const matchingOrg = await db
+            .select()
+            .from(schema.organization)
+            .where(eq(schema.organization.domain, emailDomain))
+            .limit(1);
+
+          const org = matchingOrg[0];
+          if (org) {
+            await auth.api.addMember({
+              body: {
+                userId: user.id,
+                role: "viewer",
+                organizationId: org.id,
+              },
+            });
+            console.log(
+              `[Domain] Auto-joined ${user.email} to org "${org.name}" (domain: ${emailDomain})`
+            );
+          }
+        },
+      },
+    },
+    session: {
+      create: {
+        before: async (session) => {
+          if (session.activeOrganizationId) {
+            return { data: session };
+          }
+
+          const membership = await db
+            .select()
+            .from(schema.member)
+            .where(eq(schema.member.userId, session.userId))
+            .limit(1);
+
+          const firstMembership = membership[0];
+          if (firstMembership) {
+            return {
+              data: {
+                ...session,
+                activeOrganizationId: firstMembership.organizationId,
+              },
+            };
+          }
+          return { data: session };
+        },
+      },
+    },
+  },
+
   plugins: [
     organization({
       ac,
@@ -77,6 +135,17 @@ export const auth = betterAuth({
       teams: {
         enabled: true,
         maximumTeams: 20,
+      },
+      schema: {
+        organization: {
+          additionalFields: {
+            domain: {
+              type: "string",
+              required: false,
+              input: true,
+            },
+          },
+        },
       },
       async sendInvitationEmail(data) {
         const inviteLink = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/invite/${data.id}`;

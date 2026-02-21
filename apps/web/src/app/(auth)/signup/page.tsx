@@ -54,7 +54,7 @@ export default function SignupPage() {
         return;
       }
 
-      router.push("/dashboard");
+      router.push("/onboarding");
     } catch {
       setServerError("An error occurred. Please try again.");
     }
@@ -65,7 +65,7 @@ export default function SignupPage() {
     try {
       await authClient.signIn.social({
         provider: "github",
-        callbackURL: "/dashboard",
+        callbackURL: "/onboarding",
       });
     } catch {
       setServerError("Failed to sign up with GitHub. Please try again.");

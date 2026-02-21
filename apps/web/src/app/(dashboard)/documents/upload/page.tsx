@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { UploadCloud, File, X, CheckCircle2, ArrowLeft, Loader2, AlertCircle } from "lucide-react";
 import { useState, useCallback } from "react";
-import { documentsApi } from "@/lib/api";
+import { uploadDocument, processDocument } from "@/features/documents/api/documents-api";
 
 interface UploadedFile {
   file: File;
@@ -95,7 +95,7 @@ export default function UploadDocumentPage() {
         );
 
         // Upload document
-        const uploadResult = await documentsApi.upload(
+        const document = await uploadDocument(
           WORKSPACE_ID,
           uploadedFile.file.name,
           content,
@@ -105,11 +105,7 @@ export default function UploadDocumentPage() {
           }
         );
 
-        if (uploadResult.error || !uploadResult.data) {
-          throw new Error(uploadResult.error || "Upload failed");
-        }
-
-        const documentId = uploadResult.data.document.id;
+        const documentId = document.id;
 
         // Update progress
         setFiles((prev) =>
@@ -121,11 +117,7 @@ export default function UploadDocumentPage() {
         );
 
         // Process document (chunk + embed)
-        const processResult = await documentsApi.process(documentId);
-
-        if (processResult.error) {
-          throw new Error(processResult.error);
-        }
+        const processResult = await processDocument(documentId);
 
         // Update status to done
         setFiles((prev) =>
@@ -134,7 +126,7 @@ export default function UploadDocumentPage() {
               ? {
                   ...f,
                   status: "done",
-                  progress: `${processResult.data?.totalChunks} chunks created`,
+                  progress: `${processResult.totalChunks} chunks created`,
                 }
               : f
           )

@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { Search, FileText, MoreHorizontal, Filter, UploadCloud, File, X, Loader2 } from "lucide-react";
 import { authClient } from "@hachi/auth/client";
-import { documentsApi, type Document } from "@/lib/api";
+import { useDocumentList } from "@/features/documents/hooks/use-document-queries";
+import type { Document } from "@/features/documents/api/documents-api";
 import {
   PageHeader,
   PageHeaderContent,
@@ -22,22 +23,12 @@ type FilterType = string | null;
 
 export default function DocumentsPage() {
   const { data: activeOrg } = authClient.useActiveOrganization();
-  const [documents, setDocuments] = useState<Document[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { data, isLoading } = useDocumentList(activeOrg?.id);
+  const documents = data?.documents ?? [];
+
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState<FilterType>(null);
   const [showFilters, setShowFilters] = useState(false);
-
-  useEffect(() => {
-    if (!activeOrg?.id) return;
-    async function fetchDocuments() {
-      setIsLoading(true);
-      const { data } = await documentsApi.list(activeOrg!.id);
-      setDocuments(data?.documents || []);
-      setIsLoading(false);
-    }
-    fetchDocuments();
-  }, [activeOrg?.id]);
 
   // Derive type from metadata or filename
   const getDocType = (doc: Document): string => {

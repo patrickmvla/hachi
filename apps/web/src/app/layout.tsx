@@ -19,7 +19,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en">
       <body className={`${jetbrainsMono.variable} font-mono`}>
         <Providers>{children}</Providers>
       </body>

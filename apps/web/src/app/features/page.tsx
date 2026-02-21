@@ -8,12 +8,11 @@ import {
   CollaborationSection,
   AdvancedPatternsSection,
   IntegrationsSection,
-  FeaturesCTA,
 } from "@/features/features-page";
 
 export default function FeaturesPage() {
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen bg-white">
       <Navbar />
       <FeaturesHero />
       <VisualCanvasSection />
@@ -22,7 +21,6 @@ export default function FeaturesPage() {
       <CollaborationSection />
       <AdvancedPatternsSection />
       <IntegrationsSection />
-      <FeaturesCTA />
       <Footer />
     </main>
   );

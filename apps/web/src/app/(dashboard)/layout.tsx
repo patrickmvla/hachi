@@ -18,7 +18,7 @@ import {
 import { WorkspaceSwitcher } from "@/features/workspace/workspace-switcher";
 import { currentUser } from "@/lib/mock-data";
 import { useState, useEffect } from "react";
-import { ThemeToggle } from "@/components/theme-toggle";
+
 
 export default function DashboardLayout({
   children,
@@ -192,8 +192,6 @@ export default function DashboardLayout({
                 aria-label="Search"
               />
             </div>
-
-            <ThemeToggle />
 
             <button
               className="relative p-2 rounded-full hover:bg-muted text-muted-foreground transition-colors"

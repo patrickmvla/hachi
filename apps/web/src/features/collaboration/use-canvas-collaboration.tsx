@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useCallback, useState, createContext, useContext, type ReactNode } from "react";
+import { useEffect, useMemo, useCallback, createContext, useContext, type ReactNode } from "react";
 import {
   useCollaboration,
   useCursor,
@@ -38,8 +38,6 @@ export const CollaborationProvider = ({
   user,
   enabled = true,
 }: CollaborationProviderProps) => {
-  const [remoteUsers, setRemoteUsers] = useState<UserAwareness[]>([]);
-
   // Create collaboration config only when we have user and canvasId
   const config = useMemo<CollaborationConfig | null>(() => {
     if (!enabled || !user || !canvasId) return null;
@@ -50,16 +48,11 @@ export const CollaborationProvider = ({
   const { provider, isConnected, isSynced, users: awarenessUsers } = useCollaboration(config);
   const { updateCursor: setCursor, clearCursor } = useCursor(provider);
 
-  // Update remote users when awareness changes
-  useEffect(() => {
-    setRemoteUsers(awarenessUsers);
-  }, [awarenessUsers]);
-
   // Get presence (online users without cursor data)
-  const presenceUsers = usePresence(remoteUsers);
+  const presenceUsers = usePresence(awarenessUsers);
 
   // Get remote cursors
-  const remoteCursors = useRemoteCursors(remoteUsers);
+  const remoteCursors = useRemoteCursors(awarenessUsers);
 
   // Wrapper for updateCursor to handle flow coordinates
   const updateCursor = useCallback(

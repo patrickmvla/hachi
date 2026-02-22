@@ -43,6 +43,7 @@ export const auth = betterAuth({
   secret: process.env.BETTER_AUTH_SECRET || "",
   baseURL: process.env.BETTER_AUTH_URL || "http://localhost:4000",
   basePath: "/api/auth",
+  trustedOrigins: [process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"],
 
   session: {
     expiresIn: 60 * 60 * 24 * 7, // 7 days

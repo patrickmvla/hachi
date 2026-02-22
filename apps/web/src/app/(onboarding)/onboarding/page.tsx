@@ -87,12 +87,13 @@ export default function OnboardingPage() {
     setMounted(true);
   }, []);
 
-  // If user already has an active org, go to dashboard
+  // If user already has an active org on initial load, go to dashboard.
+  // Once onboarding starts (org created in step 2), don't redirect.
   useEffect(() => {
-    if (activeOrg) {
+    if (activeOrg && !createdOrgId) {
       router.replace("/dashboard");
     }
-  }, [activeOrg, router]);
+  }, [activeOrg, createdOrgId, router]);
 
   // Auto-suggest domain from email
   useEffect(() => {

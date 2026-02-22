@@ -4,18 +4,22 @@ import Link from "next/link";
 import {
   Plus,
   Clock,
-  MoreHorizontal,
   FileText,
+  Files,
+  Database,
+  Users,
   ArrowRight,
-  Zap,
-  CheckCircle2,
-  Loader2,
   Building2,
+  LayoutTemplate,
+  Upload,
+  Settings,
 } from "lucide-react";
 import { authClient } from "@hachi/auth/client";
 import { useCanvasList } from "@/features/canvas/hooks";
 import { useDocumentList } from "@/features/documents/hooks/use-document-queries";
+import { useMembers } from "@/features/workspaces/hooks/use-workspace-queries";
 import type { Canvas } from "@/features/canvas/api/canvas-api";
+import { formatRelativeDate } from "@/lib/format-date";
 import {
   PageHeader,
   PageHeaderContent,
@@ -23,7 +27,74 @@ import {
   PageHeaderDescription,
   PageHeaderActions,
   StatCard,
+  Button,
+  Skeleton,
+  StatusBadge,
+  Empty,
+  EmptyMedia,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+  EmptyContent,
 } from "@hachi/ui";
+
+function DashboardSkeleton() {
+  return (
+    <div className="space-y-8">
+      {/* Stat cards skeleton */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Skeleton key={i} className="h-28 rounded-xl" />
+        ))}
+      </div>
+      {/* Quick actions skeleton */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Skeleton key={i} className="h-20 rounded-xl" />
+        ))}
+      </div>
+      {/* Recent canvases skeleton */}
+      <div className="space-y-4">
+        <Skeleton className="h-6 w-40" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} className="h-36 rounded-xl" />
+          ))}
+        </div>
+      </div>
+      {/* Recent documents skeleton */}
+      <div className="space-y-4">
+        <Skeleton className="h-6 w-44" />
+        <div className="space-y-0 rounded-xl border border-border">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} className="h-14 rounded-none first:rounded-t-xl last:rounded-b-xl" />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const quickActions = [
+  {
+    label: "New Canvas",
+    description: "Start a new RAG pipeline",
+    href: "/canvases/new",
+    icon: Plus,
+  },
+  {
+    label: "Use Template",
+    description: "Browse pre-built pipelines",
+    href: "/templates",
+    icon: LayoutTemplate,
+  },
+  {
+    label: "Upload Documents",
+    description: "Add files to your knowledge base",
+    href: "/documents/upload",
+    icon: Upload,
+  },
+];
 
 export default function DashboardPage() {
   const { data: session } = authClient.useSession();
@@ -31,30 +102,29 @@ export default function DashboardPage() {
 
   const { data: canvases = [], isLoading: canvasesLoading } = useCanvasList(activeOrg?.id);
   const { data: docData, isLoading: docsLoading } = useDocumentList(activeOrg?.id);
-  const docCount = docData?.stats?.total ?? docData?.documents?.length ?? 0;
+  const { data: members = [], isLoading: membersLoading } = useMembers(activeOrg?.id ?? "");
 
-  const isLoading = canvasesLoading || docsLoading;
+  const stats = docData?.stats ?? { total: 0, embedded: 0, pending: 0 };
+  const documents = docData?.documents ?? [];
+  const isLoading = canvasesLoading || docsLoading || membersLoading;
   const firstName = session?.user?.name?.split(" ")[0] || "there";
-
-  const formatDate = (dateStr: string | null) => {
-    if (!dateStr) return "Unknown";
-    const date = new Date(dateStr);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
-
-    if (diffMins < 1) return "Just now";
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    if (diffDays < 7) return `${diffDays}d ago`;
-    return date.toLocaleDateString();
-  };
 
   const getNodeCount = (canvas: Canvas) => {
     return canvas.graphJson?.nodes?.length || 0;
   };
+
+  const sortedCanvases = [...canvases].sort(
+    (a, b) => new Date(b.updatedAt ?? 0).getTime() - new Date(a.updatedAt ?? 0).getTime()
+  );
+
+  const manageOrgAction = {
+    label: "Manage Org",
+    description: "Settings & members",
+    href: `/workspaces/${activeOrg?.id ?? ""}`,
+    icon: Settings,
+  };
+
+  const allQuickActions = [...quickActions, manageOrgAction];
 
   return (
     <div className="space-y-8">
@@ -70,62 +140,93 @@ export default function DashboardPage() {
           </PageHeaderDescription>
         </PageHeaderContent>
         <PageHeaderActions>
-          <Link
-            href="/templates"
-            className="px-4 py-2 rounded-md border border-border bg-background hover:bg-muted transition-colors text-sm font-medium"
-          >
-            Browse Templates
-          </Link>
-          <Link
-            href="/canvases/new"
-            className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md font-medium hover:bg-primary/90 transition-colors shadow-sm"
-          >
-            <Plus size={16} aria-hidden="true" />
-            New Canvas
-          </Link>
+          <Button variant="outline" asChild>
+            <Link href="/templates">Browse Templates</Link>
+          </Button>
+          <Button asChild>
+            <Link href="/canvases/new">
+              <Plus size={16} aria-hidden="true" />
+              New Canvas
+            </Link>
+          </Button>
         </PageHeaderActions>
       </PageHeader>
 
       {isLoading ? (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-        </div>
+        <DashboardSkeleton />
       ) : !activeOrg ? (
-        <div className="rounded-xl border border-dashed border-border p-12 text-center">
-          <Building2 size={48} className="mx-auto text-muted-foreground mb-4" />
-          <h2 className="text-xl font-semibold mb-2">Create your first workspace</h2>
-          <p className="text-muted-foreground mb-6">You need an organization to start building pipelines.</p>
-          <Link
-            href="/workspaces/new"
-            className="inline-flex items-center gap-2 px-6 py-2.5 bg-primary text-primary-foreground rounded-md font-medium hover:bg-primary/90 transition-colors shadow-sm"
-          >
-            <Plus size={16} aria-hidden="true" />
-            Create Organization
-          </Link>
-        </div>
+        <Empty>
+          <EmptyMedia variant="icon">
+            <Building2 size={24} />
+          </EmptyMedia>
+          <EmptyHeader>
+            <EmptyTitle>Create your first workspace</EmptyTitle>
+            <EmptyDescription>
+              You need an organization to start building pipelines.
+            </EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>
+            <Button asChild>
+              <Link href="/workspaces/new">
+                <Plus size={16} aria-hidden="true" />
+                Create Organization
+              </Link>
+            </Button>
+          </EmptyContent>
+        </Empty>
       ) : (
         <>
           {/* Stats Overview */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <StatCard
               label="Canvases"
               value={canvases.length}
+              description="RAG pipelines"
               icon={<FileText size={64} />}
             />
             <StatCard
               label="Documents"
-              value={docCount}
-              icon={<Zap size={64} />}
+              value={stats.total}
+              description={`${stats.embedded} embedded, ${stats.pending} pending`}
+              icon={<Files size={64} />}
+            />
+            <StatCard
+              label="Embedded"
+              value={stats.embedded}
+              description={`of ${stats.total} documents`}
+              icon={<Database size={64} />}
             />
             <StatCard
               label="Members"
-              value={(activeOrg as any).members?.length ?? "-"}
-              icon={<CheckCircle2 size={64} />}
+              value={members.length}
+              description="team members"
+              icon={<Users size={64} />}
             />
           </div>
 
+          {/* Quick Actions */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {allQuickActions.map((action) => (
+              <Link
+                key={action.href}
+                href={action.href}
+                className="group flex items-center gap-4 p-4 rounded-xl border border-border bg-card hover:border-primary/50 hover:shadow-md transition-all duration-200"
+              >
+                <div className="p-2.5 rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                  <action.icon size={20} />
+                </div>
+                <div>
+                  <p className="font-medium text-sm group-hover:text-primary transition-colors">
+                    {action.label}
+                  </p>
+                  <p className="text-xs text-muted-foreground">{action.description}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+
           {/* Recent Canvases */}
-          <div className="space-y-6">
+          <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold">Recent Canvases</h2>
               <Link href="/canvases" className="text-sm text-primary hover:underline flex items-center gap-1">
@@ -134,20 +235,28 @@ export default function DashboardPage() {
             </div>
 
             {canvases.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-border p-12 text-center">
-                <FileText size={32} className="mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground mb-4">No canvases yet. Create your first one!</p>
-                <Link
-                  href="/canvases/new"
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md font-medium hover:bg-primary/90 transition-colors"
-                >
-                  <Plus size={16} />
-                  New Canvas
-                </Link>
-              </div>
+              <Empty>
+                <EmptyMedia variant="icon">
+                  <FileText size={24} />
+                </EmptyMedia>
+                <EmptyHeader>
+                  <EmptyTitle>No canvases yet</EmptyTitle>
+                  <EmptyDescription>
+                    Create your first RAG pipeline to get started.
+                  </EmptyDescription>
+                </EmptyHeader>
+                <EmptyContent>
+                  <Button asChild>
+                    <Link href="/canvases/new">
+                      <Plus size={16} />
+                      New Canvas
+                    </Link>
+                  </Button>
+                </EmptyContent>
+              </Empty>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {canvases.slice(0, 6).map((canvas) => (
+                {sortedCanvases.slice(0, 6).map((canvas) => (
                   <Link
                     key={canvas.id}
                     href={`/canvases/${canvas.id}`}
@@ -157,24 +266,75 @@ export default function DashboardPage() {
                       <div className="p-2.5 rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
                         <FileText size={20} />
                       </div>
-                      <button
-                        className="p-1 hover:bg-muted rounded text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={(e) => e.preventDefault()}
-                      >
-                        <MoreHorizontal size={16} />
-                      </button>
                     </div>
-                    <h3 className="font-semibold mb-1 group-hover:text-primary transition-colors line-clamp-1">{canvas.name}</h3>
+                    <h3 className="font-semibold mb-1 group-hover:text-primary transition-colors line-clamp-1">
+                      {canvas.name}
+                    </h3>
 
                     <div className="flex items-center justify-between pt-4 border-t border-border text-xs text-muted-foreground">
                       <div className="flex items-center gap-1">
                         <Clock size={12} />
-                        {formatDate(canvas.updatedAt)}
+                        {formatRelativeDate(canvas.updatedAt)}
                       </div>
                       <div>{getNodeCount(canvas)} nodes</div>
                     </div>
                   </Link>
                 ))}
+              </div>
+            )}
+          </div>
+
+          {/* Recent Documents */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold">Recent Documents</h2>
+              <Link href="/documents" className="text-sm text-primary hover:underline flex items-center gap-1">
+                View all <ArrowRight size={14} />
+              </Link>
+            </div>
+
+            {documents.length === 0 ? (
+              <Empty>
+                <EmptyMedia variant="icon">
+                  <Files size={24} />
+                </EmptyMedia>
+                <EmptyHeader>
+                  <EmptyTitle>No documents yet</EmptyTitle>
+                  <EmptyDescription>
+                    Upload documents to build your knowledge base.
+                  </EmptyDescription>
+                </EmptyHeader>
+                <EmptyContent>
+                  <Button asChild>
+                    <Link href="/documents/upload">
+                      <Upload size={16} />
+                      Upload Documents
+                    </Link>
+                  </Button>
+                </EmptyContent>
+              </Empty>
+            ) : (
+              <div className="rounded-xl border border-border divide-y divide-border">
+                {documents.slice(0, 5).map((doc) => {
+                  const docName = (doc.metadata as any)?.filename || doc.id;
+                  return (
+                    <div
+                      key={doc.id}
+                      className="flex items-center justify-between px-4 py-3"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <FileText size={16} className="shrink-0 text-muted-foreground" />
+                        <span className="text-sm font-medium truncate">{docName}</span>
+                      </div>
+                      <div className="flex items-center gap-4 shrink-0">
+                        <StatusBadge status={doc.hasEmbedding ? "completed" : "pending"} label={doc.hasEmbedding ? "Embedded" : "Pending"} />
+                        <span className="text-xs text-muted-foreground w-16 text-right">
+                          {formatRelativeDate(doc.createdAt)}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>

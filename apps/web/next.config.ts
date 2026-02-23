@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  transpilePackages: ["@hachi/ui", "@hachi/schemas"],
+  transpilePackages: ["@hachi/ui", "@hachi/schemas", "@hachi/auth"],
   turbopack: {
     root: "../..",
   },

@@ -18,7 +18,7 @@ import {
 const uploadDocumentSchema = z.object({
   filename: z.string().min(1),
   content: z.string().min(1),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 const searchSchema = z.object({

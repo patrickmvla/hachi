@@ -11,7 +11,7 @@ import { eq, and } from "drizzle-orm";
 
 const executeRunSchema = z.object({
   canvasId: z.string().uuid(),
-  input: z.record(z.unknown()),
+  input: z.record(z.string(), z.unknown()),
 });
 
 export const runRoutes = new Hono<AppEnv>()

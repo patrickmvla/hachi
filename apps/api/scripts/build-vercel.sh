@@ -1,12 +1,17 @@
 #!/bin/bash
 set -e
 
-# Create Vercel Build Output API directory structure
+# Resolve paths relative to this script, so it works whether called from
+# apps/api/ (rootDirectory=apps/api) or the repo root (no rootDirectory).
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+APP_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+# .vercel/output is created relative to CWD (wherever Vercel runs the build from)
 mkdir -p .vercel/output/functions/api/index.func
 mkdir -p .vercel/output/static
 
 # Bundle entire API into a single file targeting Node.js
-bun build src/index.ts --outfile .vercel/output/functions/api/index.func/index.mjs --target node
+bun build "$APP_DIR/src/index.ts" --outfile .vercel/output/functions/api/index.func/index.mjs --target node
 
 # Serverless function config
 cat > .vercel/output/functions/api/index.func/.vc-config.json << 'CONF'
@@ -28,4 +33,4 @@ cat > .vercel/output/config.json << 'CONF'
 }
 CONF
 
-echo "Vercel build output created successfully"
+echo "Vercel build output created at $(pwd)/.vercel/output/"

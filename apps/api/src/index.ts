@@ -1,7 +1,6 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
-import { handle } from "hono/vercel";
 import type { AppEnv } from "./types";
 import { authRoutes } from "./routes/auth";
 import { organizationRoutes } from "./routes/organizations";
@@ -42,8 +41,8 @@ const app = new Hono<AppEnv>()
 // Export type for RPC client
 export type AppType = typeof app;
 
-// Vercel serverless handler (used by bundled api/index.js)
-export default handle(app);
+// Vercel serverless handler — native Hono support
+export default app;
 
 // Local dev server (Bun only)
 if (typeof Bun !== "undefined") {

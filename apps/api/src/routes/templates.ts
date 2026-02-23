@@ -2,12 +2,11 @@ import { Hono } from "hono";
 import { db } from "@hachi/database/client";
 import { templates } from "@hachi/database/schema";
 import type { AppEnv } from "../types";
-import { requireAuth } from "../middleware/auth";
 import { eq } from "drizzle-orm";
 
 export const templateRoutes = new Hono<AppEnv>()
   // List all templates
-  .get("/", requireAuth, async (c) => {
+  .get("/", async (c) => {
     const allTemplates = await db
       .select()
       .from(templates)
@@ -17,7 +16,7 @@ export const templateRoutes = new Hono<AppEnv>()
   })
 
   // Get template by ID
-  .get("/:id", requireAuth, async (c) => {
+  .get("/:id", async (c) => {
     const id = c.req.param("id");
 
     const [template] = await db

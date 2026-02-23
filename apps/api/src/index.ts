@@ -44,7 +44,9 @@ export type AppType = typeof app;
 // Vercel auto-detects this default export for serverless deployment
 export default app;
 
-// Local dev server (Bun)
-const port = process.env.PORT || 4000;
-Bun.serve({ fetch: app.fetch, port: Number(port) });
-console.log(`Hachi API running on http://localhost:${port}`);
+// Local dev server (Bun only)
+if (typeof Bun !== "undefined") {
+  const port = process.env.PORT || 4000;
+  Bun.serve({ fetch: app.fetch, port: Number(port) });
+  console.log(`Hachi API running on http://localhost:${port}`);
+}

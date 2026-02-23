@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "bun --env-file=../../.env --hot src/index.ts",
     "collab": "bun --hot src/collab.ts",
+    "build": "bun build src/index.ts --outfile api/index.js --target node",
     "build:local": "bun build src/index.ts --outdir dist --target bun",
     "start": "bun dist/index.js",
     "typecheck": "tsc --noEmit"

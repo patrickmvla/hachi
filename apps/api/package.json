@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "bun --env-file=../../.env --hot src/index.ts",
     "collab": "bun --hot src/collab.ts",
-    "build": "echo 'Build handled by Vercel native Hono support'",
+    "build": "bun build src/index.ts --outfile dist/index.js --target node",
     "build:local": "bun build src/index.ts --outdir dist --target bun",
     "start": "bun dist/index.js",
     "typecheck": "tsc --noEmit"

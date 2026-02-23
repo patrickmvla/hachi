@@ -6,25 +6,26 @@
   "scripts": {
     "dev": "bun --env-file=../../.env --hot src/index.ts",
     "collab": "bun --hot src/collab.ts",
-    "build": "bun build src/index.ts --outfile dist/index.js --target node",
+    "build": "bash scripts/build-vercel.sh",
     "build:local": "bun build src/index.ts --outdir dist --target bun",
     "start": "bun dist/index.js",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "hono": "catalog:",
-    "zod": "catalog:",
-    "@hono/zod-validator": "^0.7.6",
-    "@hachi/database": "workspace:*",
-    "@hachi/schemas": "workspace:*",
-    "@hachi/mastra-core": "workspace:*",
     "@hachi/auth": "workspace:*",
+    "@hachi/database": "workspace:*",
     "@hachi/encryption": "workspace:*",
+    "@hachi/mastra-core": "workspace:*",
+    "@hachi/schemas": "workspace:*",
+    "@hono/node-server": "^1.19.9",
+    "@hono/zod-validator": "^0.7.6",
     "@mastra/core": "^0.5.0",
     "drizzle-orm": "catalog:",
-    "yjs": "^13.6.20",
+    "hono": "catalog:",
+    "lib0": "^0.2.98",
     "y-protocols": "^1.0.6",
-    "lib0": "^0.2.98"
+    "yjs": "^13.6.20",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@types/bun": "catalog:",

@@ -1,3 +1,4 @@
 {
+  "framework": null,
   "buildCommand": "bun run build"
 }

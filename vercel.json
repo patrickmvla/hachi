@@ -1,3 +1,4 @@
 {
+  "framework": null,
   "buildCommand": "bash apps/api/scripts/build-vercel.sh"
 }

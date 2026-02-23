@@ -3,7 +3,7 @@
   "extends": ["//"],
   "tasks": {
     "build": {
-      "outputs": ["dist/**", "api/**"]
+      "outputs": ["dist/**", "api/**", ".vercel/output/**"]
     },
     "dev": {
       "persistent": true,

@@ -1,7 +1,6 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
-import { handle } from "hono/vercel";
 import type { AppEnv } from "./types";
 import { authRoutes } from "./routes/auth";
 import { organizationRoutes } from "./routes/organizations";
@@ -42,18 +41,10 @@ const app = new Hono<AppEnv>()
 // Export type for RPC client
 export type AppType = typeof app;
 
-// Vercel serverless handler
-export const GET = handle(app);
-export const POST = handle(app);
-export const PUT = handle(app);
-export const DELETE = handle(app);
-export const OPTIONS = handle(app);
+// Vercel auto-detects this default export for serverless deployment
+export default app;
 
-// Bun local dev server
+// Local dev server (Bun)
 const port = process.env.PORT || 4000;
+Bun.serve({ fetch: app.fetch, port: Number(port) });
 console.log(`Hachi API running on http://localhost:${port}`);
-
-export default {
-  port,
-  fetch: app.fetch,
-};

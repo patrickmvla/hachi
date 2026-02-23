@@ -13,7 +13,7 @@
   "dependencies": {
     "hono": "catalog:",
     "zod": "catalog:",
-    "@hono/zod-validator": "^0.4.3",
+    "@hono/zod-validator": "^0.7.6",
     "@hachi/database": "workspace:*",
     "@hachi/schemas": "workspace:*",
     "@hachi/mastra-core": "workspace:*",

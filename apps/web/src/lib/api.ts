@@ -10,9 +10,16 @@
 export const API_BASE_URL =
   process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
-export interface ApiResponse<T> {
-  data?: T;
-  error?: string;
+export type ApiResponse<T> =
+  | { data: T; error?: undefined }
+  | { data?: undefined; error: string };
+
+/** Unwrap an ApiResponse, throwing on error. */
+export function unwrap<T>(response: ApiResponse<T>): T {
+  if (response.error !== undefined) {
+    throw new Error(response.error);
+  }
+  return response.data;
 }
 
 export async function apiFetch<T>(
@@ -29,13 +36,17 @@ export async function apiFetch<T>(
       },
     });
 
-    const data = await response.json();
+    const body: unknown = await response.json();
 
     if (!response.ok) {
-      return { error: data.error || "Request failed" };
+      const message =
+        typeof body === "object" && body !== null && "error" in body
+          ? String((body as { error: unknown }).error)
+          : "Request failed";
+      return { error: message };
     }
 
-    return { data };
+    return { data: body as T };
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Network error" };
   }

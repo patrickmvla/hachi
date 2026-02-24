@@ -1,4 +1,4 @@
-import { apiFetch, API_BASE_URL } from "@/lib/api";
+import { apiFetch, unwrap, API_BASE_URL } from "@/lib/api";
 
 export interface Run {
   id: string;
@@ -21,20 +21,16 @@ export interface StepOutput {
 }
 
 export async function fetchRunsList(canvasId: string) {
-  const { data, error } = await apiFetch<{ runs: Run[] }>(
-    `/api/runs?canvasId=${canvasId}`
+  const { runs } = unwrap(
+    await apiFetch<{ runs: Run[] }>(`/api/runs?canvasId=${canvasId}`)
   );
-  if (error) throw new Error(error);
-  return data!.runs;
+  return runs;
 }
 
 export async function fetchRunDetails(id: string) {
-  const { data, error } = await apiFetch<{
-    run: Run;
-    stepOutputs: StepOutput[];
-  }>(`/api/runs/${id}`);
-  if (error) throw new Error(error);
-  return data!;
+  return unwrap(
+    await apiFetch<{ run: Run; stepOutputs: StepOutput[] }>(`/api/runs/${id}`)
+  );
 }
 
 export function executeRun(

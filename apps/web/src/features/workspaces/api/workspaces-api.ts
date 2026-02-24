@@ -1,5 +1,5 @@
 import { authClient } from "@hachi/auth/client";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, unwrap } from "@/lib/api";
 
 export interface Credential {
   id: string;
@@ -35,9 +35,10 @@ export async function fetchInvitations(orgId: string) {
 }
 
 export async function fetchCredentials(orgId: string) {
-  const { data, error } = await apiFetch<{ credentials: Credential[] }>(
-    `/api/organizations/${orgId}/credentials`
+  const { credentials } = unwrap(
+    await apiFetch<{ credentials: Credential[] }>(
+      `/api/organizations/${orgId}/credentials`
+    )
   );
-  if (error) throw new Error(error);
-  return data!.credentials || [];
+  return credentials;
 }

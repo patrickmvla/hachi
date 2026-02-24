@@ -1,4 +1,5 @@
-import { apiFetch } from "@/lib/api";
+import { apiFetch, unwrap } from "@/lib/api";
+import type { GraphJson } from "@/features/canvas/api/canvas-api";
 
 export interface Template {
   id: string;
@@ -7,22 +8,20 @@ export interface Template {
   difficulty: string;
   nodes: number;
   tags: string[];
-  graphJson: { nodes: unknown[]; edges: unknown[] };
+  graphJson: GraphJson;
   createdAt: string | null;
 }
 
 export async function fetchTemplates() {
-  const { data, error } = await apiFetch<{ templates: Template[] }>(
-    "/api/templates"
+  const { templates } = unwrap(
+    await apiFetch<{ templates: Template[] }>("/api/templates")
   );
-  if (error) throw new Error(error);
-  return data!.templates;
+  return templates;
 }
 
 export async function fetchTemplate(id: string) {
-  const { data, error } = await apiFetch<{ template: Template }>(
-    `/api/templates/${id}`
+  const { template } = unwrap(
+    await apiFetch<{ template: Template }>(`/api/templates/${id}`)
   );
-  if (error) throw new Error(error);
-  return data!.template;
+  return template;
 }

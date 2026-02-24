@@ -1,4 +1,4 @@
-import { apiFetch } from "@/lib/api";
+import { apiFetch, unwrap } from "@/lib/api";
 
 export interface Document {
   id: string;
@@ -24,20 +24,18 @@ export interface SearchResult {
 }
 
 export async function fetchDocumentList(orgId: string) {
-  const { data, error } = await apiFetch<{
-    documents: Document[];
-    stats: DocumentStats;
-  }>(`/api/documents?organizationId=${orgId}`);
-  if (error) throw new Error(error);
-  return data!;
+  return unwrap(
+    await apiFetch<{ documents: Document[]; stats: DocumentStats }>(
+      `/api/documents?organizationId=${orgId}`
+    )
+  );
 }
 
 export async function fetchDocument(id: string) {
-  const { data, error } = await apiFetch<{ document: Document }>(
-    `/api/documents/${id}`
+  const { document } = unwrap(
+    await apiFetch<{ document: Document }>(`/api/documents/${id}`)
   );
-  if (error) throw new Error(error);
-  return data!.document;
+  return document;
 }
 
 export async function uploadDocument(
@@ -46,42 +44,42 @@ export async function uploadDocument(
   content: string,
   metadata?: Record<string, unknown>
 ) {
-  const { data, error } = await apiFetch<{ document: Document }>(
-    `/api/documents?organizationId=${organizationId}`,
-    {
-      method: "POST",
-      body: JSON.stringify({ filename, content, metadata }),
-    }
+  const { document } = unwrap(
+    await apiFetch<{ document: Document }>(
+      `/api/documents?organizationId=${organizationId}`,
+      {
+        method: "POST",
+        body: JSON.stringify({ filename, content, metadata }),
+      }
+    )
   );
-  if (error) throw new Error(error);
-  return data!.document;
+  return document;
 }
 
 export async function processDocument(
   id: string,
   options?: { chunkSize?: number; chunkOverlap?: number }
 ) {
-  const { data, error } = await apiFetch<{
-    success: boolean;
-    documentType: string;
-    totalChunks: number;
-    totalCharacters: number;
-    embeddingDimensions: number;
-  }>(`/api/documents/${id}/process`, {
-    method: "POST",
-    body: JSON.stringify(options || {}),
-  });
-  if (error) throw new Error(error);
-  return data!;
+  return unwrap(
+    await apiFetch<{
+      success: boolean;
+      documentType: string;
+      totalChunks: number;
+      totalCharacters: number;
+      embeddingDimensions: number;
+    }>(`/api/documents/${id}/process`, {
+      method: "POST",
+      body: JSON.stringify(options || {}),
+    })
+  );
 }
 
 export async function deleteDocument(id: string) {
-  const { data, error } = await apiFetch<{ deleted: boolean; id: string }>(
-    `/api/documents/${id}`,
-    { method: "DELETE" }
+  return unwrap(
+    await apiFetch<{ deleted: boolean; id: string }>(`/api/documents/${id}`, {
+      method: "DELETE",
+    })
   );
-  if (error) throw new Error(error);
-  return data!;
 }
 
 export async function searchDocuments(
@@ -89,13 +87,14 @@ export async function searchDocuments(
   query: string,
   options?: { limit?: number; minScore?: number }
 ) {
-  const { data, error } = await apiFetch<{ results: SearchResult[] }>(
-    `/api/documents/search?organizationId=${organizationId}`,
-    {
-      method: "POST",
-      body: JSON.stringify({ query, ...options }),
-    }
+  const { results } = unwrap(
+    await apiFetch<{ results: SearchResult[] }>(
+      `/api/documents/search?organizationId=${organizationId}`,
+      {
+        method: "POST",
+        body: JSON.stringify({ query, ...options }),
+      }
+    )
   );
-  if (error) throw new Error(error);
-  return data!.results;
+  return results;
 }

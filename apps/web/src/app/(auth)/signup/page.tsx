@@ -172,15 +172,17 @@ export default function SignupPage() {
                 <input
                   id="email"
                   type="email"
-                  placeholder="name@example.com"
+                  placeholder="name@company.com"
                   {...register("email")}
                   aria-invalid={!!errors.email}
                   className={`w-full h-11 px-3.5 rounded-lg border bg-white text-[14px] text-black placeholder:text-black/30 outline-none transition-colors focus:border-black/20 focus:ring-2 focus:ring-black/[0.06] ${
                     errors.email ? "border-red-400" : "border-black/[0.08]"
                   }`}
                 />
-                {errors.email && (
+                {errors.email ? (
                   <p className="mt-1 text-[12px] text-red-600">{errors.email.message}</p>
+                ) : (
+                  <p className="mt-1 text-[12px] text-black/35">Use your work email for the best experience</p>
                 )}
               </div>
 

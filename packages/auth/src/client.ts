@@ -7,7 +7,7 @@ import { ac, owner, admin, editor, viewer } from "./permissions";
 import type { auth } from "./auth";
 
 export const authClient = createAuthClient({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000",
+  baseURL: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
   basePath: "/api/auth",
   plugins: [
     organizationClient({

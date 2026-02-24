@@ -48,6 +48,13 @@ export const auth = betterAuth({
     process.env.NEXT_PUBLIC_APP_URL,
   ].filter(Boolean) as string[],
 
+  advanced: {
+    // Force secure cookies in production so SameSite=None is set correctly
+    // for cross-domain requests between hachii.vercel.app and hachii-api.vercel.app.
+    // BETTER_AUTH_URL must also be set to https:// for this to take full effect.
+    useSecureCookies: process.env.NODE_ENV === "production",
+  },
+
   session: {
     expiresIn: 60 * 60 * 24 * 7, // 7 days
     updateAge: 60 * 60 * 24, // 1 day (refresh session if older than this)

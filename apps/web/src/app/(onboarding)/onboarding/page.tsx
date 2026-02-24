@@ -20,6 +20,7 @@ import {
 import { authClient } from "@hachi/auth/client";
 import { useTemplates } from "@/features/templates/hooks";
 import { createCanvas } from "@/features/canvas/api/canvas-api";
+import { isPersonalEmail } from "@/features/auth/schema/email";
 
 const STEPS = [
   { label: "Welcome", number: "01" },
@@ -43,25 +44,23 @@ const TEMPLATE_COLORS: Record<string, string> = {
   "tmpl-4": "#d97706",
 };
 
-const COMMON_EMAIL_DOMAINS = [
-  "gmail",
-  "yahoo",
-  "hotmail",
-  "outlook",
-  "icloud",
-  "proton",
-];
+const SLUG_REPLACE_RE = /[^a-z0-9]+/g;
+const SLUG_TRIM_RE = /^-|-$/g;
 
-type Invite = { email: string; role: "admin" | "editor" | "viewer" };
+
+type InviteRole = "admin" | "editor" | "viewer";
+type Invite = { email: string; role: InviteRole };
+type Step = 1 | 2 | 3 | 4;
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const { data: session } = authClient.useSession();
+  const { data: session, isPending: isSessionPending } =
+    authClient.useSession();
   const { data: activeOrg } = authClient.useActiveOrganization();
   const { data: templates } = useTemplates();
   const [mounted, setMounted] = useState(false);
 
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState<Step>(1);
 
   // Step 2 — org fields
   const [name, setName] = useState("");
@@ -73,9 +72,7 @@ export default function OnboardingPage() {
 
   // Step 3 — invite fields
   const [inviteEmail, setInviteEmail] = useState("");
-  const [inviteRole, setInviteRole] = useState<"admin" | "editor" | "viewer">(
-    "editor"
-  );
+  const [inviteRole, setInviteRole] = useState<InviteRole>("editor");
   const [invites, setInvites] = useState<Invite[]>([]);
   const [isSendingInvites, setIsSendingInvites] = useState(false);
 
@@ -89,34 +86,35 @@ export default function OnboardingPage() {
 
   // If user already has an active org on initial load, go to dashboard.
   // Once onboarding starts (org created in step 2), don't redirect.
+  const activeOrgId = activeOrg?.id;
   useEffect(() => {
-    if (activeOrg && !createdOrgId) {
+    if (activeOrgId && !createdOrgId) {
       router.replace("/dashboard");
     }
-  }, [activeOrg, createdOrgId, router]);
+  }, [activeOrgId, createdOrgId, router]);
 
-  // Auto-suggest domain from email
-  useEffect(() => {
-    if (session?.user?.email && !domain) {
-      const emailDomain = session.user.email.split("@")[1];
-      if (
-        emailDomain &&
-        !COMMON_EMAIL_DOMAINS.some((d) => emailDomain.startsWith(d + "."))
-      ) {
-        setDomain(emailDomain);
-      }
+  // Auto-suggest domain from email (only for business domains)
+  // Adjust state during render instead of useEffect (react.dev/learn/you-might-not-need-an-effect)
+  const userEmail = session?.user?.email;
+  const [prevUserEmail, setPrevUserEmail] = useState<string | undefined>();
+  if (userEmail && userEmail !== prevUserEmail) {
+    setPrevUserEmail(userEmail);
+    if (!domain && !isPersonalEmail(userEmail)) {
+      const emailDomain = userEmail.split("@")[1]?.toLowerCase();
+      if (emailDomain) setDomain(emailDomain);
     }
-  }, [session?.user?.email]);
+  }
 
   const slug = name
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
+    .replace(SLUG_REPLACE_RE, "-")
+    .replace(SLUG_TRIM_RE, "");
 
-  const firstName =
-    session?.user?.name?.split(" ")[0] ||
-    session?.user?.email?.split("@")[0] ||
-    "there";
+  const firstName = isSessionPending
+    ? "\u00A0"
+    : session?.user?.name?.split(" ")[0] ||
+      session?.user?.email?.split("@")[0] ||
+      "there";
 
   // --- Step handlers ---
 

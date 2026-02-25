@@ -9,6 +9,7 @@ import { canvasRoutes } from "./routes/canvas";
 import { runRoutes } from "./routes/runs";
 import { documentRoutes } from "./routes/documents";
 import { templateRoutes } from "./routes/templates";
+import { drawingRoutes } from "./routes/drawings";
 
 const allowedOrigins = [
   "http://localhost:3000",
@@ -33,6 +34,7 @@ const app = new Hono<AppEnv>()
   .route("/api/runs", runRoutes)
   .route("/api/documents", documentRoutes)
   .route("/api/templates", templateRoutes)
+  .route("/api/drawings", drawingRoutes)
   .notFound((c) => c.json({ error: "Not found" }, 404))
   .onError((err, c) => {
     console.error("Server error:", err);

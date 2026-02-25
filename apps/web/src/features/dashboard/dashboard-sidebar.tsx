@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutGrid,
   FileText,
+  PenLine,
   History,
   Settings,
   LogOut,
@@ -36,6 +37,7 @@ const navSections: { label: string; items: NavItem[] }[] = [
     label: "Build",
     items: [
       { href: "/canvases", label: "Canvases", icon: FileText },
+      { href: "/drawings", label: "Drawings", icon: PenLine },
       { href: "/documents", label: "Documents", icon: FileText },
     ],
   },

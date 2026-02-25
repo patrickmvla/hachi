@@ -187,6 +187,22 @@ export const canvases = pgTable("canvases", {
 });
 
 // ============================================================================
+// Drawings (Excalidraw Whiteboards)
+// ============================================================================
+
+export const drawings = pgTable("drawings", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizationId: text("organization_id")
+    .references(() => organization.id, { onDelete: "cascade" })
+    .notNull(),
+  name: text("name").notNull(),
+  drawingJson: jsonb("drawing_json").notNull(),
+  createdBy: text("created_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// ============================================================================
 // Execution & Wire Tap
 // ============================================================================
 

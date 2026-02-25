@@ -4,6 +4,11 @@ export const queryKeys = {
     list: (orgId: string) => ["canvases", "list", orgId] as const,
     detail: (id: string) => ["canvases", "detail", id] as const,
   },
+  drawings: {
+    all: ["drawings"] as const,
+    list: (orgId: string) => ["drawings", "list", orgId] as const,
+    detail: (id: string) => ["drawings", "detail", id] as const,
+  },
   documents: {
     all: ["documents"] as const,
     list: (orgId: string) => ["documents", "list", orgId] as const,

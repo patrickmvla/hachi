@@ -1,5 +1,25 @@
-import { Check } from "lucide-react";
+import { Check, type LucideIcon } from "lucide-react";
 import Link from "next/link";
+
+export const DetailCard = ({
+  icon: Icon,
+  title,
+  description,
+}: {
+  icon: LucideIcon;
+  title: string;
+  description: string;
+}) => {
+  return (
+    <div className="p-4 rounded-xl border border-black/[0.06] bg-white hover:border-black/[0.12] transition-colors">
+      <div className="flex items-center gap-2.5 mb-2">
+        <Icon className="size-3.5 text-black/30" />
+        <h4 className="text-[13px] font-semibold text-black">{title}</h4>
+      </div>
+      <p className="text-[12px] text-black/35 leading-relaxed">{description}</p>
+    </div>
+  );
+};
 
 export const FeaturePoint = ({
   title,

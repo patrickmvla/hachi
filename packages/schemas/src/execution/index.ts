@@ -85,6 +85,7 @@ export const runCompletedEventSchema = sseEventSchema.extend({
   data: z.object({
     output: z.record(z.unknown()),
     totalLatencyMs: z.number(),
+    trace: runTraceSchema.optional(),
   }),
 });
 
@@ -119,6 +120,7 @@ export const stepCompletedEventSchema = sseEventSchema.extend({
     stepIndex: z.number(),
     output: z.record(z.unknown()),
     latencyMs: z.number(),
+    trace: traceDataSchema.optional(),
   }),
 });
 
@@ -142,6 +144,36 @@ export const stepProgressEventSchema = sseEventSchema.extend({
     chunk: z.string(), // Streaming text chunk
     done: z.boolean(),
   }),
+});
+
+// Trace data for step-level observability
+export const traceDataSchema = z.object({
+  model: z.string().optional(),
+  provider: z.string().optional(),
+  tokenCount: z
+    .object({
+      prompt: z.number().optional(),
+      completion: z.number().optional(),
+      total: z.number().optional(),
+    })
+    .optional(),
+  cost: z
+    .object({
+      input: z.number().optional(),
+      output: z.number().optional(),
+      total: z.number().optional(),
+    })
+    .optional(),
+  dimensions: z.number().optional(),
+  documentCount: z.number().optional(),
+  finishReason: z.string().optional(),
+});
+
+// Aggregate trace for run-level summary
+export const runTraceSchema = z.object({
+  totalTokens: z.number().optional(),
+  totalCost: z.number().optional(),
+  stepCount: z.number().optional(),
 });
 
 // Union of all SSE events
@@ -169,3 +201,5 @@ export type StepCompletedEvent = z.infer<typeof stepCompletedEventSchema>;
 export type StepFailedEvent = z.infer<typeof stepFailedEventSchema>;
 export type StepProgressEvent = z.infer<typeof stepProgressEventSchema>;
 export type AnySSEEvent = z.infer<typeof anySSEEventSchema>;
+export type TraceData = z.infer<typeof traceDataSchema>;
+export type RunTrace = z.infer<typeof runTraceSchema>;

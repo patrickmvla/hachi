@@ -5,6 +5,7 @@ import {
   jsonb,
   timestamp,
   integer,
+  doublePrecision,
   vector,
   unique,
   boolean,
@@ -212,6 +213,8 @@ export const runs = pgTable("runs", {
   triggeredBy: text("triggered_by").references(() => users.id),
   input: jsonb("input"),
   status: text("status"), // 'pending', 'running', 'completed', 'failed'
+  totalTokens: integer("total_tokens"),
+  totalCost: doublePrecision("total_cost"),
   startedAt: timestamp("started_at"),
   completedAt: timestamp("completed_at"),
 });
@@ -222,6 +225,7 @@ export const stepOutputs = pgTable("step_outputs", {
   nodeId: text("node_id").notNull(),
   input: jsonb("input"),
   output: jsonb("output"),
+  trace: jsonb("trace"), // TraceData: model, tokens, cost, dimensions, etc.
   latencyMs: integer("latency_ms"),
   createdAt: timestamp("created_at").defaultNow(),
 });

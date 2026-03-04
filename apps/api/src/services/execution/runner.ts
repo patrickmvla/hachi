@@ -1,18 +1,9 @@
 import { randomUUID } from "crypto";
 import {
+  compileToWorkflow,
   createExecutionPlan,
   type CanvasGraph,
 } from "@hachi/mastra-core/compiler";
-import {
-  createQueryStep,
-  createEmbedStep,
-  createRetrieveStep,
-  createGenerateStep,
-  createHyDEStep,
-  createRerankStep,
-  createJudgeStep,
-  createAgentStep,
-} from "@hachi/mastra-core/steps";
 import type {
   AnySSEEvent,
   RunStartedEvent,
@@ -21,12 +12,15 @@ import type {
   StepStartedEvent,
   StepCompletedEvent,
   StepFailedEvent,
+  TraceData,
 } from "@hachi/schemas/execution";
 import type { NodeType } from "@hachi/schemas/nodes";
+import { extractTraceData, aggregateTraces } from "./trace-utils";
 
 /**
- * Execution Runner
- * Executes a canvas graph and streams SSE events for Wire Tap visualization
+ * Execution Runner (vNext)
+ * Compiles canvas graph into a Mastra vNext workflow, executes via workflow.stream(),
+ * and emits SSE events with trace data for Wire Tap visualization.
  */
 
 export interface RunnerConfig {
@@ -55,183 +49,10 @@ export interface RunResult {
   output?: Record<string, unknown>;
   error?: string;
   totalLatencyMs: number;
+  trace?: { totalTokens: number; totalCost: number; stepCount: number };
 }
 
-type SSECallback = (event: AnySSEEvent) => void;
-
-/**
- * Step executor adapter - wraps Mastra steps to provide a unified execution interface
- */
-interface StepExecutor {
-  execute: (params: { inputData: Record<string, unknown>; mapiConfig: Record<string, unknown> }) => Promise<Record<string, unknown>>;
-}
-
-/**
- * Generic Mastra step type - accepts any step with an execute function
- */
-interface MastraStep {
-  execute: (ctx: {
-    context: Record<string, unknown>;
-    runId: string;
-    suspend: () => Promise<unknown>;
-  }) => Promise<Record<string, unknown>>;
-}
-
-/**
- * Creates an executor adapter for a Mastra step
- */
-const createStepExecutor = (mastraStep: MastraStep): StepExecutor => ({
-  execute: async ({ inputData }) => {
-    // Mastra steps expect { context: inputData } format
-    const result = await mastraStep.execute({
-      context: inputData,
-      runId: randomUUID(),
-      suspend: async () => { throw new Error("Suspend not supported"); },
-    });
-    return result;
-  },
-});
-
-/**
- * Step executor factory - maps node types to step execution
- */
-const getStepExecutor = (nodeType: NodeType, config: Record<string, unknown>): StepExecutor => {
-  // Create the Mastra step based on node type
-  const stepConfig = config as any;
-  let mastraStep: MastraStep;
-
-  switch (nodeType) {
-    case "query":
-      mastraStep = createQueryStep(stepConfig) as unknown as MastraStep;
-      break;
-    case "embed":
-      mastraStep = createEmbedStep(stepConfig) as unknown as MastraStep;
-      break;
-    case "retrieve":
-      mastraStep = createRetrieveStep(stepConfig) as unknown as MastraStep;
-      break;
-    case "generate":
-      mastraStep = createGenerateStep(stepConfig) as unknown as MastraStep;
-      break;
-    case "hyde":
-      mastraStep = createHyDEStep(stepConfig) as unknown as MastraStep;
-      break;
-    case "rerank":
-      mastraStep = createRerankStep(stepConfig) as unknown as MastraStep;
-      break;
-    case "judge":
-      mastraStep = createJudgeStep(stepConfig) as unknown as MastraStep;
-      break;
-    case "agent":
-      mastraStep = createAgentStep(stepConfig) as unknown as MastraStep;
-      break;
-    default:
-      throw new Error(`Unknown node type: ${nodeType}`);
-  }
-
-  return createStepExecutor(mastraStep);
-};
-
-/**
- * Maps step outputs to the next step's inputs based on node type
- */
-const mapStepOutputToInput = (
-  nodeType: NodeType,
-  previousOutputs: Map<string, Record<string, unknown>>,
-  inputNodeIds: string[],
-  initialQuery: string
-): Record<string, unknown> => {
-  // Collect all outputs from input nodes
-  const inputOutputs = inputNodeIds
-    .map((id) => previousOutputs.get(id))
-    .filter(Boolean);
-
-  switch (nodeType) {
-    case "query":
-      // Query node gets the initial input
-      return { query: initialQuery };
-
-    case "embed": {
-      // Embed node needs text from query or hyde
-      const queryOutput = inputOutputs.find((o) => o?.query);
-      const hydeOutput = inputOutputs.find((o) => o?.hypotheticalDocument);
-      return {
-        text: hydeOutput?.hypotheticalDocument || queryOutput?.query || initialQuery,
-      };
-    }
-
-    case "hyde": {
-      // Hyde node needs the query
-      const queryOutput = inputOutputs.find((o) => o?.query);
-      return { query: queryOutput?.query || initialQuery };
-    }
-
-    case "retrieve": {
-      // Retrieve node needs embedding and query
-      const embedOutput = inputOutputs.find((o) => o?.embedding);
-      const queryOutput = inputOutputs.find((o) => o?.query);
-      return {
-        embedding: embedOutput?.embedding || [],
-        query: queryOutput?.query || embedOutput?.text || initialQuery,
-      };
-    }
-
-    case "rerank": {
-      // Rerank node needs documents and query
-      const retrieveOutput = inputOutputs.find((o) => o?.documents);
-      const queryOutput = inputOutputs.find((o) => o?.query);
-      return {
-        documents: retrieveOutput?.documents || [],
-        query: queryOutput?.query || retrieveOutput?.query || initialQuery,
-      };
-    }
-
-    case "judge": {
-      // Judge node needs documents and query
-      const retrieveOutput = inputOutputs.find((o) => o?.documents);
-      const rerankOutput = inputOutputs.find((o) => o?.rankedDocuments);
-      const queryOutput = inputOutputs.find((o) => o?.query);
-      return {
-        documents: rerankOutput?.rankedDocuments || retrieveOutput?.documents || [],
-        query: queryOutput?.query || rerankOutput?.query || retrieveOutput?.query || initialQuery,
-      };
-    }
-
-    case "generate": {
-      // Generate node needs query, context, and documents
-      const retrieveOutput = inputOutputs.find((o) => o?.documents);
-      const rerankOutput = inputOutputs.find((o) => o?.rankedDocuments);
-      const judgeOutput = inputOutputs.find((o) => o?.relevantDocuments);
-      const queryOutput = inputOutputs.find((o) => o?.query);
-
-      // Use the most processed documents available
-      const documents = judgeOutput?.relevantDocuments || rerankOutput?.rankedDocuments || retrieveOutput?.documents;
-
-      return {
-        query: queryOutput?.query || initialQuery,
-        documents,
-      };
-    }
-
-    case "agent": {
-      // Agent node needs query, context, and documents
-      const retrieveOutput = inputOutputs.find((o) => o?.documents);
-      const rerankOutput = inputOutputs.find((o) => o?.rankedDocuments);
-      const judgeOutput = inputOutputs.find((o) => o?.relevantDocuments);
-      const queryOutput = inputOutputs.find((o) => o?.query);
-
-      const documents = judgeOutput?.relevantDocuments || rerankOutput?.rankedDocuments || retrieveOutput?.documents;
-
-      return {
-        query: queryOutput?.query || initialQuery,
-        documents,
-      };
-    }
-
-    default:
-      return { query: initialQuery };
-  }
-};
+type SSECallback = (event: AnySSEEvent) => void | Promise<void>;
 
 /**
  * Creates an SSE event with common fields
@@ -240,15 +61,49 @@ const createEvent = <T extends AnySSEEvent>(
   type: T["type"],
   runId: string,
   data: T["data"]
-): T => ({
-  type,
-  timestamp: new Date().toISOString(),
-  runId,
-  data,
-} as T);
+): T =>
+  ({
+    type,
+    timestamp: new Date().toISOString(),
+    runId,
+    data,
+  }) as T;
 
 /**
- * Executes a canvas graph with SSE streaming
+ * Injects credentials as environment variables for the duration of execution.
+ * Returns a cleanup function to restore original values.
+ */
+function injectCredentials(config: RunnerConfig): () => void {
+  const originals: Record<string, string | undefined> = {};
+  const vars: Record<string, string | undefined> = {
+    OPENAI_API_KEY: config.openaiApiKey,
+    ANTHROPIC_API_KEY: config.anthropicApiKey,
+    PINECONE_API_KEY: config.pineconeApiKey,
+    PINECONE_INDEX_HOST: config.pineconeIndexHost,
+    DATABASE_URL: config.databaseUrl,
+  };
+
+  for (const [key, value] of Object.entries(vars)) {
+    if (value) {
+      originals[key] = process.env[key];
+      process.env[key] = value;
+    }
+  }
+
+  return () => {
+    for (const [key, value] of Object.entries(originals)) {
+      if (value === undefined) {
+        delete process.env[key];
+      } else {
+        process.env[key] = value;
+      }
+    }
+  };
+}
+
+/**
+ * Executes a canvas graph using Mastra vNext workflow.stream()
+ * and emits SSE events with trace data.
  */
 export const executeGraph = async (
   graph: CanvasGraph,
@@ -258,125 +113,192 @@ export const executeGraph = async (
 ): Promise<RunResult> => {
   const runId = randomUUID();
   const startTime = Date.now();
-  const stepOutputs = new Map<string, Record<string, unknown>>();
+
+  // Compile the graph to a Mastra vNext workflow
+  const compilation = compileToWorkflow(graph);
+  if (!compilation.success || !compilation.workflow) {
+    const errorMsg = compilation.errors?.join(", ") || "Compilation failed";
+    await onEvent(
+      createEvent<RunFailedEvent>("run:failed", runId, { error: errorMsg })
+    );
+    return {
+      runId,
+      success: false,
+      error: errorMsg,
+      totalLatencyMs: Date.now() - startTime,
+    };
+  }
+
+  // Also build the execution plan for step metadata
+  const plan = createExecutionPlan(graph);
+  const stepMeta = new Map<
+    string,
+    { nodeType: string; nodeLabel: string; stepIndex: number }
+  >(
+    plan.steps.map((s, i) => [
+      s.nodeId,
+      { nodeType: s.nodeType, nodeLabel: s.nodeLabel, stepIndex: i },
+    ])
+  );
+
+  // Inject org credentials into env for step factories
+  const cleanupCredentials = injectCredentials(config);
 
   try {
-    // Create execution plan
-    const plan = createExecutionPlan(graph);
-
-    // Emit run started event
-    onEvent(
+    // Emit run started
+    await onEvent(
       createEvent<RunStartedEvent>("run:started", runId, {
-        canvasId: graph.nodes[0]?.id || runId, // Use first node ID as canvas ID placeholder
+        canvasId: graph.nodes[0]?.id || runId,
         input: input as Record<string, unknown>,
         totalSteps: plan.steps.length,
       })
     );
 
-    // Build mapiConfig for step execution
-    const mapiConfig: Record<string, unknown> = {
-      openaiApiKey: config.openaiApiKey,
-      anthropicApiKey: config.anthropicApiKey,
-      pineconeApiKey: config.pineconeApiKey,
-      pineconeIndexHost: config.pineconeIndexHost,
-      databaseUrl: config.databaseUrl,
-      vectorStoreType: config.vectorStoreType || "memory",
-      documents: config.documents || [],
-    };
+    // Create and stream the workflow
+    const workflow = compilation.workflow;
+    const run = await workflow.createRun();
+    const streamResult = run.stream({
+      inputData: { query: input.query },
+    });
 
-    // Execute each step in order
+    // Track step timing and traces
+    const stepStartTimes = new Map<string, number>();
+    const stepTraces: TraceData[] = [];
     let finalOutput: Record<string, unknown> = {};
 
-    for (let i = 0; i < plan.steps.length; i++) {
-      const step = plan.steps[i];
-      if (!step) continue;
+    // Consume workflow stream events
+    for await (const event of streamResult) {
+      switch (event.type) {
+        case "workflow-step-start": {
+          const nodeId = event.payload.id;
+          const meta = stepMeta.get(nodeId);
+          stepStartTimes.set(nodeId, Date.now());
 
-      const stepStartTime = Date.now();
+          if (meta) {
+            await onEvent(
+              createEvent<StepStartedEvent>("step:started", runId, {
+                nodeId,
+                nodeType: meta.nodeType,
+                nodeLabel: meta.nodeLabel,
+                stepIndex: meta.stepIndex,
+                input: {},
+              })
+            );
+          }
+          break;
+        }
 
-      // Map inputs from previous steps
-      const stepInput = mapStepOutputToInput(
-        step.nodeType,
-        stepOutputs,
-        step.inputs,
-        input.query
-      );
+        case "workflow-step-result": {
+          const nodeId = event.payload.id;
+          const meta = stepMeta.get(nodeId);
+          const output =
+            (event.payload.output as Record<string, unknown>) || {};
+          const stepStart = stepStartTimes.get(nodeId);
+          const latencyMs = stepStart ? Date.now() - stepStart : 0;
 
-      // Emit step started event
-      onEvent(
-        createEvent<StepStartedEvent>("step:started", runId, {
-          nodeId: step.nodeId,
-          nodeType: step.nodeType,
-          nodeLabel: step.nodeLabel,
-          stepIndex: i,
-          input: stepInput,
-        })
-      );
+          // Extract trace data
+          const trace = meta
+            ? extractTraceData(meta.nodeType, output)
+            : {};
+          stepTraces.push(trace);
+          finalOutput = output;
 
-      try {
-        // Get step executor and execute
-        const executor = getStepExecutor(step.nodeType, step.config);
-        const output = await executor.execute({
-          inputData: stepInput,
-          mapiConfig,
-        });
+          const status = event.payload.status;
 
-        // Store output for downstream steps
-        stepOutputs.set(step.nodeId, output);
-        finalOutput = output;
+          if (status === "failed") {
+            if (meta) {
+              await onEvent(
+                createEvent<StepFailedEvent>("step:failed", runId, {
+                  nodeId,
+                  nodeType: meta.nodeType,
+                  nodeLabel: meta.nodeLabel,
+                  stepIndex: meta.stepIndex,
+                  error:
+                    (output as any)?.error?.message ||
+                    (output as any)?.error ||
+                    "Step failed",
+                })
+              );
+            }
+          } else if (meta) {
+            await onEvent(
+              createEvent<StepCompletedEvent>("step:completed", runId, {
+                nodeId,
+                nodeType: meta.nodeType,
+                nodeLabel: meta.nodeLabel,
+                stepIndex: meta.stepIndex,
+                output,
+                latencyMs,
+                trace,
+              })
+            );
+          }
+          break;
+        }
 
-        const stepLatency = Date.now() - stepStartTime;
+        case "workflow-finish": {
+          // Workflow completed
+          break;
+        }
 
-        // Emit step completed event
-        onEvent(
-          createEvent<StepCompletedEvent>("step:completed", runId, {
-            nodeId: step.nodeId,
-            nodeType: step.nodeType,
-            nodeLabel: step.nodeLabel,
-            stepIndex: i,
-            output,
-            latencyMs: stepLatency,
-          })
-        );
-      } catch (stepError) {
-        const errorMessage = stepError instanceof Error ? stepError.message : "Step execution failed";
-
-        // Emit step failed event
-        onEvent(
-          createEvent<StepFailedEvent>("step:failed", runId, {
-            nodeId: step.nodeId,
-            nodeType: step.nodeType,
-            nodeLabel: step.nodeLabel,
-            stepIndex: i,
-            error: errorMessage,
-          })
-        );
-
-        throw stepError;
+        case "workflow-canceled": {
+          await onEvent(
+            createEvent<RunFailedEvent>("run:failed", runId, {
+              error: "Workflow was cancelled",
+            })
+          );
+          break;
+        }
       }
     }
 
+    // Wait for final result
+    const result = await streamResult.result;
     const totalLatencyMs = Date.now() - startTime;
 
-    // Emit run completed event
-    onEvent(
-      createEvent<RunCompletedEvent>("run:completed", runId, {
+    if (result.status === "success") {
+      const runTrace = aggregateTraces(stepTraces);
+
+      await onEvent(
+        createEvent<RunCompletedEvent>("run:completed", runId, {
+          output: finalOutput,
+          totalLatencyMs,
+          trace: runTrace,
+        })
+      );
+
+      return {
+        runId,
+        success: true,
         output: finalOutput,
         totalLatencyMs,
-      })
-    );
+        trace: runTrace,
+      };
+    } else {
+      const errorMsg =
+        result.status === "failed"
+          ? (result as any).error?.message || "Workflow failed"
+          : `Workflow ended with status: ${result.status}`;
 
-    return {
-      runId,
-      success: true,
-      output: finalOutput,
-      totalLatencyMs,
-    };
+      await onEvent(
+        createEvent<RunFailedEvent>("run:failed", runId, {
+          error: errorMsg,
+        })
+      );
+
+      return {
+        runId,
+        success: false,
+        error: errorMsg,
+        totalLatencyMs,
+      };
+    }
   } catch (error) {
     const totalLatencyMs = Date.now() - startTime;
-    const errorMessage = error instanceof Error ? error.message : "Run failed";
+    const errorMessage =
+      error instanceof Error ? error.message : "Run failed";
 
-    // Emit run failed event
-    onEvent(
+    await onEvent(
       createEvent<RunFailedEvent>("run:failed", runId, {
         error: errorMessage,
       })
@@ -388,6 +310,8 @@ export const executeGraph = async (
       error: errorMessage,
       totalLatencyMs,
     };
+  } finally {
+    cleanupCredentials();
   }
 };
 
@@ -410,7 +334,7 @@ export const createExecutionStream = (
 
       try {
         await executeGraph(graph, input, config, onEvent);
-      } catch (error) {
+      } catch {
         // Error already handled in executeGraph
       } finally {
         controller.close();
@@ -418,3 +342,6 @@ export const createExecutionStream = (
     },
   });
 };
+
+// Re-export for backward compatibility
+export { createExecutionPlan, type CanvasGraph };

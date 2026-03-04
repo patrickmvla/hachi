@@ -179,12 +179,19 @@ export const validateCanvas = (
     }
   }
 
-  // 5. Check for cycles (simple DFS-based cycle detection)
-  const hasCycle = detectCycle(nodes, edges);
+  // 5. Check for cycles (allow CRAG pattern: judge → retrieve back-edges)
+  const nonCragEdges = edges.filter((e) => {
+    const sourceNode = nodeMap.get(e.source);
+    const targetNode = nodeMap.get(e.target);
+    // Allow judge → retrieve edges (CRAG loop pattern)
+    if (sourceNode?.type === "judge" && targetNode?.type === "retrieve") return false;
+    return true;
+  });
+  const hasCycle = detectCycle(nodes, nonCragEdges);
   if (hasCycle) {
     errors.push({
       type: "error",
-      message: "Canvas contains a cycle - pipelines must be acyclic (DAG)",
+      message: "Canvas contains a cycle - pipelines must be acyclic (DAG). Note: judge → retrieve loops (CRAG) are allowed.",
       code: "CYCLE_DETECTED",
     });
   }

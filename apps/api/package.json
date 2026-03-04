@@ -19,7 +19,6 @@
     "@hachi/schemas": "workspace:*",
     "@hono/node-server": "^1.19.9",
     "@hono/zod-validator": "^0.7.6",
-    "@mastra/core": "^0.5.0",
     "drizzle-orm": "catalog:",
     "hono": "catalog:",
     "lib0": "^0.2.98",

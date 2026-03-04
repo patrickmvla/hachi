@@ -1,18 +1,19 @@
 "use client";
 
-import { Play, Square, Loader2, LayoutTemplate } from "lucide-react";
+import { Play, Square, Loader2, LayoutTemplate, Coins, Zap } from "lucide-react";
 import { useCanvasStore } from "@/stores/canvas-store";
 import { useExecutionLogStore } from "@/stores/execution-log-store";
-import { useMockExecution } from "../hooks/use-mock-execution";
+import { useExecution } from "../hooks/use-execution";
 
 interface ExecutionBarProps {
+  canvasId: string;
   onOpenTemplatePicker?: () => void;
 }
 
-export const ExecutionBar = ({ onOpenTemplatePicker }: ExecutionBarProps) => {
+export const ExecutionBar = ({ canvasId, onOpenTemplatePicker }: ExecutionBarProps) => {
   const { isRunning } = useCanvasStore();
-  const { testQuery, setTestQuery, currentNodeId, entries } = useExecutionLogStore();
-  const { executeWorkflow, stopExecution } = useMockExecution();
+  const { testQuery, setTestQuery, currentNodeId, entries, runTrace } = useExecutionLogStore();
+  const { executeWorkflow, stopExecution } = useExecution(canvasId);
 
   const handleRun = () => {
     executeWorkflow(testQuery || "What is retrieval augmented generation?");
@@ -100,6 +101,27 @@ export const ExecutionBar = ({ onOpenTemplatePicker }: ExecutionBarProps) => {
       </div>
 
       <div className="flex items-center gap-4">
+        {/* Run summary after completion */}
+        {runTrace && !isRunning && (
+          <div className="flex items-center gap-3 text-[11px] text-muted-foreground font-mono">
+            <span className="flex items-center gap-1" title="Total latency">
+              <Zap size={11} />
+              {runTrace.totalLatencyMs}ms
+            </span>
+            {runTrace.totalTokens > 0 && (
+              <span title="Total tokens">
+                {runTrace.totalTokens.toLocaleString()} tok
+              </span>
+            )}
+            {runTrace.totalCost > 0 && (
+              <span className="flex items-center gap-0.5" title="Total cost">
+                <Coins size={11} />
+                ${runTrace.totalCost.toFixed(4)}
+              </span>
+            )}
+          </div>
+        )}
+
         <div className="flex items-center gap-2 text-sm text-muted-foreground" role="status" aria-live="polite">
           {isRunning && currentStepName ? (
             <>

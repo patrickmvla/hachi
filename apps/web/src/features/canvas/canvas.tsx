@@ -76,7 +76,7 @@ const variantMap = {
   cross: BackgroundVariant.Cross,
 } as const;
 
-const CanvasContent = ({ mode = "full", onOpenTemplatePicker }: { mode?: "full" | "demo"; onOpenTemplatePicker?: () => void }) => {
+const CanvasContent = ({ canvasId, mode = "full", onOpenTemplatePicker }: { canvasId: string; mode?: "full" | "demo"; onOpenTemplatePicker?: () => void }) => {
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const { screenToFlowPosition } = useReactFlow();
   const [contextMenu, setContextMenu] = useState<ContextMenuState>(initialContextMenuState);
@@ -209,7 +209,7 @@ const CanvasContent = ({ mode = "full", onOpenTemplatePicker }: { mode?: "full" 
 
   return (
     <div className="flex flex-col h-full w-full">
-      <ExecutionBar onOpenTemplatePicker={mode === "demo" ? onOpenTemplatePicker : undefined} />
+      <ExecutionBar canvasId={canvasId} onOpenTemplatePicker={mode === "demo" ? onOpenTemplatePicker : undefined} />
 
       <div className="flex flex-1 overflow-hidden">
         {mode !== "demo" && <NodePalette />}
@@ -322,7 +322,7 @@ export const Canvas = ({
         user={user}
         enabled={collaborationEnabled}
       >
-        <CanvasContent mode={mode} onOpenTemplatePicker={onOpenTemplatePicker} />
+        <CanvasContent canvasId={canvasId} mode={mode} onOpenTemplatePicker={onOpenTemplatePicker} />
       </CollaborationProvider>
     </ReactFlowProvider>
   );

@@ -1,4 +1,4 @@
-import { createStep } from "@mastra/core";
+import { createStep } from "@mastra/core/workflows";
 import { PgVector } from "@mastra/pg";
 import { PineconeVector } from "@mastra/pinecone";
 import { QdrantVector } from "@mastra/qdrant";
@@ -17,7 +17,10 @@ import {
  * In-memory vector store for development/testing
  */
 class InMemoryVectorStore {
-  private documents: Map<string, { embedding: number[]; metadata: Record<string, unknown> }> = new Map();
+  private documents: Map<
+    string,
+    { embedding: number[]; metadata: Record<string, unknown> }
+  > = new Map();
 
   async query(params: {
     indexName: string;
@@ -25,8 +28,20 @@ class InMemoryVectorStore {
     topK: number;
     filter?: Record<string, unknown>;
     includeVector?: boolean;
-  }): Promise<Array<{ id: string; score: number; metadata?: Record<string, unknown>; vector?: number[] }>> {
-    const results: Array<{ id: string; score: number; metadata?: Record<string, unknown>; vector?: number[] }> = [];
+  }): Promise<
+    Array<{
+      id: string;
+      score: number;
+      metadata?: Record<string, unknown>;
+      vector?: number[];
+    }>
+  > {
+    const results: Array<{
+      id: string;
+      score: number;
+      metadata?: Record<string, unknown>;
+      vector?: number[];
+    }> = [];
 
     for (const [id, doc] of this.documents) {
       const score = cosineSimilarity(params.queryVector, doc.embedding);
@@ -38,9 +53,7 @@ class InMemoryVectorStore {
       });
     }
 
-    return results
-      .sort((a, b) => b.score - a.score)
-      .slice(0, params.topK);
+    return results.sort((a, b) => b.score - a.score).slice(0, params.topK);
   }
 }
 
@@ -125,7 +138,9 @@ const getVectorStore = (type: VectorStoreType): unknown => {
       const url = process.env.UPSTASH_URL;
       const token = process.env.UPSTASH_TOKEN;
       if (!url || !token) {
-        throw new Error("UPSTASH_URL and UPSTASH_TOKEN are required for Upstash");
+        throw new Error(
+          "UPSTASH_URL and UPSTASH_TOKEN are required for Upstash",
+        );
       }
       store = new UpstashVector({ url, token });
       break;
@@ -170,10 +185,14 @@ export const createRetrieveStep = (config: Partial<RetrieveNodeConfig> = {}) =>
     id: "retrieve",
     inputSchema: retrieveNodeInputSchema,
     outputSchema: retrieveNodeOutputSchema,
-    execute: async ({ context }) => {
-      const { embedding, query } = context;
-      const vectorStoreType = config.vectorStore || (process.env.VECTOR_STORE_TYPE as VectorStoreType) || "memory";
-      const indexName = config.indexName || process.env.VECTOR_INDEX_NAME || "documents";
+    execute: async ({ inputData }) => {
+      const { embedding, query } = inputData;
+      const vectorStoreType =
+        config.vectorStore ||
+        (process.env.VECTOR_STORE_TYPE as VectorStoreType) ||
+        "memory";
+      const indexName =
+        config.indexName || process.env.VECTOR_INDEX_NAME || "documents";
       const topK = config.topK || 5;
       const scoreThreshold = config.scoreThreshold;
       const filter = config.filter;
@@ -202,7 +221,10 @@ export const createRetrieveStep = (config: Partial<RetrieveNodeConfig> = {}) =>
       // Transform results to documents
       let documents: Document[] = results.map((result) => ({
         id: result.id,
-        content: (result.metadata?.text as string) || (result.metadata?.content as string) || "",
+        content:
+          (result.metadata?.text as string) ||
+          (result.metadata?.content as string) ||
+          "",
         metadata: result.metadata,
         score: result.score,
       }));

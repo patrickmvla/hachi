@@ -1,4 +1,4 @@
-import { createStep } from "@mastra/core";
+import { createStep } from "@mastra/core/workflows";
 import { MDocument } from "@mastra/rag";
 import { embed, embedMany } from "ai";
 import { openai } from "@ai-sdk/openai";
@@ -19,8 +19,13 @@ const getChunkOptions = (
   strategy: ChunkingStrategy,
   size: number,
   overlap: number,
-  separator?: string
-): { strategy: "recursive" | "character" | "token" | "markdown"; size: number; overlap: number; separator?: string } => {
+  separator?: string,
+): {
+  strategy: "recursive" | "character" | "token" | "markdown";
+  size: number;
+  overlap: number;
+  separator?: string;
+} => {
   const baseOptions = { size, overlap };
 
   switch (strategy) {
@@ -49,8 +54,8 @@ export const createEmbedStep = (config: Partial<EmbedNodeConfig> = {}) =>
     id: "embed",
     inputSchema: embedNodeInputSchema,
     outputSchema: embedNodeOutputSchema,
-    execute: async ({ context }) => {
-      const { text } = context;
+    execute: async ({ inputData }) => {
+      const { text } = inputData;
       const model = config.model || "text-embedding-3-small";
       const dimensions = config.dimensions;
       const chunking = config.chunking;
@@ -67,7 +72,7 @@ export const createEmbedStep = (config: Partial<EmbedNodeConfig> = {}) =>
           chunking.strategy || "recursive",
           chunking.size || 512,
           chunking.overlap || 50,
-          chunking.separator
+          chunking.separator,
         );
 
         const chunks = await doc.chunk(chunkOptions);
@@ -84,12 +89,14 @@ export const createEmbedStep = (config: Partial<EmbedNodeConfig> = {}) =>
         });
 
         // Build chunk results
-        const embeddedChunks: EmbeddedChunk[] = embeddings.map((embedding, index) => ({
-          text: chunkTexts[index] || "",
-          embedding,
-          index,
-          metadata: chunks[index]?.metadata,
-        }));
+        const embeddedChunks: EmbeddedChunk[] = embeddings.map(
+          (embedding, index) => ({
+            text: chunkTexts[index] || "",
+            embedding,
+            index,
+            metadata: chunks[index]?.metadata,
+          }),
+        );
 
         // Return with first chunk as primary embedding
         const primaryEmbedding = embeddings[0];

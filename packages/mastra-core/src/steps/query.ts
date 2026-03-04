@@ -1,4 +1,4 @@
-import { createStep } from "@mastra/core";
+import { createStep } from "@mastra/core/workflows";
 import { z } from "zod";
 import {
   queryNodeInputSchema,
@@ -15,13 +15,13 @@ export const createQueryStep = (config: Partial<QueryNodeConfig> = {}) =>
     id: "query",
     inputSchema: queryNodeInputSchema,
     outputSchema: queryNodeOutputSchema,
-    execute: async ({ context }) => {
-      const { query } = context;
+    execute: async ({ inputData }) => {
+      const { query } = inputData;
 
       // Validate query length if maxLength is specified
       if (config.maxLength && query.length > config.maxLength) {
         throw new Error(
-          `Query exceeds maximum length of ${config.maxLength} characters`
+          `Query exceeds maximum length of ${config.maxLength} characters`,
         );
       }
 

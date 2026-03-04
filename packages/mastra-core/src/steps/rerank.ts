@@ -1,8 +1,5 @@
-import { createStep } from "@mastra/core";
-import {
-  rerankWithScorer,
-  CohereRelevanceScorer,
-} from "@mastra/rag";
+import { createStep } from "@mastra/core/workflows";
+import { rerankWithScorer, CohereRelevanceScorer } from "@mastra/rag";
 import {
   rerankNodeInputSchema,
   rerankNodeOutputSchema,
@@ -28,7 +25,9 @@ const getRelevanceScorer = (provider: RerankProvider, model: string) => {
       // For now, fall back to Cohere as default
       const apiKey = process.env.COHERE_API_KEY;
       if (!apiKey) {
-        throw new Error("COHERE_API_KEY is required (mastra provider not yet implemented)");
+        throw new Error(
+          "COHERE_API_KEY is required (mastra provider not yet implemented)",
+        );
       }
       return new CohereRelevanceScorer("rerank-v3.5", apiKey);
     }
@@ -38,7 +37,9 @@ const getRelevanceScorer = (provider: RerankProvider, model: string) => {
       // For now, fall back to Cohere as default
       const apiKey = process.env.COHERE_API_KEY;
       if (!apiKey) {
-        throw new Error("COHERE_API_KEY is required (zero-entropy provider not yet implemented)");
+        throw new Error(
+          "COHERE_API_KEY is required (zero-entropy provider not yet implemented)",
+        );
       }
       return new CohereRelevanceScorer("rerank-v3.5", apiKey);
     }
@@ -57,8 +58,8 @@ export const createRerankStep = (config: Partial<RerankNodeConfig> = {}) =>
     id: "rerank",
     inputSchema: rerankNodeInputSchema,
     outputSchema: rerankNodeOutputSchema,
-    execute: async ({ context }) => {
-      const { query, documents } = context;
+    execute: async ({ inputData }) => {
+      const { query, documents } = inputData;
       const provider = config.provider || "cohere";
       const model = config.model || "rerank-v3.5";
       const topN = config.topN || 3;
@@ -104,7 +105,10 @@ export const createRerankStep = (config: Partial<RerankNodeConfig> = {}) =>
         const originalDoc = documents.find((d) => d.id === resultId);
         return {
           id: resultId,
-          content: originalDoc?.content || (rerankResult.result.metadata?.text as string) || "",
+          content:
+            originalDoc?.content ||
+            (rerankResult.result.metadata?.text as string) ||
+            "",
           metadata: rerankResult.result.metadata,
           originalScore: originalDoc?.score,
           rerankScore: rerankResult.score,

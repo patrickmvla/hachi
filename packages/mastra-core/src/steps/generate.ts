@@ -1,4 +1,4 @@
-import { createStep } from "@mastra/core";
+import { createStep } from "@mastra/core/workflows";
 import { z } from "zod";
 import {
   generateNodeInputSchema,
@@ -15,8 +15,8 @@ export const createGenerateStep = (config: Partial<GenerateNodeConfig> = {}) =>
     id: "generate",
     inputSchema: generateNodeInputSchema,
     outputSchema: generateNodeOutputSchema,
-    execute: async ({ context: ctx }) => {
-      const { query, context, documents } = ctx;
+    execute: async ({ inputData }) => {
+      const { query, context, documents } = inputData;
       const model = config.model || "gpt-4o-mini";
       const systemPrompt = config.systemPrompt;
       const temperature = config.temperature ?? 0.7;
@@ -122,8 +122,10 @@ const generateWithOpenAI = async ({
   if (temperature !== undefined) requestBody.temperature = temperature;
   if (maxTokens !== undefined) requestBody.max_tokens = maxTokens;
   if (topP !== undefined) requestBody.top_p = topP;
-  if (frequencyPenalty !== undefined) requestBody.frequency_penalty = frequencyPenalty;
-  if (presencePenalty !== undefined) requestBody.presence_penalty = presencePenalty;
+  if (frequencyPenalty !== undefined)
+    requestBody.frequency_penalty = frequencyPenalty;
+  if (presencePenalty !== undefined)
+    requestBody.presence_penalty = presencePenalty;
   if (responseFormat === "json") {
     requestBody.response_format = { type: "json_object" };
   }
@@ -138,16 +140,22 @@ const generateWithOpenAI = async ({
   });
 
   if (!response.ok) {
-    const error = (await response.json().catch(() => ({}))) as { error?: { message?: string } };
+    const error = (await response.json().catch(() => ({}))) as {
+      error?: { message?: string };
+    };
     throw new Error(
-      `OpenAI API error: ${response.status} - ${error.error?.message || "Unknown error"}`
+      `OpenAI API error: ${response.status} - ${error.error?.message || "Unknown error"}`,
     );
   }
 
   interface OpenAIResponse {
     model: string;
     choices: Array<{ message: { content: string }; finish_reason: string }>;
-    usage?: { prompt_tokens: number; completion_tokens: number; total_tokens: number };
+    usage?: {
+      prompt_tokens: number;
+      completion_tokens: number;
+      total_tokens: number;
+    };
   }
 
   const data = (await response.json()) as OpenAIResponse;
@@ -233,9 +241,11 @@ const generateWithAnthropic = async ({
   });
 
   if (!response.ok) {
-    const error = (await response.json().catch(() => ({}))) as { error?: { message?: string } };
+    const error = (await response.json().catch(() => ({}))) as {
+      error?: { message?: string };
+    };
     throw new Error(
-      `Anthropic API error: ${response.status} - ${error.error?.message || JSON.stringify(error)}`
+      `Anthropic API error: ${response.status} - ${error.error?.message || JSON.stringify(error)}`,
     );
   }
 

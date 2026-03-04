@@ -1,4 +1,4 @@
-import { createStep } from "@mastra/core";
+import { createStep } from "@mastra/core/workflows";
 import { z } from "zod";
 import {
   judgeNodeInputSchema,
@@ -16,8 +16,8 @@ export const createJudgeStep = (config: Partial<JudgeNodeConfig> = {}) =>
     id: "judge",
     inputSchema: judgeNodeInputSchema,
     outputSchema: judgeNodeOutputSchema,
-    execute: async ({ context }) => {
-      const { query, documents } = context;
+    execute: async ({ inputData }) => {
+      const { query, documents } = inputData;
       const model = config.model || "gpt-4o-mini";
       const temperature = config.temperature ?? 0;
       const relevanceThreshold = config.relevanceThreshold ?? 0.7;
@@ -48,7 +48,9 @@ export const createJudgeStep = (config: Partial<JudgeNodeConfig> = {}) =>
       // Build the evaluation prompt
       const criteriaList = criteria.map((c, i) => `${i + 1}. ${c}`).join("\n");
 
-      const evaluationPrompt = systemPrompt || `You are a document relevance judge for a RAG system.
+      const evaluationPrompt =
+        systemPrompt ||
+        `You are a document relevance judge for a RAG system.
 
 Your task is to evaluate each retrieved document's relevance to the user's query.
 
@@ -79,33 +81,41 @@ Respond in JSON format:
 
       // Format documents for evaluation
       const documentsText = documents
-        .map((doc: { content: string }, i: number) => `[Document ${i}]:\n${doc.content}`)
+        .map(
+          (doc: { content: string }, i: number) =>
+            `[Document ${i}]:\n${doc.content}`,
+        )
         .join("\n\n---\n\n");
 
-      const response = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`,
+      const response = await fetch(
+        "https://api.openai.com/v1/chat/completions",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify({
+            model,
+            messages: [
+              { role: "system", content: evaluationPrompt },
+              {
+                role: "user",
+                content: `Query: "${query}"\n\nRetrieved Documents:\n\n${documentsText}`,
+              },
+            ],
+            temperature,
+            response_format: { type: "json_object" },
+          }),
         },
-        body: JSON.stringify({
-          model,
-          messages: [
-            { role: "system", content: evaluationPrompt },
-            {
-              role: "user",
-              content: `Query: "${query}"\n\nRetrieved Documents:\n\n${documentsText}`
-            },
-          ],
-          temperature,
-          response_format: { type: "json_object" },
-        }),
-      });
+      );
 
       if (!response.ok) {
-        const error = (await response.json().catch(() => ({}))) as { error?: { message?: string } };
+        const error = (await response.json().catch(() => ({}))) as {
+          error?: { message?: string };
+        };
         throw new Error(
-          `OpenAI API error: ${response.status} - ${error.error?.message || "Unknown error"}`
+          `OpenAI API error: ${response.status} - ${error.error?.message || "Unknown error"}`,
         );
       }
 

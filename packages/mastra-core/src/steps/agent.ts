@@ -1,4 +1,4 @@
-import { createStep } from "@mastra/core";
+import { createStep } from "@mastra/core/workflows";
 import {
   agentNodeInputSchema,
   agentNodeOutputSchema,
@@ -15,8 +15,8 @@ export const createAgentStep = (config: Partial<AgentNodeConfig> = {}) =>
     id: "agent",
     inputSchema: agentNodeInputSchema,
     outputSchema: agentNodeOutputSchema,
-    execute: async ({ context: ctx }) => {
-      const { query, context, documents } = ctx;
+    execute: async ({ inputData }) => {
+      const { query, context, documents } = inputData;
       const model = config.model || "gpt-4o";
       const systemPrompt = config.systemPrompt;
       const temperature = config.temperature ?? 0.7;
@@ -32,16 +32,23 @@ export const createAgentStep = (config: Partial<AgentNodeConfig> = {}) =>
       let fullContext = context || "";
       if (documents && documents.length > 0) {
         const docContext = documents
-          .map((doc: { content: string }, i: number) => `[Document ${i + 1}]:\n${doc.content}`)
+          .map(
+            (doc: { content: string }, i: number) =>
+              `[Document ${i + 1}]:\n${doc.content}`,
+          )
           .join("\n\n");
-        fullContext = fullContext ? `${fullContext}\n\n${docContext}` : docContext;
+        fullContext = fullContext
+          ? `${fullContext}\n\n${docContext}`
+          : docContext;
       }
 
       // Define available tools
       const toolDefinitions = getToolDefinitions(tools);
 
       // Build system prompt for ReAct pattern
-      const reactSystemPrompt = systemPrompt || `You are a helpful AI assistant that can use tools to help answer questions.
+      const reactSystemPrompt =
+        systemPrompt ||
+        `You are a helpful AI assistant that can use tools to help answer questions.
 
 Available Tools:
 ${toolDefinitions.map((t) => `- ${t.name}: ${t.description}`).join("\n")}
@@ -73,23 +80,28 @@ When you have the final answer, use Action: finish.`;
         iteration++;
 
         // Get agent's next action
-        const response = await fetch("https://api.openai.com/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${apiKey}`,
+        const response = await fetch(
+          "https://api.openai.com/v1/chat/completions",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${apiKey}`,
+            },
+            body: JSON.stringify({
+              model,
+              messages,
+              temperature,
+            }),
           },
-          body: JSON.stringify({
-            model,
-            messages,
-            temperature,
-          }),
-        });
+        );
 
         if (!response.ok) {
-          const error = (await response.json().catch(() => ({}))) as { error?: { message?: string } };
+          const error = (await response.json().catch(() => ({}))) as {
+            error?: { message?: string };
+          };
           throw new Error(
-            `OpenAI API error: ${response.status} - ${error.error?.message || "Unknown error"}`
+            `OpenAI API error: ${response.status} - ${error.error?.message || "Unknown error"}`,
           );
         }
 
@@ -109,9 +121,10 @@ When you have the final answer, use Action: finish.`;
         const parsed = parseAgentResponse(agentResponse);
 
         // Convert actionInput to Record if it's a string
-        const actionInputRecord = typeof parsed.actionInput === "string"
-          ? { value: parsed.actionInput }
-          : parsed.actionInput;
+        const actionInputRecord =
+          typeof parsed.actionInput === "string"
+            ? { value: parsed.actionInput }
+            : parsed.actionInput;
 
         const step: AgentStep = {
           iteration,
@@ -123,9 +136,10 @@ When you have the final answer, use Action: finish.`;
 
         // Check if agent wants to finish
         if (parsed.action?.toLowerCase() === "finish") {
-          finalResponse = typeof parsed.actionInput === "string"
-            ? parsed.actionInput
-            : JSON.stringify(parsed.actionInput);
+          finalResponse =
+            typeof parsed.actionInput === "string"
+              ? parsed.actionInput
+              : JSON.stringify(parsed.actionInput);
           steps.push(step);
           break;
         }
@@ -134,7 +148,7 @@ When you have the final answer, use Action: finish.`;
         if (parsed.action) {
           const toolResult = await executeTool(
             parsed.action,
-            parsed.actionInput
+            parsed.actionInput,
           );
 
           step.observation = toolResult;
@@ -143,7 +157,7 @@ When you have the final answer, use Action: finish.`;
           // Add observation to messages
           messages.push({
             role: "user",
-            content: `Observation: ${toolResult}`
+            content: `Observation: ${toolResult}`,
           });
         }
 
@@ -152,8 +166,12 @@ When you have the final answer, use Action: finish.`;
 
       // If we hit max iterations without finishing, generate a summary
       if (!finalResponse) {
-        finalResponse = "I was unable to complete the task within the allowed iterations. Here's what I found: " +
-          steps.map((s) => s.observation).filter(Boolean).join(" ");
+        finalResponse =
+          "I was unable to complete the task within the allowed iterations. Here's what I found: " +
+          steps
+            .map((s) => s.observation)
+            .filter(Boolean)
+            .join(" ");
       }
 
       return {
@@ -169,14 +187,18 @@ When you have the final answer, use Action: finish.`;
 /**
  * Parse agent's ReAct-style response
  */
-const parseAgentResponse = (response: string): {
+const parseAgentResponse = (
+  response: string,
+): {
   thought: string;
   action?: string;
   actionInput?: Record<string, unknown> | string;
 } => {
   const thoughtMatch = response.match(/Thought:\s*(.+?)(?=\n|Action:|$)/s);
   const actionMatch = response.match(/Action:\s*(.+?)(?=\n|Action Input:|$)/s);
-  const actionInputMatch = response.match(/Action Input:\s*(.+?)(?=\n|Observation:|$)/s);
+  const actionInputMatch = response.match(
+    /Action Input:\s*(.+?)(?=\n|Observation:|$)/s,
+  );
 
   let actionInput: Record<string, unknown> | string | undefined;
   if (actionInputMatch && actionInputMatch[1]) {
@@ -201,19 +223,23 @@ const getToolDefinitions = (tools: string[]) => {
   const allTools = [
     {
       name: "web_search",
-      description: "Search the web for current information. Input: { \"query\": \"search query\" }",
+      description:
+        'Search the web for current information. Input: { "query": "search query" }',
     },
     {
       name: "retrieval",
-      description: "Search the knowledge base for relevant documents. Input: { \"query\": \"search query\" }",
+      description:
+        'Search the knowledge base for relevant documents. Input: { "query": "search query" }',
     },
     {
       name: "code_executor",
-      description: "Execute Python code in a sandbox. Input: { \"code\": \"python code\" }",
+      description:
+        'Execute Python code in a sandbox. Input: { "code": "python code" }',
     },
     {
       name: "http_request",
-      description: "Make an HTTP request. Input: { \"url\": \"...\", \"method\": \"GET|POST\", \"body\": {...} }",
+      description:
+        'Make an HTTP request. Input: { "url": "...", "method": "GET|POST", "body": {...} }',
     },
   ];
 
@@ -225,7 +251,7 @@ const getToolDefinitions = (tools: string[]) => {
  */
 const executeTool = async (
   toolName: string,
-  input: Record<string, unknown> | string | undefined
+  input: Record<string, unknown> | string | undefined,
 ): Promise<string> => {
   const inputObj = typeof input === "string" ? { query: input } : input || {};
 

@@ -1,4 +1,4 @@
-import { createStep } from "@mastra/core";
+import { createStep } from "@mastra/core/workflows";
 import { z } from "zod";
 import {
   hydeNodeInputSchema,
@@ -15,12 +15,14 @@ export const createHyDEStep = (config: Partial<HyDENodeConfig> = {}) =>
     id: "hyde",
     inputSchema: hydeNodeInputSchema,
     outputSchema: hydeNodeOutputSchema,
-    execute: async ({ context }) => {
-      const { query } = context;
+    execute: async ({ inputData }) => {
+      const { query } = inputData;
       const model = config.model || "gpt-4o-mini";
       const temperature = config.temperature ?? 0.7;
       const numHypothetical = config.numHypothetical || 1;
-      const systemPrompt = config.systemPrompt || "Given a query, write a hypothetical document that would perfectly answer this query. Be detailed and specific.";
+      const systemPrompt =
+        config.systemPrompt ||
+        "Given a query, write a hypothetical document that would perfectly answer this query. Be detailed and specific.";
 
       const apiKey = process.env.OPENAI_API_KEY;
       if (!apiKey) {
@@ -31,26 +33,31 @@ export const createHyDEStep = (config: Partial<HyDENodeConfig> = {}) =>
       const hypotheticalDocuments: string[] = [];
 
       for (let i = 0; i < numHypothetical; i++) {
-        const response = await fetch("https://api.openai.com/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${apiKey}`,
+        const response = await fetch(
+          "https://api.openai.com/v1/chat/completions",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${apiKey}`,
+            },
+            body: JSON.stringify({
+              model,
+              messages: [
+                { role: "system", content: systemPrompt },
+                { role: "user", content: query },
+              ],
+              temperature,
+            }),
           },
-          body: JSON.stringify({
-            model,
-            messages: [
-              { role: "system", content: systemPrompt },
-              { role: "user", content: query },
-            ],
-            temperature,
-          }),
-        });
+        );
 
         if (!response.ok) {
-          const error = (await response.json().catch(() => ({}))) as { error?: { message?: string } };
+          const error = (await response.json().catch(() => ({}))) as {
+            error?: { message?: string };
+          };
           throw new Error(
-            `OpenAI API error: ${response.status} - ${error.error?.message || "Unknown error"}`
+            `OpenAI API error: ${response.status} - ${error.error?.message || "Unknown error"}`,
           );
         }
 

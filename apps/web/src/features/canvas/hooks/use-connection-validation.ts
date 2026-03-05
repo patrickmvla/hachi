@@ -3,21 +3,7 @@
 import { useCallback } from "react";
 import { useReactFlow, getOutgoers, type Connection, type Node, type Edge, type IsValidConnection } from "@xyflow/react";
 import type { HachiNode, HachiEdge } from "@/stores/canvas-store";
-
-/**
- * Node type compatibility rules
- * Defines which node types can connect to which
- */
-const connectionRules: Record<string, string[]> = {
-  query: ["hyde", "retriever", "llm", "agent"],
-  hyde: ["retriever", "embedding"],
-  retriever: ["reranker", "llm", "agent"],
-  reranker: ["llm", "agent"],
-  judge: ["llm", "agent"],
-  llm: ["llm", "judge", "agent"],
-  embedding: ["retriever"],
-  agent: ["llm", "agent"],
-};
+import { VALID_CONNECTIONS, resolveNodeType } from "@hachi/schemas/nodes";
 
 /**
  * Check if a connection would create a cycle in the graph
@@ -52,7 +38,8 @@ function wouldCreateCycle(
 }
 
 /**
- * Check if connection is valid based on node type compatibility
+ * Check if connection is valid based on unified port type compatibility.
+ * Translates frontend node types to backend types using resolveNodeType.
  */
 function isTypeCompatible(
   connection: Connection,
@@ -63,12 +50,11 @@ function isTypeCompatible(
 
   if (!source || !target) return false;
 
-  const sourceType = source.type || "base";
-  const targetType = target.type || "base";
+  const sourceType = resolveNodeType(source.type || "base");
+  const targetType = resolveNodeType(target.type || "base");
 
-  // Check if source type can connect to target type
-  const allowedTargets = connectionRules[sourceType];
-  if (!allowedTargets) return true; // No rules defined, allow all
+  const allowedTargets = VALID_CONNECTIONS[sourceType];
+  if (!allowedTargets) return true; // No rules defined, allow
 
   return allowedTargets.includes(targetType);
 }
@@ -103,7 +89,7 @@ export const useConnectionValidation = (
 ) => {
   const {
     preventCycles = true,
-    validateTypes = false,
+    validateTypes = true,
     maxConnectionsPerHandle = Infinity,
   } = options;
 
@@ -124,19 +110,16 @@ export const useConnectionValidation = (
 
       // Check for cycles
       if (preventCycles && wouldCreateCycle(conn, nodes, edges)) {
-        console.log("Connection rejected: would create cycle");
         return false;
       }
 
       // Check type compatibility
       if (validateTypes && !isTypeCompatible(conn, nodes)) {
-        console.log("Connection rejected: incompatible node types");
         return false;
       }
 
       // Check max connections
       if (hasMaxConnections(conn, edges, maxConnectionsPerHandle)) {
-        console.log("Connection rejected: max connections reached");
         return false;
       }
 
@@ -150,7 +133,6 @@ export const useConnectionValidation = (
 
 /**
  * Standalone function to check if adding a connection would create a cycle
- * Useful for external validation
  */
 export const checkForCycle = wouldCreateCycle;
 

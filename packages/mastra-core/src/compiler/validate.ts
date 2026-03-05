@@ -1,30 +1,10 @@
 import { z } from "zod";
-import { NODE_TYPES, type NodeType } from "@hachi/schemas/nodes";
+import { NODE_TYPES, type NodeType, VALID_CONNECTIONS, REQUIRED_INPUTS } from "@hachi/schemas/nodes";
 
 /**
  * Canvas Validation
  * Validates node configurations and connections before compilation
  */
-
-// Define valid connection types between nodes
-const VALID_CONNECTIONS: Record<NodeType, NodeType[]> = {
-  query: ["embed", "hyde", "generate", "agent"],
-  hyde: ["embed"],
-  embed: ["retrieve"],
-  retrieve: ["rerank", "judge", "generate", "agent"],
-  rerank: ["judge", "generate", "agent"],
-  judge: ["generate", "agent", "retrieve"], // Can route back to retrieve or forward
-  generate: [], // Terminal node
-  agent: [], // Terminal node (can loop internally but not to other nodes)
-};
-
-// Define required upstream connections
-const REQUIRED_INPUTS: Partial<Record<NodeType, NodeType[]>> = {
-  retrieve: ["embed"], // Retrieve needs embeddings
-  rerank: ["retrieve"], // Rerank needs retrieved documents
-  judge: ["retrieve"], // Judge needs retrieved documents
-  generate: [], // Generate can work with just query
-};
 
 export interface CanvasNode {
   id: string;

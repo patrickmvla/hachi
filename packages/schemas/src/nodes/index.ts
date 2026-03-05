@@ -9,6 +9,8 @@ export * from "./hyde";
 export * from "./rerank";
 export * from "./judge";
 export * from "./agent";
+export * from "./ports";
+export * from "./connections";
 
 // Base node schema
 export const baseNodeSchema = z.object({

@@ -13,11 +13,14 @@ import {
   Cpu,
   Bot,
   Box,
+  Settings2,
+  Play,
 } from "lucide-react";
 import { PanelSection } from "./property-panel/panel-section";
 import { PanelField } from "./property-panel/panel-field";
 import { CONFIG_PANELS } from "./property-panel/node-configs";
 import { getNodeDefaults } from "../config/node-defaults";
+import { ExecutionResults } from "./property-panel/execution-results";
 
 const NODE_ICONS: Record<string, { icon: React.ElementType; color: string }> = {
   query: { icon: Search, color: "text-primary" },
@@ -38,12 +41,14 @@ export const PropertyPanel = () => {
   const [nameValue, setNameValue] = useState("");
   const [descValue, setDescValue] = useState("");
   const [activeNodeId, setActiveNodeId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"config" | "execution">("config");
 
   // Sync local state when selection changes
   if (selectedNode && selectedNode.id !== activeNodeId) {
     setActiveNodeId(selectedNode.id);
     setNameValue(selectedNode.data.label);
     setDescValue((selectedNode.data as Record<string, unknown>).description as string ?? "");
+    setActiveTab("config");
   } else if (!selectedNode && activeNodeId) {
     setActiveNodeId(null);
   }
@@ -118,68 +123,106 @@ export const PropertyPanel = () => {
         </button>
       </div>
 
+      {/* Tabs */}
+      <div className="flex border-b border-border shrink-0" role="tablist">
+        <button
+          onClick={() => setActiveTab("config")}
+          className={`flex items-center gap-1.5 px-4 py-2 text-[11px] font-medium border-b-2 transition-colors ${
+            activeTab === "config"
+              ? "border-foreground text-foreground"
+              : "border-transparent text-muted-foreground hover:text-foreground"
+          }`}
+          role="tab"
+          aria-selected={activeTab === "config"}
+        >
+          <Settings2 size={12} />
+          Config
+        </button>
+        <button
+          onClick={() => setActiveTab("execution")}
+          className={`flex items-center gap-1.5 px-4 py-2 text-[11px] font-medium border-b-2 transition-colors ${
+            activeTab === "execution"
+              ? "border-foreground text-foreground"
+              : "border-transparent text-muted-foreground hover:text-foreground"
+          }`}
+          role="tab"
+          aria-selected={activeTab === "execution"}
+        >
+          <Play size={12} />
+          Execution
+        </button>
+      </div>
+
       {/* Scrollable content */}
-      <div className="flex-1 overflow-y-auto divide-y divide-border">
-        {/* General section */}
-        <PanelSection title="General" defaultOpen>
-          <PanelField label="Name">
-            <input
-              type="text"
-              className="w-full px-3 py-1.5 text-sm rounded-md border border-border bg-background focus:outline-none focus:ring-1 focus:ring-primary"
-              value={nameValue}
-              onChange={(e) => setNameValue(e.target.value)}
-              onBlur={handleNameBlur}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") e.currentTarget.blur();
-              }}
-            />
-          </PanelField>
-          <PanelField label="Description">
-            <textarea
-              className="w-full px-3 py-1.5 text-sm rounded-md border border-border bg-background focus:outline-none focus:ring-1 focus:ring-primary min-h-[60px] resize-y"
-              value={descValue}
-              placeholder="Describe what this step does..."
-              onChange={(e) => setDescValue(e.target.value)}
-              onBlur={handleDescBlur}
-            />
-          </PanelField>
-        </PanelSection>
+      <div className="flex-1 overflow-y-auto" role="tabpanel">
+        {activeTab === "config" ? (
+          <div className="divide-y divide-border">
+            {/* General section */}
+            <PanelSection title="General" defaultOpen>
+              <PanelField label="Name">
+                <input
+                  type="text"
+                  className="w-full px-3 py-1.5 text-sm rounded-md border border-border bg-background focus:outline-none focus:ring-1 focus:ring-primary"
+                  value={nameValue}
+                  onChange={(e) => setNameValue(e.target.value)}
+                  onBlur={handleNameBlur}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") e.currentTarget.blur();
+                  }}
+                />
+              </PanelField>
+              <PanelField label="Description">
+                <textarea
+                  className="w-full px-3 py-1.5 text-sm rounded-md border border-border bg-background focus:outline-none focus:ring-1 focus:ring-primary min-h-[60px] resize-y"
+                  value={descValue}
+                  placeholder="Describe what this step does..."
+                  onChange={(e) => setDescValue(e.target.value)}
+                  onBlur={handleDescBlur}
+                />
+              </PanelField>
+            </PanelSection>
 
-        {/* Configuration section */}
-        {ConfigPanel && (
-          <PanelSection title="Configuration" defaultOpen>
-            {/* @ts-ignore -- QueryConfig takes no props, others take ConfigProps */}
-            <ConfigPanel config={config} onUpdate={handleConfigUpdate} />
-          </PanelSection>
-        )}
+            {/* Configuration section */}
+            {ConfigPanel && (
+              <PanelSection title="Configuration" defaultOpen>
+                {/* @ts-ignore -- QueryConfig takes no props, others take ConfigProps */}
+                <ConfigPanel config={config} onUpdate={handleConfigUpdate} />
+              </PanelSection>
+            )}
 
-        {/* Info section */}
-        <PanelSection title="Info" defaultOpen={false}>
-          <div className="space-y-2 text-xs">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Node ID</span>
-              <span className="font-mono text-foreground truncate ml-2 max-w-[140px]">
-                {selectedNode.id.slice(0, 8)}...
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Type</span>
-              <span className="font-mono text-foreground">{nodeType}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Position</span>
-              <span className="font-mono text-foreground">
-                {Math.round(selectedNode.position.x)}, {Math.round(selectedNode.position.y)}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Connections</span>
-              <span className="text-foreground">
-                {incomingCount} in, {outgoingCount} out
-              </span>
-            </div>
+            {/* Info section */}
+            <PanelSection title="Info" defaultOpen={false}>
+              <div className="space-y-2 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Node ID</span>
+                  <span className="font-mono text-foreground truncate ml-2 max-w-[140px]">
+                    {selectedNode.id.slice(0, 8)}...
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Type</span>
+                  <span className="font-mono text-foreground">{nodeType}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Position</span>
+                  <span className="font-mono text-foreground">
+                    {Math.round(selectedNode.position.x)}, {Math.round(selectedNode.position.y)}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Connections</span>
+                  <span className="text-foreground">
+                    {incomingCount} in, {outgoingCount} out
+                  </span>
+                </div>
+              </div>
+            </PanelSection>
           </div>
-        </PanelSection>
+        ) : (
+          <div className="p-4">
+            <ExecutionResults nodeId={selectedNode.id} nodeType={nodeType} />
+          </div>
+        )}
       </div>
     </div>
   );

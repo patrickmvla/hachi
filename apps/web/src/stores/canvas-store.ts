@@ -12,6 +12,7 @@ import {
   getOutgoers,
   getConnectedEdges,
 } from "@xyflow/react";
+import { type PortType, NODE_PORTS, PORT_TO_EDGE_DATA_TYPE, resolveNodeType } from "@hachi/schemas/nodes";
 
 export type NodeStatus = "initial" | "loading" | "success" | "error";
 
@@ -55,6 +56,12 @@ interface CanvasState {
   runId: string | null;
   backgroundVariant: BackgroundVariant;
   showBackground: boolean;
+
+  // Connection drag state for visual feedback
+  connectionDragState: {
+    sourceNodeId: string | null;
+    sourcePortType: PortType | null;
+  };
 
   // Clipboard
   clipboard: Clipboard | null;
@@ -114,6 +121,9 @@ interface CanvasState {
   setEdgePathStyle: (edgeId: string, style: EdgePathStyle) => void;
   setEdgeAnimated: (edgeId: string, animated: boolean) => void;
 
+  // Connection drag state
+  setConnectionDragState: (state: { sourceNodeId: string | null; sourcePortType: PortType | null }) => void;
+
   // Node status operations
   setNodeStatus: (nodeId: string, status: NodeStatus, message?: string) => void;
   clearAllNodeStatuses: () => void;
@@ -132,6 +142,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
   runId: null,
   backgroundVariant: "dots",
   showBackground: true,
+  connectionDragState: { sourceNodeId: null, sourcePortType: null },
   clipboard: null,
   history: [],
   historyIndex: -1,
@@ -147,7 +158,21 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
 
   onConnect: (connection) => {
     get().pushHistory();
-    set({ edges: addEdge(connection, get().edges) });
+    // Derive edge dataType from source node's output port type
+    const sourceNode = get().nodes.find((n) => n.id === connection.source);
+    let dataType: "string" | "vector" | "document" | "json" = "json";
+    if (sourceNode) {
+      const backendType = resolveNodeType(sourceNode.type || "base");
+      const ports = NODE_PORTS[backendType];
+      if (ports?.outputs.length > 0) {
+        dataType = PORT_TO_EDGE_DATA_TYPE[ports.outputs[0]!];
+      }
+    }
+    const enrichedConnection = {
+      ...connection,
+      data: { dataType },
+    };
+    set({ edges: addEdge(enrichedConnection, get().edges) });
   },
 
   setNodes: (nodes) => set({ nodes }),
@@ -533,6 +558,9 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
       ),
     });
   },
+
+  // Connection drag state
+  setConnectionDragState: (state) => set({ connectionDragState: state }),
 
   // Node status operations
   setNodeStatus: (nodeId: string, status: NodeStatus, message?: string) => {

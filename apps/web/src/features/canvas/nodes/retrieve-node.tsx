@@ -1,11 +1,13 @@
 "use client";
 
 import { memo } from "react";
-import { Handle, Position, NodeResizeControl, type NodeProps } from "@xyflow/react";
+import { Position, NodeResizeControl, type NodeProps } from "@xyflow/react";
 import { Database, GripVertical } from "lucide-react";
+import { PortType } from "@hachi/schemas/nodes";
 import type { HachiNode } from "@/stores/canvas-store";
 import { NodeToolbar } from "../components/node-toolbar";
 import { NodeStatusIndicator } from "../components/node-status-indicator";
+import { TypedHandle } from "../components/typed-handle";
 import { getConfigValue, nodeDefaults } from "../config/node-defaults";
 
 export const RetrieveNode = memo(({ id, data, selected }: NodeProps<HachiNode>) => {
@@ -34,10 +36,10 @@ export const RetrieveNode = memo(({ id, data, selected }: NodeProps<HachiNode>) 
           </div>
         </NodeResizeControl>
 
-        <Handle
+        <TypedHandle
           type="target"
           position={Position.Top}
-          className="!w-3 !h-3 !bg-muted-foreground !border-2 !border-background"
+          portType={PortType.Embedding}
         />
 
         <div className="flex items-center gap-2 px-4 py-2 border-b border-border bg-muted/30 rounded-t-md">
@@ -59,10 +61,10 @@ export const RetrieveNode = memo(({ id, data, selected }: NodeProps<HachiNode>) 
           </div>
         </div>
 
-        <Handle
+        <TypedHandle
           type="source"
           position={Position.Bottom}
-          className="!w-3 !h-3 !bg-primary !border-2 !border-background"
+          portType={PortType.Documents}
         />
       </div>
       </NodeStatusIndicator>

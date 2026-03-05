@@ -16,7 +16,10 @@ import {
   type EdgeTypes,
   type Edge,
   type Connection,
+  type OnConnectStart,
+  type OnConnectEnd,
 } from "@xyflow/react";
+import { NODE_PORTS, resolveNodeType } from "@hachi/schemas/nodes";
 import "@xyflow/react/dist/style.css";
 
 import { useCanvasStore } from "@/stores/canvas-store";
@@ -94,14 +97,36 @@ const CanvasContent = ({ canvasId, mode = "full", onOpenTemplatePicker }: { canv
     reset,
     selectedNodeIds,
     selectedEdgeIds,
+    setConnectionDragState,
+    connectionDragState,
   } = useCanvasStore();
 
   const { cursors, users, updateCursor, isConnected } = useCanvasCollaboration();
-  const { isValidConnection } = useConnectionValidation({ preventCycles: true });
+  const { isValidConnection } = useConnectionValidation({ preventCycles: true, validateTypes: true });
 
   // Canvas hooks
   useCanvasShortcuts();
   useSelectionSync();
+
+  // Connection drag state for visual feedback
+  const onConnectStart: OnConnectStart = useCallback(
+    (_event, params) => {
+      if (params.nodeId && params.handleType === "source") {
+        const sourceNode = nodes.find((n) => n.id === params.nodeId);
+        if (sourceNode) {
+          const backendType = resolveNodeType(sourceNode.type || "base");
+          const ports = NODE_PORTS[backendType];
+          const outputPort = ports?.outputs[0] ?? null;
+          setConnectionDragState({ sourceNodeId: params.nodeId, sourcePortType: outputPort });
+        }
+      }
+    },
+    [nodes, setConnectionDragState]
+  );
+
+  const onConnectEnd: OnConnectEnd = useCallback(() => {
+    setConnectionDragState({ sourceNodeId: null, sourcePortType: null });
+  }, [setConnectionDragState]);
 
   const onDragOver = useCallback((event: DragEvent) => {
     event.preventDefault();
@@ -229,6 +254,8 @@ const CanvasContent = ({ canvasId, mode = "full", onOpenTemplatePicker }: { canv
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
+            onConnectStart={onConnectStart}
+            onConnectEnd={onConnectEnd}
             onReconnect={onReconnect}
             isValidConnection={isValidConnection}
             edgesReconnectable

@@ -1,9 +1,12 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { ChevronRight, Activity, Clock, Code, Loader2, CheckCircle2, XCircle, Coins, Cpu, FileText } from "lucide-react";
+import { ChevronRight, Activity, Clock, Code, Loader2, CheckCircle2, XCircle, Coins, Cpu, FileText, BarChart3 } from "lucide-react";
 import { Panel } from "@xyflow/react";
 import { useExecutionLogStore, type ExecutionLogEntry, type TraceInfo } from "@/stores/execution-log-store";
+import { JsonViewer } from "./json-viewer";
+import { GanttChart } from "./gantt-chart";
+import { CostBreakdown } from "./cost-breakdown";
 
 const StatusIcon = ({ status }: { status: ExecutionLogEntry["status"] }) => {
   switch (status) {
@@ -111,7 +114,7 @@ const TraceDetails = ({ trace }: { trace: TraceInfo }) => {
 
 export const WireTapPanel = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<"timeline" | "output">("timeline");
+  const [activeTab, setActiveTab] = useState<"timeline" | "output" | "performance">("timeline");
   const { entries, selectedEntryId, setSelectedEntryId, runTrace } = useExecutionLogStore();
   const timelineRef = useRef<HTMLDivElement>(null);
 
@@ -146,7 +149,7 @@ export const WireTapPanel = () => {
   return (
     <Panel position="bottom-right" className="!mr-0">
       <div
-        className="w-[360px] h-[400px] bg-white border border-r-0 border-black/[0.08] rounded-l-xl shadow-lg flex flex-col"
+        className="w-[420px] h-[460px] bg-white border border-r-0 border-black/[0.08] rounded-l-xl shadow-lg flex flex-col"
         role="region"
         aria-label="Wire Tap panel"
       >
@@ -199,6 +202,19 @@ export const WireTapPanel = () => {
             <Code size={12} aria-hidden="true" />
             Output
           </button>
+          <button
+            onClick={() => setActiveTab("performance")}
+            className={`flex items-center gap-1.5 px-3 py-2 text-[11px] font-medium border-b-2 transition-colors ${
+              activeTab === "performance"
+                ? "border-black text-black"
+                : "border-transparent text-black/35 hover:text-black/60"
+            }`}
+            role="tab"
+            aria-selected={activeTab === "performance"}
+          >
+            <BarChart3 size={12} aria-hidden="true" />
+            Performance
+          </button>
         </div>
 
         {/* Content */}
@@ -246,7 +262,7 @@ export const WireTapPanel = () => {
                 ))
               )}
             </div>
-          ) : (
+          ) : activeTab === "output" ? (
             <div className="p-3 overflow-auto h-full space-y-3">
               {selectedEntry ? (
                 <>
@@ -255,15 +271,13 @@ export const WireTapPanel = () => {
                     <TraceDetails trace={selectedEntry.trace} />
                   )}
 
-                  {/* Raw output */}
+                  {/* Output with JsonViewer */}
                   {selectedEntry.output && (
                     <div>
                       <div className="text-[10px] font-semibold text-black/50 uppercase tracking-wider mb-1">
                         Output
                       </div>
-                      <pre className="font-mono text-[10px] text-black/60 leading-relaxed whitespace-pre-wrap bg-black/[0.02] p-2 rounded-md border border-black/[0.04]">
-                        {JSON.stringify(selectedEntry.output, null, 2)}
-                      </pre>
+                      <JsonViewer data={selectedEntry.output} />
                     </div>
                   )}
                 </>
@@ -271,6 +285,33 @@ export const WireTapPanel = () => {
                 <div className="flex items-center justify-center h-full text-[11px] text-black/30">
                   Run a workflow to see execution data
                 </div>
+              )}
+            </div>
+          ) : (
+            /* Performance tab */
+            <div className="p-3 overflow-auto h-full space-y-4">
+              {entries.length === 0 ? (
+                <div className="flex items-center justify-center h-full text-[11px] text-black/30">
+                  Run a workflow to see performance data
+                </div>
+              ) : (
+                <>
+                  {/* Gantt chart */}
+                  <div>
+                    <div className="text-[10px] font-semibold text-black/50 uppercase tracking-wider mb-2">
+                      Execution Timeline
+                    </div>
+                    <GanttChart entries={entries} />
+                  </div>
+
+                  {/* Cost breakdown */}
+                  <div>
+                    <div className="text-[10px] font-semibold text-black/50 uppercase tracking-wider mb-2">
+                      Cost Breakdown
+                    </div>
+                    <CostBreakdown entries={entries} />
+                  </div>
+                </>
               )}
             </div>
           )}

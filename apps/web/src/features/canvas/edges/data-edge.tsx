@@ -1,6 +1,6 @@
 "use client";
 
-import { memo } from "react";
+import { memo, useState } from "react";
 import {
   BaseEdge,
   EdgeLabelRenderer,
@@ -9,7 +9,20 @@ import {
 } from "@xyflow/react";
 import { Activity, Trash2, Settings } from "lucide-react";
 import { useCanvasStore, type HachiEdge } from "@/stores/canvas-store";
+import { useExecutionLogStore } from "@/stores/execution-log-store";
 import { getEdgePath, type EdgePathStyle } from "../utils/edge-path-utils";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@hachi/ui/components/hover-card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@hachi/ui/components/dialog";
+import { JsonViewer } from "../wire-tap/json-viewer";
 
 // Data type colors for edge labels
 const dataTypeColors: Record<string, { bg: string; text: string; border: string }> = {
@@ -21,6 +34,7 @@ const dataTypeColors: Record<string, { bg: string; text: string; border: string 
 
 export const DataEdge = memo(({
   id,
+  source,
   sourceX,
   sourceY,
   targetX,
@@ -33,10 +47,15 @@ export const DataEdge = memo(({
   data,
 }: EdgeProps<HachiEdge>) => {
   const deleteEdge = useCanvasStore((s) => s.deleteEdge);
+  const getEdgeData = useExecutionLogStore((s) => s.getEdgeData);
+  const [inspectOpen, setInspectOpen] = useState(false);
+
   const dataType = data?.dataType || "json";
   const pathStyle: EdgePathStyle = data?.pathStyle || "bezier";
   const animated = data?.animated || false;
   const colors = dataTypeColors[dataType] ?? dataTypeColors.json!;
+
+  const edgeData = getEdgeData(source);
 
   const { path: edgePath, labelX, labelY } = getEdgePath(
     pathStyle,
@@ -54,6 +73,11 @@ export const DataEdge = memo(({
   const handleDelete = () => {
     deleteEdge(id);
   };
+
+  // Truncated preview of edge data
+  const previewText = edgeData
+    ? JSON.stringify(edgeData, null, 2).slice(0, 300)
+    : null;
 
   return (
     <>
@@ -83,16 +107,28 @@ export const DataEdge = memo(({
           className="nodrag nopan flex items-center gap-1"
         >
           {/* Data type badge */}
-          <span
-            className={`
-              text-[9px] font-medium px-1.5 py-0.5 rounded border uppercase tracking-wider
-              ${colors.bg} ${colors.text} ${colors.border}
-              ${selected ? "opacity-100" : "opacity-70"}
-              transition-opacity
-            `}
-          >
-            {dataType}
-          </span>
+          <HoverCard openDelay={400}>
+            <HoverCardTrigger asChild>
+              <span
+                className={`
+                  text-[9px] font-medium px-1.5 py-0.5 rounded border uppercase tracking-wider cursor-default
+                  ${colors.bg} ${colors.text} ${colors.border}
+                  ${selected ? "opacity-100" : "opacity-70"}
+                  transition-opacity
+                `}
+              >
+                {dataType}
+              </span>
+            </HoverCardTrigger>
+            {previewText && (
+              <HoverCardContent className="w-72 p-0" side="top">
+                <pre className="text-[10px] font-mono p-3 max-h-48 overflow-auto text-muted-foreground leading-relaxed">
+                  {previewText}
+                  {previewText.length >= 300 && "..."}
+                </pre>
+              </HoverCardContent>
+            )}
+          </HoverCard>
 
           {/* Inspect button */}
           <button
@@ -105,7 +141,7 @@ export const DataEdge = memo(({
             `}
             onClick={(event) => {
               event.stopPropagation();
-              console.log("Inspect edge data", id);
+              setInspectOpen(true);
             }}
             title="Inspect data flow"
             aria-label="Inspect data flow"
@@ -144,6 +180,26 @@ export const DataEdge = memo(({
           </button>
         </div>
       </EdgeToolbar>
+
+      {/* Inspect dialog */}
+      {inspectOpen && (
+        <Dialog open={inspectOpen} onOpenChange={setInspectOpen}>
+          <DialogContent className="max-w-lg max-h-[80vh] overflow-auto">
+            <DialogHeader>
+              <DialogTitle className="text-sm">
+                Edge Data — <span className="uppercase text-muted-foreground">{dataType}</span>
+              </DialogTitle>
+            </DialogHeader>
+            {edgeData ? (
+              <JsonViewer data={edgeData} />
+            ) : (
+              <p className="text-sm text-muted-foreground py-4 text-center">
+                No execution data available. Run the pipeline first.
+              </p>
+            )}
+          </DialogContent>
+        </Dialog>
+      )}
     </>
   );
 });

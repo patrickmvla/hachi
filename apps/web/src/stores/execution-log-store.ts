@@ -53,6 +53,8 @@ interface ExecutionLogState {
   setTestQuery: (query: string) => void;
   setSelectedEntryId: (id: string | null) => void;
   setRunTrace: (trace: RunTrace) => void;
+  getEdgeData: (sourceNodeId: string) => Record<string, unknown> | null;
+  getEntryByNodeId: (nodeId: string) => ExecutionLogEntry | undefined;
   clear: () => void;
 }
 
@@ -82,6 +84,17 @@ export const useExecutionLogStore = create<ExecutionLogState>((set, get) => ({
   setSelectedEntryId: (id) => set({ selectedEntryId: id }),
 
   setRunTrace: (trace) => set({ runTrace: trace }),
+
+  getEdgeData: (sourceNodeId) => {
+    const entry = get().entries.find(
+      (e) => e.nodeId === sourceNodeId && e.status === "success"
+    );
+    return entry?.output ?? null;
+  },
+
+  getEntryByNodeId: (nodeId) => {
+    return get().entries.find((e) => e.nodeId === nodeId);
+  },
 
   clear: () =>
     set({

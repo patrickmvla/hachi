@@ -63,16 +63,16 @@ export function DashboardHeader() {
           <Search size={20} />
         </button>
 
-        <div className="flex items-center gap-3 pl-2 sm:pl-3 border-l border-border">
-          <div className="text-right hidden md:block">
-            <div className="text-sm font-medium truncate max-w-[120px] lg:max-w-[160px]">
+        <div className="flex items-center gap-3 pl-2 sm:pl-3 border-l border-border" suppressHydrationWarning>
+          <div className="text-right hidden md:block" suppressHydrationWarning>
+            <div className="text-sm font-medium truncate max-w-[120px] lg:max-w-[160px]" suppressHydrationWarning>
               {currentUser.name}
             </div>
-            <div className="text-xs text-muted-foreground truncate max-w-[120px] lg:max-w-[160px]">
+            <div className="text-xs text-muted-foreground truncate max-w-[120px] lg:max-w-[160px]" suppressHydrationWarning>
               {currentUser.email}
             </div>
           </div>
-          <div className="w-9 h-9 shrink-0 rounded-full bg-muted overflow-hidden border border-border flex items-center justify-center text-muted-foreground font-medium text-sm">
+          <div className="w-9 h-9 shrink-0 rounded-full bg-muted overflow-hidden border border-border flex items-center justify-center text-muted-foreground font-medium text-sm" suppressHydrationWarning>
             {currentUser.avatar ? (
               <img
                 src={currentUser.avatar}

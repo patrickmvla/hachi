@@ -28,7 +28,7 @@ export const runSchema = z.object({
   id: z.string().uuid(),
   canvasId: z.string().uuid(),
   triggeredBy: z.string().uuid().optional(),
-  input: z.record(z.unknown()),
+  input: z.record(z.string(), z.unknown()),
   status: runStatusSchema,
   startedAt: z.string().datetime().optional(),
   completedAt: z.string().datetime().optional(),
@@ -43,8 +43,8 @@ export const stepOutputSchema = z.object({
   nodeType: z.string(),
   nodeLabel: z.string(),
   status: stepStatusSchema,
-  input: z.record(z.unknown()),
-  output: z.record(z.unknown()).optional(),
+  input: z.record(z.string(), z.unknown()),
+  output: z.record(z.string(), z.unknown()).optional(),
   error: z.string().optional(),
   latencyMs: z.number().optional(),
   startedAt: z.string().datetime(),
@@ -74,7 +74,7 @@ export const runStartedEventSchema = sseEventSchema.extend({
   type: z.literal("run:started"),
   data: z.object({
     canvasId: z.string().uuid(),
-    input: z.record(z.unknown()),
+    input: z.record(z.string(), z.unknown()),
     totalSteps: z.number(),
   }),
 });
@@ -83,7 +83,7 @@ export const runStartedEventSchema = sseEventSchema.extend({
 export const runCompletedEventSchema = sseEventSchema.extend({
   type: z.literal("run:completed"),
   data: z.object({
-    output: z.record(z.unknown()),
+    output: z.record(z.string(), z.unknown()),
     totalLatencyMs: z.number(),
     trace: runTraceSchema.optional(),
   }),
@@ -106,7 +106,7 @@ export const stepStartedEventSchema = sseEventSchema.extend({
     nodeType: z.string(),
     nodeLabel: z.string(),
     stepIndex: z.number(),
-    input: z.record(z.unknown()),
+    input: z.record(z.string(), z.unknown()),
   }),
 });
 
@@ -118,7 +118,7 @@ export const stepCompletedEventSchema = sseEventSchema.extend({
     nodeType: z.string(),
     nodeLabel: z.string(),
     stepIndex: z.number(),
-    output: z.record(z.unknown()),
+    output: z.record(z.string(), z.unknown()),
     latencyMs: z.number(),
     trace: traceDataSchema.optional(),
   }),

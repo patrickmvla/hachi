@@ -29,7 +29,7 @@ export const generateNodeInputSchema = z.object({
   context: z.string().optional(), // Retrieved documents as context
   documents: z.array(z.object({
     content: z.string(),
-    metadata: z.record(z.unknown()).optional(),
+    metadata: z.record(z.string(), z.unknown()).optional(),
   })).optional(),
 });
 

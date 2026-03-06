@@ -26,7 +26,7 @@ export const baseNodeSchema = z.object({
     "agent",
   ]),
   label: z.string(),
-  config: z.record(z.unknown()).optional(),
+  config: z.record(z.string(), z.unknown()).optional(),
 });
 
 export type BaseNode = z.infer<typeof baseNodeSchema>;

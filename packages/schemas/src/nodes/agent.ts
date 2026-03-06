@@ -30,7 +30,7 @@ export const agentNodeInputSchema = z.object({
   context: z.string().optional(),
   documents: z.array(z.object({
     content: z.string(),
-    metadata: z.record(z.unknown()).optional(),
+    metadata: z.record(z.string(), z.unknown()).optional(),
   })).optional(),
 });
 
@@ -38,7 +38,7 @@ export const agentStepSchema = z.object({
   iteration: z.number(),
   thought: z.string(),
   action: z.string().optional(),
-  actionInput: z.record(z.unknown()).optional(),
+  actionInput: z.record(z.string(), z.unknown()).optional(),
   observation: z.string().optional(),
   timestamp: z.string(),
 });

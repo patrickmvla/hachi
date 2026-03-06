@@ -26,7 +26,7 @@ export const judgeNodeInputSchema = z.object({
   documents: z.array(z.object({
     id: z.string(),
     content: z.string(),
-    metadata: z.record(z.unknown()).optional(),
+    metadata: z.record(z.string(), z.unknown()).optional(),
     score: z.number().optional(),
   })),
 });

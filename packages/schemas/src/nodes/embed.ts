@@ -49,7 +49,7 @@ export const embeddedChunkSchema = z.object({
   text: z.string(),
   embedding: z.array(z.number()),
   index: z.number(),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 export const embedNodeOutputSchema = z.object({

@@ -28,7 +28,7 @@ export const rerankNodeInputSchema = z.object({
   documents: z.array(z.object({
     id: z.string(),
     content: z.string(),
-    metadata: z.record(z.unknown()).optional(),
+    metadata: z.record(z.string(), z.unknown()).optional(),
     score: z.number().optional(), // Original retrieval score
   })),
 });
@@ -38,7 +38,7 @@ export const rerankNodeOutputSchema = z.object({
   documents: z.array(z.object({
     id: z.string(),
     content: z.string(),
-    metadata: z.record(z.unknown()).optional(),
+    metadata: z.record(z.string(), z.unknown()).optional(),
     originalScore: z.number().optional(),
     rerankScore: z.number(),
     rank: z.number(),

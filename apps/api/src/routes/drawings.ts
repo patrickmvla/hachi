@@ -10,7 +10,7 @@ import { eq } from "drizzle-orm";
 
 const createDrawingSchema = z.object({
   name: z.string().min(1),
-  drawingJson: z.record(z.any()).default({}),
+  drawingJson: z.record(z.string(), z.any()).default({}),
 });
 
 export const drawingRoutes = new Hono<AppEnv>()

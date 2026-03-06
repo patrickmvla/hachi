@@ -23,7 +23,7 @@ export const retrieveNodeConfigSchema = z.object({
   indexName: z.string().default("documents"),
   topK: z.number().min(1).max(100).default(5),
   scoreThreshold: z.number().min(0).max(1).optional(),
-  filter: z.record(z.unknown()).optional(), // Metadata filters
+  filter: z.record(z.string(), z.unknown()).optional(), // Metadata filters
   namespace: z.string().optional(), // Vector store namespace (Pinecone)
   includeMetadata: z.boolean().default(true),
   includeVector: z.boolean().default(false),
@@ -37,7 +37,7 @@ export const retrieveNodeInputSchema = z.object({
 export const documentSchema = z.object({
   id: z.string(),
   content: z.string(),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
   score: z.number(),
 });
 

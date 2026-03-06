@@ -222,8 +222,8 @@ function createNodeStep(
 
   return createStep({
     id: nodeId,
-    inputSchema: z.record(z.unknown()),
-    outputSchema: z.record(z.unknown()),
+    inputSchema: z.record(z.string(), z.unknown()),
+    outputSchema: z.record(z.string(), z.unknown()),
     execute: async (params: any) => {
       const { getStepResult, getInitData } = params;
       const initData = getInitData() as { query: string };
@@ -344,7 +344,7 @@ export function compileToWorkflow(graph: CanvasGraph): CompilationResult {
     let wf: any = createWorkflow({
       id: "canvas-workflow",
       inputSchema: z.object({ query: z.string() }),
-      outputSchema: z.record(z.unknown()),
+      outputSchema: z.record(z.string(), z.unknown()),
     });
 
     for (const level of levels) {

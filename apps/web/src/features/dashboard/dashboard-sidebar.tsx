@@ -6,6 +6,7 @@ import {
   LayoutGrid,
   FileText,
   PenLine,
+  LayoutTemplate,
   History,
   Settings,
   LogOut,
@@ -39,6 +40,7 @@ const navSections: { label: string; items: NavItem[] }[] = [
       { href: "/canvases", label: "Canvases", icon: FileText },
       { href: "/drawings", label: "Drawings", icon: PenLine },
       { href: "/documents", label: "Documents", icon: FileText },
+      { href: "/templates", label: "Templates", icon: LayoutTemplate },
     ],
   },
   {

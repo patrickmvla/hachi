@@ -1,7 +1,8 @@
 "use client";
 
-import { templates, type Template } from "./template-loader";
-import { Search, FileText, ArrowRightLeft, Bot, GitBranch, Database, Cpu, Scale } from "lucide-react";
+import { Search, FileText, ArrowRightLeft, Bot, GitBranch, Database, Cpu, Scale, Loader2 } from "lucide-react";
+import { useTemplates } from "@/features/templates/hooks";
+import type { Template } from "@/features/templates/api";
 
 const nodeTypeIcons: Record<string, { icon: typeof Search; color: string }> = {
   query: { icon: Search, color: "text-primary" },
@@ -20,6 +21,8 @@ interface TemplatePickerProps {
 }
 
 export const TemplatePicker = ({ onSelect, onDismiss }: TemplatePickerProps) => {
+  const { data: templates, isLoading } = useTemplates();
+
   return (
     <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
       <div className="w-full max-w-2xl mx-4">
@@ -30,41 +33,50 @@ export const TemplatePicker = ({ onSelect, onDismiss }: TemplatePickerProps) => 
           </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          {templates.map((template) => (
-            <button
-              key={template.id}
-              onClick={() => onSelect(template)}
-              className="text-left p-4 rounded-lg border border-border bg-background hover:border-primary/50 hover:shadow-md transition-all group"
-            >
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">
-                  {template.name}
-                </span>
-                <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
-                  {template.nodes.length} nodes
-                </span>
-              </div>
-              <p className="text-xs text-muted-foreground mb-3">{template.description}</p>
-              <div className="flex items-center gap-1">
-                {template.nodes.map((node, i) => {
-                  const iconDef = nodeTypeIcons[node.type] || { icon: Search, color: "text-muted-foreground" };
-                  const Icon = iconDef.icon;
-                  return (
-                    <div key={node.id} className="flex items-center">
-                      <div className="w-6 h-6 rounded bg-muted flex items-center justify-center">
-                        <Icon size={12} className={iconDef.color} />
-                      </div>
-                      {i < template.nodes.length - 1 && (
-                        <div className="w-3 h-px bg-border mx-0.5" />
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </button>
-          ))}
-        </div>
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 size={24} className="animate-spin text-muted-foreground" />
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-3">
+            {templates?.map((template) => {
+              const graphNodes = (template.graphJson.nodes as Array<{ id: string; type: string }>) || [];
+              return (
+                <button
+                  key={template.id}
+                  onClick={() => onSelect(template)}
+                  className="text-left p-4 rounded-lg border border-border bg-background hover:border-primary/50 hover:shadow-md transition-all group"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">
+                      {template.name}
+                    </span>
+                    <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+                      {template.nodes} nodes
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mb-3">{template.description}</p>
+                  <div className="flex items-center gap-1">
+                    {graphNodes.map((node, i) => {
+                      const iconDef = nodeTypeIcons[node.type] || { icon: Search, color: "text-muted-foreground" };
+                      const Icon = iconDef.icon;
+                      return (
+                        <div key={node.id} className="flex items-center">
+                          <div className="w-6 h-6 rounded bg-muted flex items-center justify-center">
+                            <Icon size={12} className={iconDef.color} />
+                          </div>
+                          {i < graphNodes.length - 1 && (
+                            <div className="w-3 h-px bg-border mx-0.5" />
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
 
         <div className="text-center mt-4">
           <button

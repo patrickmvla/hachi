@@ -9,6 +9,7 @@ import {
   vector,
   unique,
   boolean,
+  index,
 } from "drizzle-orm/pg-core";
 
 // ============================================================================
@@ -222,7 +223,13 @@ export const runs = pgTable("runs", {
   batchId: uuid("batch_id"),
   isBaseline: boolean("is_baseline").default(false),
   variantLabel: text("variant_label"),
-});
+  // Phase 5: Observability
+  traceId: text("trace_id"),
+  durationMs: integer("duration_ms"),
+  error: text("error"),
+}, (table) => [
+  index("runs_canvas_started_idx").on(table.canvasId, table.startedAt),
+]);
 
 export const stepOutputs = pgTable("step_outputs", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -234,6 +241,27 @@ export const stepOutputs = pgTable("step_outputs", {
   latencyMs: integer("latency_ms"),
   createdAt: timestamp("created_at").defaultNow(),
 });
+
+// Phase 5: Observability Spans
+export const spans = pgTable("spans", {
+  id: text("id").primaryKey(), // 16-char hex span ID
+  runId: uuid("run_id").references(() => runs.id, { onDelete: "cascade" }).notNull(),
+  traceId: text("trace_id").notNull(),
+  parentSpanId: text("parent_span_id"),
+  nodeId: text("node_id").notNull(),
+  nodeType: text("node_type").notNull(),
+  nodeLabel: text("node_label").notNull(),
+  status: text("status").notNull(), // 'running', 'completed', 'failed'
+  startedAt: timestamp("started_at").notNull(),
+  completedAt: timestamp("completed_at"),
+  latencyMs: integer("latency_ms"),
+  input: jsonb("input"),
+  output: jsonb("output"),
+  trace: jsonb("trace"), // TraceData
+}, (table) => [
+  index("spans_run_id_idx").on(table.runId),
+  index("spans_trace_id_idx").on(table.traceId),
+]);
 
 // ============================================================================
 // Documents (RAG Knowledge Base)

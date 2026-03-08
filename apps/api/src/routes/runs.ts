@@ -3,7 +3,7 @@ import { streamSSE } from "hono/streaming";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import { db } from "@hachi/database/client";
-import { runs, stepOutputs, canvases, evalResults, testDatasets, testCases } from "@hachi/database/schema";
+import { runs, stepOutputs, spans, canvases, evalResults, testDatasets, testCases } from "@hachi/database/schema";
 import type { AppEnv } from "../types";
 import { requireAuth } from "../middleware/auth";
 import { requireOrganization, requirePermission } from "../middleware/organization";
@@ -13,6 +13,7 @@ import type { RunnerConfig, RunInput } from "../services/execution/runner";
 import { transformGraphForExecution } from "../services/execution/graph-transform";
 import { getCredential } from "../services/workspace/credentials";
 import type { AnySSEEvent } from "@hachi/schemas/execution";
+import { createLangfuseExporter } from "../services/execution/langfuse";
 
 const executeRunSchema = z.object({
   canvasId: z.string().uuid(),
@@ -126,9 +127,10 @@ export const runRoutes = new Hono<AppEnv>()
 
         // Track step inputs from step:started events (step:completed doesn't carry input)
         const stepInputMap = new Map<string, Record<string, unknown>>();
+        const stepStartTimes = new Map<string, Date>();
 
-        // Execute graph with SSE streaming
-        await executeGraph(graph, input as RunInput, config, async (event: AnySSEEvent) => {
+        // Core event handler
+        const onEvent = async (event: AnySSEEvent) => {
           // Substitute DB run ID in all events sent to client
           const clientEvent = { ...event, runId: run.id };
 
@@ -145,6 +147,7 @@ export const runRoutes = new Hono<AppEnv>()
           // Persist based on event type
           if (event.type === "step:started") {
             stepInputMap.set(event.data.nodeId, event.data.input);
+            stepStartTimes.set(event.data.nodeId, new Date());
           }
 
           if (event.type === "step:completed") {
@@ -157,6 +160,27 @@ export const runRoutes = new Hono<AppEnv>()
               trace: event.data.trace ?? null,
               latencyMs: event.data.latencyMs,
             });
+
+            // Persist span
+            const spanId = event.data.spanId;
+            const traceId = event.data.traceId;
+            if (spanId && traceId) {
+              await db.insert(spans).values({
+                id: spanId,
+                runId: run.id,
+                traceId,
+                nodeId: event.data.nodeId,
+                nodeType: event.data.nodeType,
+                nodeLabel: event.data.nodeLabel,
+                status: "completed",
+                startedAt: stepStartTimes.get(event.data.nodeId) ?? new Date(),
+                completedAt: new Date(),
+                latencyMs: event.data.latencyMs,
+                input: capturedInput ?? {},
+                output: event.data.output,
+                trace: event.data.trace ?? null,
+              });
+            }
 
             // Persist eval results for evaluator nodes
             const nodeType = event.data.nodeType as string | undefined;
@@ -177,6 +201,26 @@ export const runRoutes = new Hono<AppEnv>()
             }
           }
 
+          if (event.type === "step:failed") {
+            // Persist failed span
+            const spanId = event.data.spanId;
+            const traceId = event.data.traceId;
+            if (spanId && traceId) {
+              await db.insert(spans).values({
+                id: spanId,
+                runId: run.id,
+                traceId,
+                nodeId: event.data.nodeId,
+                nodeType: event.data.nodeType,
+                nodeLabel: event.data.nodeLabel,
+                status: "failed",
+                startedAt: stepStartTimes.get(event.data.nodeId) ?? new Date(),
+                completedAt: new Date(),
+                input: stepInputMap.get(event.data.nodeId) ?? {},
+              });
+            }
+          }
+
           if (event.type === "run:completed") {
             await db
               .update(runs)
@@ -185,6 +229,8 @@ export const runRoutes = new Hono<AppEnv>()
                 completedAt: new Date(),
                 totalTokens: event.data.trace?.totalTokens ?? null,
                 totalCost: event.data.trace?.totalCost ?? null,
+                traceId: event.data.traceId ?? null,
+                durationMs: event.data.totalLatencyMs ?? null,
               })
               .where(eq(runs.id, run.id));
           }
@@ -192,10 +238,20 @@ export const runRoutes = new Hono<AppEnv>()
           if (event.type === "run:failed") {
             await db
               .update(runs)
-              .set({ status: "failed", completedAt: new Date() })
+              .set({
+                status: "failed",
+                completedAt: new Date(),
+                error: event.data.error,
+              })
               .where(eq(runs.id, run.id));
           }
-        });
+        };
+
+        // Wrap with Langfuse exporter if configured
+        const handler = createLangfuseExporter(onEvent) ?? onEvent;
+
+        // Execute graph with SSE streaming
+        await executeGraph(graph, input as RunInput, config, handler);
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : "Execution failed";
 

@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { ChevronRight, Activity, Clock, Code, Loader2, CheckCircle2, XCircle, Coins, Cpu, FileText, BarChart3 } from "lucide-react";
+import { ChevronRight, Activity, Clock, Code, Loader2, CheckCircle2, XCircle, Coins, Cpu, FileText, BarChart3, LineChart } from "lucide-react";
 import { Panel } from "@xyflow/react";
 import { useExecutionLogStore, type ExecutionLogEntry, type TraceInfo } from "@/stores/execution-log-store";
 import { JsonViewer } from "./json-viewer";
 import { GanttChart } from "./gantt-chart";
 import { CostBreakdown } from "./cost-breakdown";
+import { TraceViewer } from "@/features/observability/trace-viewer";
 
 const StatusIcon = ({ status }: { status: ExecutionLogEntry["status"] }) => {
   switch (status) {
@@ -112,9 +113,13 @@ const TraceDetails = ({ trace }: { trace: TraceInfo }) => {
   );
 };
 
-export const WireTapPanel = () => {
+interface WireTapPanelProps {
+  canvasId?: string;
+}
+
+export const WireTapPanel = ({ canvasId }: WireTapPanelProps) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<"timeline" | "output" | "performance">("timeline");
+  const [activeTab, setActiveTab] = useState<"timeline" | "output" | "performance" | "analytics">("timeline");
   const { entries, selectedEntryId, setSelectedEntryId, runTrace } = useExecutionLogStore();
   const timelineRef = useRef<HTMLDivElement>(null);
 
@@ -215,6 +220,21 @@ export const WireTapPanel = () => {
             <BarChart3 size={12} aria-hidden="true" />
             Performance
           </button>
+          {canvasId && (
+            <button
+              onClick={() => setActiveTab("analytics")}
+              className={`flex items-center gap-1.5 px-3 py-2 text-[11px] font-medium border-b-2 transition-colors ${
+                activeTab === "analytics"
+                  ? "border-black text-black"
+                  : "border-transparent text-black/35 hover:text-black/60"
+              }`}
+              role="tab"
+              aria-selected={activeTab === "analytics"}
+            >
+              <LineChart size={12} aria-hidden="true" />
+              Analytics
+            </button>
+          )}
         </div>
 
         {/* Content */}
@@ -287,7 +307,7 @@ export const WireTapPanel = () => {
                 </div>
               )}
             </div>
-          ) : (
+          ) : activeTab === "performance" ? (
             /* Performance tab */
             <div className="p-3 overflow-auto h-full space-y-4">
               {entries.length === 0 ? (
@@ -314,7 +334,10 @@ export const WireTapPanel = () => {
                 </>
               )}
             </div>
-          )}
+          ) : activeTab === "analytics" && canvasId ? (
+            /* Analytics tab */
+            <TraceViewer canvasId={canvasId} />
+          ) : null}
         </div>
 
         {/* Bottom summary */}

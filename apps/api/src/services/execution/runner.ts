@@ -16,6 +16,7 @@ import type {
 } from "@hachi/schemas/execution";
 import type { NodeType } from "@hachi/schemas/nodes";
 import { extractTraceData, aggregateTraces } from "./trace-utils";
+import { generateTraceId, generateSpanId } from "./span";
 
 /**
  * Execution Runner (vNext)
@@ -45,6 +46,7 @@ export interface RunInput {
 
 export interface RunResult {
   runId: string;
+  traceId: string;
   success: boolean;
   output?: Record<string, unknown>;
   error?: string;
@@ -112,6 +114,7 @@ export const executeGraph = async (
   onEvent: SSECallback
 ): Promise<RunResult> => {
   const runId = randomUUID();
+  const traceId = generateTraceId();
   const startTime = Date.now();
 
   // Compile the graph to a Mastra vNext workflow
@@ -123,6 +126,7 @@ export const executeGraph = async (
     );
     return {
       runId,
+      traceId,
       success: false,
       error: errorMsg,
       totalLatencyMs: Date.now() - startTime,
@@ -151,6 +155,7 @@ export const executeGraph = async (
         canvasId: graph.nodes[0]?.id || runId,
         input: input as Record<string, unknown>,
         totalSteps: plan.steps.length,
+        traceId,
       })
     );
 
@@ -163,6 +168,7 @@ export const executeGraph = async (
 
     // Track step timing and traces
     const stepStartTimes = new Map<string, number>();
+    const stepSpanIds = new Map<string, string>();
     const stepTraces: TraceData[] = [];
     let finalOutput: Record<string, unknown> = {};
 
@@ -172,7 +178,9 @@ export const executeGraph = async (
         case "workflow-step-start": {
           const nodeId = event.payload.id;
           const meta = stepMeta.get(nodeId);
+          const spanId = generateSpanId();
           stepStartTimes.set(nodeId, Date.now());
+          stepSpanIds.set(nodeId, spanId);
 
           if (meta) {
             await onEvent(
@@ -182,6 +190,8 @@ export const executeGraph = async (
                 nodeLabel: meta.nodeLabel,
                 stepIndex: meta.stepIndex,
                 input: {},
+                traceId,
+                spanId,
               })
             );
           }
@@ -195,6 +205,7 @@ export const executeGraph = async (
             (event.payload.output as Record<string, unknown>) || {};
           const stepStart = stepStartTimes.get(nodeId);
           const latencyMs = stepStart ? Date.now() - stepStart : 0;
+          const spanId = stepSpanIds.get(nodeId);
 
           // Extract trace data
           const trace = meta
@@ -217,6 +228,8 @@ export const executeGraph = async (
                     (output as any)?.error?.message ||
                     (output as any)?.error ||
                     "Step failed",
+                  traceId,
+                  spanId,
                 })
               );
             }
@@ -230,6 +243,8 @@ export const executeGraph = async (
                 output,
                 latencyMs,
                 trace,
+                traceId,
+                spanId,
               })
             );
           }
@@ -264,11 +279,13 @@ export const executeGraph = async (
           output: finalOutput,
           totalLatencyMs,
           trace: runTrace,
+          traceId,
         })
       );
 
       return {
         runId,
+        traceId,
         success: true,
         output: finalOutput,
         totalLatencyMs,
@@ -288,6 +305,7 @@ export const executeGraph = async (
 
       return {
         runId,
+        traceId,
         success: false,
         error: errorMsg,
         totalLatencyMs,
@@ -306,6 +324,7 @@ export const executeGraph = async (
 
     return {
       runId,
+      traceId,
       success: false,
       error: errorMessage,
       totalLatencyMs,

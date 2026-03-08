@@ -31,6 +31,13 @@ export const queryKeys = {
     batch: (batchId: string) => ["evaluation", "batch", batchId] as const,
     evals: (runId: string) => ["evaluation", "evals", runId] as const,
   },
+  observability: {
+    all: ["observability"] as const,
+    latency: (canvasId: string, days?: number) => ["observability", "latency", canvasId, days ?? 7] as const,
+    errors: (canvasId: string, days?: number) => ["observability", "errors", canvasId, days ?? 7] as const,
+    costs: (canvasId: string, days?: number) => ["observability", "costs", canvasId, days ?? 30] as const,
+    spans: (runId: string) => ["observability", "spans", runId] as const,
+  },
   organizations: {
     all: ["organizations"] as const,
     detail: (id: string) => ["organizations", "detail", id] as const,

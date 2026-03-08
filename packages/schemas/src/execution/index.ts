@@ -23,6 +23,36 @@ export const stepStatusSchema = z.enum([
   "skipped",
 ]);
 
+// Trace data for step-level observability
+export const traceDataSchema = z.object({
+  model: z.string().optional(),
+  provider: z.string().optional(),
+  tokenCount: z
+    .object({
+      prompt: z.number().optional(),
+      completion: z.number().optional(),
+      total: z.number().optional(),
+    })
+    .optional(),
+  cost: z
+    .object({
+      input: z.number().optional(),
+      output: z.number().optional(),
+      total: z.number().optional(),
+    })
+    .optional(),
+  dimensions: z.number().optional(),
+  documentCount: z.number().optional(),
+  finishReason: z.string().optional(),
+});
+
+// Aggregate trace for run-level summary
+export const runTraceSchema = z.object({
+  totalTokens: z.number().optional(),
+  totalCost: z.number().optional(),
+  stepCount: z.number().optional(),
+});
+
 // Run schema
 export const runSchema = z.object({
   id: z.string().uuid(),
@@ -76,6 +106,7 @@ export const runStartedEventSchema = sseEventSchema.extend({
     canvasId: z.string().uuid(),
     input: z.record(z.string(), z.unknown()),
     totalSteps: z.number(),
+    traceId: z.string().optional(),
   }),
 });
 
@@ -86,6 +117,7 @@ export const runCompletedEventSchema = sseEventSchema.extend({
     output: z.record(z.string(), z.unknown()),
     totalLatencyMs: z.number(),
     trace: runTraceSchema.optional(),
+    traceId: z.string().optional(),
   }),
 });
 
@@ -107,6 +139,8 @@ export const stepStartedEventSchema = sseEventSchema.extend({
     nodeLabel: z.string(),
     stepIndex: z.number(),
     input: z.record(z.string(), z.unknown()),
+    traceId: z.string().optional(),
+    spanId: z.string().optional(),
   }),
 });
 
@@ -121,6 +155,8 @@ export const stepCompletedEventSchema = sseEventSchema.extend({
     output: z.record(z.string(), z.unknown()),
     latencyMs: z.number(),
     trace: traceDataSchema.optional(),
+    traceId: z.string().optional(),
+    spanId: z.string().optional(),
   }),
 });
 
@@ -133,6 +169,8 @@ export const stepFailedEventSchema = sseEventSchema.extend({
     nodeLabel: z.string(),
     stepIndex: z.number(),
     error: z.string(),
+    traceId: z.string().optional(),
+    spanId: z.string().optional(),
   }),
 });
 
@@ -144,36 +182,6 @@ export const stepProgressEventSchema = sseEventSchema.extend({
     chunk: z.string(), // Streaming text chunk
     done: z.boolean(),
   }),
-});
-
-// Trace data for step-level observability
-export const traceDataSchema = z.object({
-  model: z.string().optional(),
-  provider: z.string().optional(),
-  tokenCount: z
-    .object({
-      prompt: z.number().optional(),
-      completion: z.number().optional(),
-      total: z.number().optional(),
-    })
-    .optional(),
-  cost: z
-    .object({
-      input: z.number().optional(),
-      output: z.number().optional(),
-      total: z.number().optional(),
-    })
-    .optional(),
-  dimensions: z.number().optional(),
-  documentCount: z.number().optional(),
-  finishReason: z.string().optional(),
-});
-
-// Aggregate trace for run-level summary
-export const runTraceSchema = z.object({
-  totalTokens: z.number().optional(),
-  totalCost: z.number().optional(),
-  stepCount: z.number().optional(),
 });
 
 // Union of all SSE events

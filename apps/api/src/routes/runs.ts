@@ -3,11 +3,11 @@ import { streamSSE } from "hono/streaming";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import { db } from "@hachi/database/client";
-import { runs, stepOutputs, canvases } from "@hachi/database/schema";
+import { runs, stepOutputs, canvases, evalResults, testDatasets, testCases } from "@hachi/database/schema";
 import type { AppEnv } from "../types";
 import { requireAuth } from "../middleware/auth";
 import { requireOrganization, requirePermission } from "../middleware/organization";
-import { eq, and } from "drizzle-orm";
+import { eq, and, inArray } from "drizzle-orm";
 import { executeGraph } from "../services/execution/runner";
 import type { RunnerConfig, RunInput } from "../services/execution/runner";
 import { transformGraphForExecution } from "../services/execution/graph-transform";
@@ -157,6 +157,24 @@ export const runRoutes = new Hono<AppEnv>()
               trace: event.data.trace ?? null,
               latencyMs: event.data.latencyMs,
             });
+
+            // Persist eval results for evaluator nodes
+            const nodeType = event.data.nodeType as string | undefined;
+            if (nodeType?.startsWith("eval-") && event.data.output) {
+              const output = event.data.output as Record<string, unknown>;
+              const score = output.score as number | undefined;
+              if (score !== undefined) {
+                const metric = nodeType.replace("eval-", "").replace("-", "_");
+                await db.insert(evalResults).values({
+                  runId: run.id,
+                  nodeId: event.data.nodeId,
+                  metric,
+                  score,
+                  reasoning: (output.reasoning as string) ?? null,
+                  details: output.claims ?? output.perDocRelevance ?? null,
+                });
+              }
+            }
           }
 
           if (event.type === "run:completed") {
@@ -196,6 +214,245 @@ export const runRoutes = new Hono<AppEnv>()
         } catch {
           // Client already disconnected
         }
+      }
+    });
+  })
+
+  // Get eval results for a run
+  .get("/:id/evals", requireAuth, async (c) => {
+    const id = c.req.param("id");
+
+    const evals = await db
+      .select()
+      .from(evalResults)
+      .where(eq(evalResults.runId, id))
+      .orderBy(evalResults.createdAt);
+
+    return c.json({ evalResults: evals });
+  })
+
+  // Toggle baseline status for a run
+  .post("/:id/baseline", requireAuth, requireOrganization, async (c) => {
+    const id = c.req.param("id");
+
+    // Get the run to find its canvasId
+    const [run] = await db
+      .select()
+      .from(runs)
+      .where(eq(runs.id, id))
+      .limit(1);
+
+    if (!run) {
+      return c.json({ error: "Run not found" }, 404);
+    }
+
+    // Clear existing baseline for this canvas
+    if (run.canvasId) {
+      await db
+        .update(runs)
+        .set({ isBaseline: false })
+        .where(and(eq(runs.canvasId, run.canvasId), eq(runs.isBaseline, true)));
+    }
+
+    // Set this run as baseline
+    await db
+      .update(runs)
+      .set({ isBaseline: true })
+      .where(eq(runs.id, id));
+
+    return c.json({ success: true });
+  })
+
+  // Batch execute canvas on a test dataset
+  .post("/:canvasId/batch", requireAuth, requireOrganization, requirePermission({ canvas: ["execute"] }), zValidator("json", z.object({
+    datasetId: z.string().uuid(),
+    variantLabel: z.string().optional(),
+  })), async (c) => {
+    const canvasId = c.req.param("canvasId");
+    const { datasetId, variantLabel } = c.req.valid("json");
+    const user = c.get("user");
+    const organizationId = c.get("organizationId");
+
+    return streamSSE(c, async (stream) => {
+      // Fetch canvas
+      const [canvas] = await db
+        .select()
+        .from(canvases)
+        .where(and(eq(canvases.id, canvasId), eq(canvases.organizationId, organizationId)))
+        .limit(1);
+
+      if (!canvas) {
+        await stream.writeSSE({
+          event: "batch:failed",
+          data: JSON.stringify({ error: "Canvas not found" }),
+        });
+        return;
+      }
+
+      // Fetch test cases
+      const cases = await db
+        .select()
+        .from(testCases)
+        .where(eq(testCases.datasetId, datasetId))
+        .orderBy(testCases.createdAt);
+
+      if (cases.length === 0) {
+        await stream.writeSSE({
+          event: "batch:failed",
+          data: JSON.stringify({ error: "No test cases in dataset" }),
+        });
+        return;
+      }
+
+      const batchId = crypto.randomUUID();
+      const graph = transformGraphForExecution(canvas.graphJson as any);
+      const config = await buildRunnerConfig(organizationId);
+
+      await stream.writeSSE({
+        event: "batch:started",
+        data: JSON.stringify({ batchId, totalCases: cases.length }),
+      });
+
+      const runIds: string[] = [];
+
+      for (let i = 0; i < cases.length; i++) {
+        const testCase = cases[i]!;
+        const input = { query: testCase.query } as RunInput;
+
+        // Create run record
+        const [run] = await db
+          .insert(runs)
+          .values({
+            canvasId,
+            triggeredBy: user.id,
+            input,
+            status: "running",
+            startedAt: new Date(),
+            datasetId,
+            batchId,
+            variantLabel: variantLabel ?? null,
+          })
+          .returning();
+
+        if (!run) continue;
+        runIds.push(run.id);
+
+        try {
+          const stepInputMap = new Map<string, Record<string, unknown>>();
+
+          await executeGraph(graph, input, config, async (event: AnySSEEvent) => {
+            if (event.type === "step:started") {
+              stepInputMap.set(event.data.nodeId, event.data.input);
+            }
+
+            if (event.type === "step:completed") {
+              const capturedInput = stepInputMap.get(event.data.nodeId);
+              await db.insert(stepOutputs).values({
+                runId: run.id,
+                nodeId: event.data.nodeId,
+                input: capturedInput ?? {},
+                output: event.data.output,
+                trace: event.data.trace ?? null,
+                latencyMs: event.data.latencyMs,
+              });
+
+              // Persist eval results
+              const nodeType = event.data.nodeType as string | undefined;
+              if (nodeType?.startsWith("eval-") && event.data.output) {
+                const output = event.data.output as Record<string, unknown>;
+                const score = output.score as number | undefined;
+                if (score !== undefined) {
+                  const metric = nodeType.replace("eval-", "").replace("-", "_");
+                  await db.insert(evalResults).values({
+                    runId: run.id,
+                    nodeId: event.data.nodeId,
+                    metric,
+                    score,
+                    reasoning: (output.reasoning as string) ?? null,
+                    details: output.claims ?? output.perDocRelevance ?? null,
+                  });
+                }
+              }
+            }
+
+            if (event.type === "run:completed") {
+              await db
+                .update(runs)
+                .set({
+                  status: "completed",
+                  completedAt: new Date(),
+                  totalTokens: event.data.trace?.totalTokens ?? null,
+                  totalCost: event.data.trace?.totalCost ?? null,
+                })
+                .where(eq(runs.id, run.id));
+            }
+
+            if (event.type === "run:failed") {
+              await db
+                .update(runs)
+                .set({ status: "failed", completedAt: new Date() })
+                .where(eq(runs.id, run.id));
+            }
+          });
+        } catch (error) {
+          await db
+            .update(runs)
+            .set({ status: "failed", completedAt: new Date() })
+            .where(eq(runs.id, run.id));
+        }
+
+        // Send progress
+        try {
+          await stream.writeSSE({
+            event: "batch:progress",
+            data: JSON.stringify({
+              batchId,
+              completed: i + 1,
+              total: cases.length,
+              runId: run.id,
+              query: testCase.query,
+            }),
+          });
+        } catch {
+          // Client disconnected
+        }
+      }
+
+      // Fetch aggregate eval results for the batch
+      const batchEvals = await db
+        .select()
+        .from(evalResults)
+        .where(inArray(evalResults.runId, runIds));
+
+      // Group by metric and compute aggregates
+      const metricScores: Record<string, number[]> = {};
+      for (const ev of batchEvals) {
+        const scores = metricScores[ev.metric] ?? [];
+        scores.push(ev.score);
+        metricScores[ev.metric] = scores;
+      }
+
+      const aggregates: Record<string, { mean: number; p50: number; p90: number; count: number }> = {};
+      for (const [metric, scores] of Object.entries(metricScores)) {
+        const sorted = [...scores].sort((a, b) => a - b);
+        const mean = scores.reduce((a, b) => a + b, 0) / scores.length;
+        const p50 = sorted[Math.floor(sorted.length * 0.5)] ?? 0;
+        const p90 = sorted[Math.floor(sorted.length * 0.9)] ?? 0;
+        aggregates[metric] = { mean, p50, p90, count: scores.length };
+      }
+
+      try {
+        await stream.writeSSE({
+          event: "batch:completed",
+          data: JSON.stringify({
+            batchId,
+            totalCases: cases.length,
+            runIds,
+            aggregates,
+          }),
+        });
+      } catch {
+        // Client disconnected
       }
     });
   })

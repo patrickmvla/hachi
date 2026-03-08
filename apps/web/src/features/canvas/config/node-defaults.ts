@@ -1,4 +1,4 @@
-type NodeType = "query" | "hyde" | "embedding" | "retriever" | "reranker" | "judge" | "llm" | "agent";
+type NodeType = "query" | "hyde" | "embedding" | "retriever" | "reranker" | "judge" | "llm" | "agent" | "evaluator";
 
 type NodeDefaultsMap = {
   [K in NodeType]: Record<string, unknown>;
@@ -37,6 +37,11 @@ export const nodeDefaults: NodeDefaultsMap = {
     tools: ["Web Search", "Code Exec"],
     maxIterations: 5,
     model: "gpt-4-turbo",
+  },
+  evaluator: {
+    metric: "faithfulness",
+    model: "gpt-4o-mini",
+    temperature: 0,
   },
 };
 

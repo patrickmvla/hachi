@@ -1,13 +1,14 @@
 import { type DragEvent } from "react";
-import { 
-  Search, 
-  Database, 
-  FileText, 
-  Cpu, 
-  GitBranch, 
-  ArrowRightLeft, 
-  Scale, 
-  Bot 
+import {
+  Search,
+  Database,
+  FileText,
+  Cpu,
+  GitBranch,
+  ArrowRightLeft,
+  Scale,
+  Bot,
+  BarChart3,
 } from "lucide-react";
 
 const nodeTypes = [
@@ -19,6 +20,7 @@ const nodeTypes = [
   { type: "llm", label: "LLM Generate", icon: Cpu, description: "Generate text with AI" },
   { type: "embedding", label: "Embedding", icon: GitBranch, description: "Convert text to vectors" },
   { type: "agent", label: "Agent", icon: Bot, description: "Autonomous agent step" },
+  { type: "evaluator", label: "Evaluator", icon: BarChart3, description: "Evaluate pipeline quality with RAG metrics" },
 ];
 
 export const NodePalette = () => {

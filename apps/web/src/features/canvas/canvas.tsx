@@ -32,6 +32,7 @@ import { EmbedNode } from "./nodes/embed-node";
 import { RerankNode } from "./nodes/rerank-node";
 import { JudgeNode } from "./nodes/judge-node";
 import { AgentNode } from "./nodes/agent-node";
+import { EvalNode } from "./nodes/eval-node";
 import { DataEdge } from "./edges/data-edge";
 import { AnimatedEdge } from "./edges/animated-edge";
 import { FloatingEdge } from "./edges/floating-edge";
@@ -63,6 +64,7 @@ const nodeTypes: NodeTypes = {
   llm: GenerateNode,
   embedding: EmbedNode,
   agent: AgentNode,
+  evaluator: EvalNode,
 };
 
 const edgeTypes: EdgeTypes = {

@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, Clock, CheckCircle2, AlertCircle, Activity, Terminal, Loader2 } from "lucide-react";
+import { ArrowLeft, Clock, CheckCircle2, AlertCircle, Activity, Terminal, Loader2, Star, BarChart3 } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useState, useMemo } from "react";
-import { useRunDetails } from "@/features/runs/hooks/use-run-queries";
+import { useRunDetails, useRunEvals, useSetBaseline } from "@/features/runs/hooks/use-run-queries";
 import type { Run, StepOutput } from "@/features/runs/api/runs-api";
 
 export default function RunDetailPage() {
@@ -12,6 +12,8 @@ export default function RunDetailPage() {
   const id = params.id as string;
 
   const { data, isLoading, error } = useRunDetails(id);
+  const { data: evalResults } = useRunEvals(id, !!data);
+  const baselineMutation = useSetBaseline(id);
   const [selectedStep, setSelectedStep] = useState<StepOutput | null>(null);
 
   // Select the first step once data arrives
@@ -127,9 +129,22 @@ export default function RunDetailPage() {
             </div>
           </div>
         </div>
-        <button className="px-4 py-2 bg-primary text-primary-foreground rounded-md font-medium hover:bg-primary/90 transition-colors shadow-sm">
-          Rerun
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => baselineMutation.mutate()}
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium transition-colors shadow-sm ${
+              run.isBaseline
+                ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
+                : "border border-border hover:bg-muted"
+            }`}
+          >
+            <Star size={14} className={run.isBaseline ? "fill-current" : ""} />
+            {run.isBaseline ? "Baseline" : "Set as Baseline"}
+          </button>
+          <button className="px-4 py-2 bg-primary text-primary-foreground rounded-md font-medium hover:bg-primary/90 transition-colors shadow-sm">
+            Rerun
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -169,6 +184,37 @@ export default function RunDetailPage() {
         </div>
 
         <div className="lg:col-span-2 space-y-4">
+          {/* Eval Scores */}
+          {evalResults && evalResults.length > 0 && (
+            <>
+              <h2 className="text-lg font-semibold flex items-center gap-2">
+                <BarChart3 size={18} />
+                Evaluation Scores
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {evalResults.map((ev) => (
+                  <div key={ev.id} className="p-3 rounded-lg border border-border bg-card">
+                    <div className="text-xs text-muted-foreground capitalize mb-1">
+                      {ev.metric.replace("_", " ")}
+                    </div>
+                    <div className={`text-2xl font-bold font-mono ${
+                      ev.score >= 0.7 ? "text-green-600" :
+                      ev.score >= 0.5 ? "text-yellow-600" :
+                      "text-red-600"
+                    }`}>
+                      {(ev.score * 100).toFixed(1)}%
+                    </div>
+                    {ev.reasoning && (
+                      <p className="text-[11px] text-muted-foreground mt-1 line-clamp-2">
+                        {ev.reasoning}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
           <h2 className="text-lg font-semibold">Step Output</h2>
           <div className="rounded-xl border border-border bg-card overflow-hidden">
             <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/30">

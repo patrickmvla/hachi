@@ -9,6 +9,9 @@ export * from "./hyde";
 export * from "./rerank";
 export * from "./judge";
 export * from "./agent";
+export * from "./eval-faithfulness";
+export * from "./eval-relevancy";
+export * from "./eval-context-precision";
 export * from "./ports";
 export * from "./connections";
 
@@ -24,6 +27,9 @@ export const baseNodeSchema = z.object({
     "rerank",
     "judge",
     "agent",
+    "eval-faithfulness",
+    "eval-relevancy",
+    "eval-context-precision",
   ]),
   label: z.string(),
   config: z.record(z.string(), z.unknown()).optional(),
@@ -42,4 +48,7 @@ export const NODE_TYPES = {
   RERANK: "rerank",
   JUDGE: "judge",
   AGENT: "agent",
+  EVAL_FAITHFULNESS: "eval-faithfulness",
+  EVAL_RELEVANCY: "eval-relevancy",
+  EVAL_CONTEXT_PRECISION: "eval-context-precision",
 } as const;

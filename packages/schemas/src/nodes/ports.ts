@@ -8,6 +8,7 @@ export enum PortType {
   Response = "response",
   Judgments = "judgments",
   HypotheticalDocs = "hypotheticalDocs",
+  EvalScore = "evalScore",
 }
 
 /** Colors for typed handles — maps to Tailwind-compatible hex values */
@@ -19,6 +20,7 @@ export const PORT_TYPE_COLORS: Record<PortType, string> = {
   [PortType.Response]: "#22c55e",      // green-500
   [PortType.Judgments]: "#ef4444",     // red-500
   [PortType.HypotheticalDocs]: "#06b6d4", // cyan-500
+  [PortType.EvalScore]: "#eab308",     // yellow-500
 };
 
 /** Maps port types to edge data types for auto-assignment */
@@ -30,6 +32,7 @@ export const PORT_TO_EDGE_DATA_TYPE: Record<PortType, "string" | "vector" | "doc
   [PortType.Response]: "string",
   [PortType.Judgments]: "json",
   [PortType.HypotheticalDocs]: "document",
+  [PortType.EvalScore]: "json",
 };
 
 /** Port declarations for each node type (uses backend type names) */
@@ -42,6 +45,9 @@ export const NODE_PORTS: Record<NodeType, { inputs: PortType[]; outputs: PortTyp
   generate: { inputs: [PortType.Query, PortType.Documents],  outputs: [PortType.Response] },
   hyde:     { inputs: [PortType.Query],                      outputs: [PortType.HypotheticalDocs] },
   agent:    { inputs: [PortType.Query, PortType.Documents],  outputs: [PortType.Response] },
+  "eval-faithfulness":      { inputs: [PortType.Query, PortType.Response, PortType.Documents], outputs: [PortType.EvalScore] },
+  "eval-relevancy":         { inputs: [PortType.Query, PortType.Response],                     outputs: [PortType.EvalScore] },
+  "eval-context-precision": { inputs: [PortType.Query, PortType.Documents],                    outputs: [PortType.EvalScore] },
 };
 
 /**
@@ -54,6 +60,8 @@ export const FRONTEND_TO_BACKEND_TYPE: Record<string, NodeType> = {
   retriever: "retrieve",
   reranker: "rerank",
   llm: "generate",
+  // Evaluator maps to faithfulness by default; resolved dynamically in graph-transform
+  evaluator: "eval-faithfulness",
 };
 
 /** Resolves a frontend node type to its backend equivalent */

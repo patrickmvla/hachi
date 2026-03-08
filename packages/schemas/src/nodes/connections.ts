@@ -13,6 +13,7 @@ export const PORT_COMPATIBILITY: Record<PortType, PortType[]> = {
   [PortType.Response]:         [PortType.Query, PortType.Text],
   [PortType.Judgments]:        [PortType.Query, PortType.Documents],
   [PortType.HypotheticalDocs]: [PortType.Documents, PortType.Text],
+  [PortType.EvalScore]:        [], // terminal — eval scores don't connect downstream
 };
 
 /**
@@ -62,6 +63,9 @@ export const REQUIRED_INPUTS: Partial<Record<NodeType, NodeType[]>> = {
   rerank: ["retrieve"],
   judge: ["retrieve"],
   generate: [],
+  "eval-faithfulness": ["generate"],
+  "eval-relevancy": ["generate"],
+  "eval-context-precision": ["retrieve"],
 };
 
 /**

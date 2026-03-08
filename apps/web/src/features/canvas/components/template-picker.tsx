@@ -1,8 +1,8 @@
 "use client";
 
 import { Search, FileText, ArrowRightLeft, Bot, GitBranch, Database, Cpu, Scale, Loader2 } from "lucide-react";
-import { useTemplates } from "@/features/templates/hooks";
-import type { Template } from "@/features/templates/api";
+import { useTemplates } from "@/features/templates/hooks/use-template-queries";
+import type { Template } from "@/features/templates/api/templates-api";
 
 const nodeTypeIcons: Record<string, { icon: typeof Search; color: string }> = {
   query: { icon: Search, color: "text-primary" },

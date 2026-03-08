@@ -18,7 +18,7 @@ import {
   Users,
 } from "lucide-react";
 import { authClient } from "@hachi/auth/client";
-import { useTemplates } from "@/features/templates/hooks";
+import { useTemplates } from "@/features/templates/hooks/use-template-queries";
 import { createCanvas } from "@/features/canvas/api/canvas-api";
 import { isPersonalEmail } from "@/features/auth/schema/email";
 

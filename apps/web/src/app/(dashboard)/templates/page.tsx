@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Search, Filter, Copy, LayoutTemplate, Loader2 } from "lucide-react";
-import { useTemplates } from "@/features/templates/hooks";
+import { useTemplates } from "@/features/templates/hooks/use-template-queries";
 
 export default function TemplatesPage() {
   const { data: templates, isLoading } = useTemplates();

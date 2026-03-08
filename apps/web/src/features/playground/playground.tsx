@@ -4,8 +4,8 @@ import { useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { ReactFlowProvider } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import { useTemplates } from "@/features/templates/hooks";
-import type { Template } from "@/features/templates/api";
+import { useTemplates } from "@/features/templates/hooks/use-template-queries";
+import type { Template } from "@/features/templates/api/templates-api";
 import { getNodeDefaults } from "@/features/canvas/config/node-defaults";
 import {
   usePlaygroundStore,

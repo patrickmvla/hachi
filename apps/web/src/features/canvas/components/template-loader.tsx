@@ -4,8 +4,8 @@ import { useState } from "react";
 import { LayoutTemplate, ChevronDown, Loader2 } from "lucide-react";
 import { useCanvasStore, type HachiNode, type HachiEdge } from "@/stores/canvas-store";
 import { getNodeDefaults } from "../config/node-defaults";
-import { useTemplates } from "@/features/templates/hooks";
-import type { Template } from "@/features/templates/api";
+import { useTemplates } from "@/features/templates/hooks/use-template-queries";
+import type { Template } from "@/features/templates/api/templates-api";
 
 export const TemplateLoader = () => {
   const [isOpen, setIsOpen] = useState(false);

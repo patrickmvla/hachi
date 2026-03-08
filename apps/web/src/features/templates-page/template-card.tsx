@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, Clock, Zap } from "lucide-react";
 import { cn } from "@hachi/ui/lib/utils";
-import type { Template } from "@/features/templates/api";
+import type { Template } from "@/features/templates/api/templates-api";
 import { nodeRegistry } from "@/features/playground/config/node-registry";
 
 const difficultyColors: Record<string, string> = {

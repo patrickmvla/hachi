@@ -6,8 +6,8 @@ import Link from "next/link";
 import { ArrowLeft, Loader2, FileText } from "lucide-react";
 import { createCanvas } from "@/features/canvas/api/canvas-api";
 import { authClient } from "@hachi/auth/client";
-import { useTemplates } from "@/features/templates/hooks";
-import type { Template } from "@/features/templates/api";
+import { useTemplates } from "@/features/templates/hooks/use-template-queries";
+import type { Template } from "@/features/templates/api/templates-api";
 import { nodeRegistry } from "@/features/playground/config/node-registry";
 import { cn } from "@hachi/ui/lib/utils";
 import {

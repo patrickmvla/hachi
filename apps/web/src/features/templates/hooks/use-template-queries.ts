@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/query-keys";
-import { fetchTemplates, fetchTemplate } from "./api";
+import { fetchTemplates, fetchTemplate } from "../api/templates-api";
 
 export function useTemplates() {
   return useQuery({

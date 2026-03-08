@@ -3,7 +3,7 @@
 import { useCallback } from "react";
 import { X, Sparkles } from "lucide-react";
 import { cn } from "@hachi/ui/lib/utils";
-import type { Template } from "@/features/templates/api";
+import type { Template } from "@/features/templates/api/templates-api";
 import { nodeRegistry } from "../config/node-registry";
 
 const difficultyColor: Record<string, string> = {

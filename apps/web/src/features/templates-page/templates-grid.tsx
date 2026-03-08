@@ -1,6 +1,6 @@
 "use client";
 
-import { useTemplates } from "@/features/templates/hooks";
+import { useTemplates } from "@/features/templates/hooks/use-template-queries";
 import { TemplateCard } from "./template-card";
 import { Loader2 } from "lucide-react";
 

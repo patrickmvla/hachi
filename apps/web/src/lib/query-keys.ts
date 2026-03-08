@@ -23,6 +23,14 @@ export const queryKeys = {
     all: ["templates"] as const,
     detail: (id: string) => ["templates", "detail", id] as const,
   },
+  evaluation: {
+    all: ["evaluation"] as const,
+    datasets: (orgId: string) => ["evaluation", "datasets", orgId] as const,
+    dataset: (id: string) => ["evaluation", "dataset", id] as const,
+    thresholds: (canvasId: string) => ["evaluation", "thresholds", canvasId] as const,
+    batch: (batchId: string) => ["evaluation", "batch", batchId] as const,
+    evals: (runId: string) => ["evaluation", "evals", runId] as const,
+  },
   organizations: {
     all: ["organizations"] as const,
     detail: (id: string) => ["organizations", "detail", id] as const,

@@ -8,6 +8,7 @@ import {
   PenLine,
   LayoutTemplate,
   History,
+  FlaskConical,
   Settings,
   LogOut,
   type LucideIcon,
@@ -45,7 +46,10 @@ const navSections: { label: string; items: NavItem[] }[] = [
   },
   {
     label: "Monitor",
-    items: [{ href: "/runs", label: "Runs", icon: History }],
+    items: [
+      { href: "/runs", label: "Runs", icon: History },
+      { href: "/evaluation", label: "Evaluation", icon: FlaskConical },
+    ],
   },
   {
     label: "Settings",

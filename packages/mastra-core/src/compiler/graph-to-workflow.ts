@@ -9,6 +9,9 @@ import {
   createRerankStep,
   createJudgeStep,
   createAgentStep,
+  createEvalFaithfulnessStep,
+  createEvalRelevancyStep,
+  createEvalContextPrecisionStep,
 } from "../steps";
 import { validateCanvas, type CanvasNode, type CanvasEdge } from "./validate";
 import { topologicalSort, type GraphNode, type GraphEdge } from "./topological-sort";
@@ -59,6 +62,9 @@ const STEP_FACTORIES: Record<NodeType, (config?: any) => any> = {
   rerank: createRerankStep,
   judge: createJudgeStep,
   agent: createAgentStep,
+  "eval-faithfulness": createEvalFaithfulnessStep,
+  "eval-relevancy": createEvalRelevancyStep,
+  "eval-context-precision": createEvalContextPrecisionStep,
 };
 
 /**
@@ -166,6 +172,44 @@ export function mapUpstreamOutputs(
       return {
         query: queryOutput?.query || initialQuery,
         documents,
+      };
+    }
+
+    case "eval-faithfulness": {
+      const queryOutput = outputs.find((o) => o?.query);
+      const generateOutput = outputs.find((o) => o?.response || o?.text);
+      const docsOutput = outputs.find((o) => o?.documents);
+      const answer =
+        (generateOutput?.response as string) ||
+        (generateOutput?.text as string) ||
+        "";
+      const docs = (docsOutput?.documents || []) as Array<{ content: string }>;
+      return {
+        query: queryOutput?.query || initialQuery,
+        answer,
+        contexts: docs.map((d) => d.content),
+      };
+    }
+
+    case "eval-relevancy": {
+      const queryOutput = outputs.find((o) => o?.query);
+      const generateOutput = outputs.find((o) => o?.response || o?.text);
+      const answer =
+        (generateOutput?.response as string) ||
+        (generateOutput?.text as string) ||
+        "";
+      return {
+        query: queryOutput?.query || initialQuery,
+        answer,
+      };
+    }
+
+    case "eval-context-precision": {
+      const queryOutput = outputs.find((o) => o?.query);
+      const docsOutput = outputs.find((o) => o?.documents);
+      return {
+        query: queryOutput?.query || initialQuery,
+        documents: docsOutput?.documents || [],
       };
     }
 

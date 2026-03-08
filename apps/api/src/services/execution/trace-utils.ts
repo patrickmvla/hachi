@@ -170,6 +170,35 @@ export function extractTraceData(
       break;
     }
 
+    case "eval-faithfulness":
+    case "eval-relevancy":
+    case "eval-context-precision": {
+      trace.model = output.model as string | undefined;
+      trace.provider = detectProvider(trace.model);
+
+      const usage = output.usage as
+        | {
+            promptTokens?: number;
+            completionTokens?: number;
+            totalTokens?: number;
+          }
+        | undefined;
+
+      if (usage) {
+        trace.tokenCount = {
+          prompt: usage.promptTokens,
+          completion: usage.completionTokens,
+          total: usage.totalTokens,
+        };
+        trace.cost = calculateCost(
+          trace.model || "",
+          usage.promptTokens,
+          usage.completionTokens
+        );
+      }
+      break;
+    }
+
     case "query": {
       // Query step has no trace-worthy data
       break;

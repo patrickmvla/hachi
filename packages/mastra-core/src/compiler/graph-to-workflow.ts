@@ -15,7 +15,7 @@ import {
 } from "../steps";
 import { validateCanvas, type CanvasNode, type CanvasEdge } from "./validate";
 import { topologicalSort, type GraphNode, type GraphEdge } from "./topological-sort";
-import type { NodeType } from "@hachi/schemas/nodes";
+// NodeType import removed — compiler now accepts any string type for custom node support
 
 /**
  * Graph to Workflow Compiler (vNext)
@@ -44,7 +44,7 @@ export interface ExecutionPlan {
 
 export interface ExecutionStep {
   nodeId: string;
-  nodeType: NodeType;
+  nodeType: string;
   nodeLabel: string;
   config: Record<string, unknown>;
   inputs: string[];
@@ -53,7 +53,7 @@ export interface ExecutionStep {
 /**
  * Step factory registry - maps node types to step creators
  */
-const STEP_FACTORIES: Record<NodeType, (config?: any) => any> = {
+const STEP_FACTORIES: Record<string, (config?: any) => any> = {
   query: createQueryStep,
   embed: createEmbedStep,
   retrieve: createRetrieveStep,
@@ -68,11 +68,34 @@ const STEP_FACTORIES: Record<NodeType, (config?: any) => any> = {
 };
 
 /**
+ * Optional external step factory resolver for custom node types.
+ * Set by the host application (e.g., from NodeRegistry).
+ */
+let externalStepFactoryResolver: ((type: string) => ((config?: any) => any) | undefined) | null = null;
+
+/**
+ * Sets an external resolver for custom node type step factories.
+ */
+export function setExternalStepFactoryResolver(
+  resolver: (type: string) => ((config?: any) => any) | undefined
+) {
+  externalStepFactoryResolver = resolver;
+}
+
+/**
+ * Gets the step factory for a node type, checking built-ins first,
+ * then falling back to the external resolver.
+ */
+function getStepFactory(type: string): ((config?: any) => any) | undefined {
+  return STEP_FACTORIES[type] ?? externalStepFactoryResolver?.(type);
+}
+
+/**
  * Maps upstream step outputs to the format expected by a given node type.
  * This is the data transformation layer between nodes.
  */
 export function mapUpstreamOutputs(
-  nodeType: NodeType,
+  nodeType: string,
   upstreamOutputs: Map<string, Record<string, unknown>>,
   initialQuery: string
 ): Record<string, unknown> {
@@ -257,11 +280,14 @@ function groupByLevel(
  */
 function createNodeStep(
   nodeId: string,
-  nodeType: NodeType,
+  nodeType: string,
   nodeConfig: Record<string, unknown>,
   upstreamNodeIds: string[]
 ) {
-  const factory = STEP_FACTORIES[nodeType];
+  const factory = getStepFactory(nodeType);
+  if (!factory) {
+    throw new Error(`No step factory registered for node type: ${nodeType}`);
+  }
   const baseStep = factory(nodeConfig);
 
   return createStep({
@@ -376,7 +402,7 @@ export function compileToWorkflow(graph: CanvasGraph): CompilationResult {
     const upstreamIds = depsMap.get(nodeId) || [];
     const step = createNodeStep(
       nodeId,
-      node.type as NodeType,
+      node.type,
       node.data.config || {},
       upstreamIds
     );
@@ -477,7 +503,7 @@ export const createExecutionPlan = (graph: CanvasGraph): ExecutionPlan => {
     const node = nodeMap.get(nodeId)!;
     return {
       nodeId: node.id,
-      nodeType: node.type as NodeType,
+      nodeType: node.type,
       nodeLabel: node.data.label,
       config: node.data.config || {},
       inputs: inputMapping.get(nodeId) || [],

@@ -8,3 +8,5 @@ export const canvasSchema = z.object({
 });
 
 export type Canvas = z.infer<typeof canvasSchema>;
+
+export { canvasExportSchema, type CanvasExport } from "./export";

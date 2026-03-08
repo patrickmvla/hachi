@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   ZoomIn,
   ZoomOut,
@@ -7,6 +8,7 @@ import {
   Undo2,
   Redo2,
   Download,
+  Upload,
   Grid,
   Circle,
   LayoutGrid,
@@ -17,6 +19,7 @@ import {
 } from "lucide-react";
 import { Panel, useReactFlow } from "@xyflow/react";
 import { useCanvasStore, type BackgroundVariant } from "@/stores/canvas-store";
+import { ExportImportDialog } from "./export-import-dialog";
 
 const backgroundVariants: { value: BackgroundVariant; icon: typeof Grid; label: string }[] = [
   { value: "dots", icon: Circle, label: "Dots" },
@@ -24,8 +27,9 @@ const backgroundVariants: { value: BackgroundVariant; icon: typeof Grid; label: 
   { value: "cross", icon: X, label: "Cross" },
 ];
 
-export const Toolbar = () => {
+export const Toolbar = ({ canvasName = "canvas" }: { canvasName?: string }) => {
   const { zoomIn, zoomOut, fitView } = useReactFlow();
+  const [dialogMode, setDialogMode] = useState<"export" | "import" | null>(null);
   const {
     backgroundVariant,
     showBackground,
@@ -184,17 +188,39 @@ export const Toolbar = () => {
           )}
         </div>
 
-        {/* Export */}
+        {/* Export / Import */}
         <div className="flex items-center gap-0.5 pl-2">
           <button
+            onClick={() => setDialogMode("export")}
             className="p-2 hover:bg-muted rounded-md text-muted-foreground hover:text-foreground transition-colors"
             title="Export"
             aria-label="Export canvas"
           >
             <Download size={16} />
           </button>
+          <button
+            onClick={() => setDialogMode("import")}
+            className="p-2 hover:bg-muted rounded-md text-muted-foreground hover:text-foreground transition-colors"
+            title="Import"
+            aria-label="Import canvas"
+          >
+            <Upload size={16} />
+          </button>
         </div>
       </div>
+
+      {dialogMode && (
+        <ExportImportDialog
+          canvasName={canvasName}
+          mode={dialogMode}
+          onClose={() => setDialogMode(null)}
+          onImport={(data) => {
+            const store = useCanvasStore.getState();
+            store.setNodes(data.nodes);
+            store.setEdges(data.edges);
+          }}
+        />
+      )}
     </Panel>
   );
 };

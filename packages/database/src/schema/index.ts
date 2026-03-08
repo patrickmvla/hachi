@@ -217,6 +217,11 @@ export const runs = pgTable("runs", {
   totalCost: doublePrecision("total_cost"),
   startedAt: timestamp("started_at"),
   completedAt: timestamp("completed_at"),
+  // Phase 4: Evaluation & Testing
+  datasetId: uuid("dataset_id"),
+  batchId: uuid("batch_id"),
+  isBaseline: boolean("is_baseline").default(false),
+  variantLabel: text("variant_label"),
 });
 
 export const stepOutputs = pgTable("step_outputs", {
@@ -227,6 +232,60 @@ export const stepOutputs = pgTable("step_outputs", {
   output: jsonb("output"),
   trace: jsonb("trace"), // TraceData: model, tokens, cost, dimensions, etc.
   latencyMs: integer("latency_ms"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// ============================================================================
+// Documents (RAG Knowledge Base)
+// ============================================================================
+
+// ============================================================================
+// Evaluation & Testing (Phase 4)
+// ============================================================================
+
+export const testDatasets = pgTable("test_datasets", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizationId: text("organization_id")
+    .references(() => organization.id, { onDelete: "cascade" })
+    .notNull(),
+  name: text("name").notNull(),
+  description: text("description"),
+  createdBy: text("created_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const testCases = pgTable("test_cases", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  datasetId: uuid("dataset_id")
+    .references(() => testDatasets.id, { onDelete: "cascade" })
+    .notNull(),
+  query: text("query").notNull(),
+  groundTruth: text("ground_truth"),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const evalResults = pgTable("eval_results", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  runId: uuid("run_id")
+    .references(() => runs.id, { onDelete: "cascade" })
+    .notNull(),
+  nodeId: text("node_id").notNull(),
+  metric: text("metric").notNull(), // 'faithfulness', 'relevancy', 'context_precision'
+  score: doublePrecision("score").notNull(),
+  reasoning: text("reasoning"),
+  details: jsonb("details"), // per-claim or per-doc breakdown
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const evalThresholds = pgTable("eval_thresholds", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  canvasId: uuid("canvas_id")
+    .references(() => canvases.id, { onDelete: "cascade" })
+    .notNull(),
+  metric: text("metric").notNull(),
+  threshold: doublePrecision("threshold").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

@@ -46,6 +46,7 @@ import { ExecutionBar } from "./components/execution-bar";
 import { NodeSearch } from "./components/node-search";
 import { ContextMenu, type ContextMenuState, initialContextMenuState } from "./components/context-menu";
 import { WireTapPanel } from "./wire-tap/wire-tap-panel";
+import { Toolbar } from "./components/toolbar";
 import { CursorOverlay } from "../collaboration/cursor-overlay";
 import { PresenceAvatars } from "../collaboration/presence-avatars";
 import {
@@ -295,11 +296,14 @@ const CanvasContent = ({ canvasId, mode = "full", onOpenTemplatePicker }: { canv
             {/* React Flow Controls */}
             <Controls />
 
+            {/* Bottom Toolbar */}
+            <Toolbar />
+
             {/* Node Search */}
             <NodeSearch position="top-left" />
 
             {/* Wire Tap Panel */}
-            <WireTapPanel />
+            <WireTapPanel canvasId={canvasId} />
 
             {/* Presence indicators */}
             {users.length > 0 && (

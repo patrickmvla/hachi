@@ -10,6 +10,8 @@ import { documentRoutes } from "./routes/documents";
 import { templateRoutes } from "./routes/templates";
 import { drawingRoutes } from "./routes/drawings";
 import { evaluationRoutes } from "./routes/evaluation";
+import { observabilityRoutes } from "./routes/observability";
+import { nodeRoutes } from "./routes/nodes";
 
 const allowedOrigins = [
   "http://localhost:3000",
@@ -36,6 +38,8 @@ export const app = new Hono<AppEnv>()
   .route("/api/templates", templateRoutes)
   .route("/api/drawings", drawingRoutes)
   .route("/api/evaluation", evaluationRoutes)
+  .route("/api/observability", observabilityRoutes)
+  .route("/api/nodes", nodeRoutes)
   .notFound((c) => c.json({ error: "Not found" }, 404))
   .onError((err, c) => {
     console.error("Server error:", err);

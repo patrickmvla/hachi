@@ -7,6 +7,9 @@ export * from "./hyde";
 export * from "./rerank";
 export * from "./judge";
 export * from "./agent";
+export * from "./eval-faithfulness";
+export * from "./eval-relevancy";
+export * from "./eval-context-precision";
 
 // Re-export step factories for convenience
 export {
@@ -49,6 +52,21 @@ export {
   agentStep,
 } from "./agent";
 
+export {
+  createEvalFaithfulnessStep,
+  evalFaithfulnessStep,
+} from "./eval-faithfulness";
+
+export {
+  createEvalRelevancyStep,
+  evalRelevancyStep,
+} from "./eval-relevancy";
+
+export {
+  createEvalContextPrecisionStep,
+  evalContextPrecisionStep,
+} from "./eval-context-precision";
+
 // Step type registry for the compiler
 export const STEP_REGISTRY = {
   query: "createQueryStep",
@@ -59,6 +77,9 @@ export const STEP_REGISTRY = {
   rerank: "createRerankStep",
   judge: "createJudgeStep",
   agent: "createAgentStep",
+  "eval-faithfulness": "createEvalFaithfulnessStep",
+  "eval-relevancy": "createEvalRelevancyStep",
+  "eval-context-precision": "createEvalContextPrecisionStep",
 } as const;
 
 export type StepType = keyof typeof STEP_REGISTRY;

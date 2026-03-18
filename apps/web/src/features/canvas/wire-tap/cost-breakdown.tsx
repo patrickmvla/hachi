@@ -4,9 +4,10 @@ import type { ExecutionLogEntry } from "@/stores/execution-log-store";
 
 interface CostBreakdownProps {
   entries: ExecutionLogEntry[];
+  highlightNodeId?: string;
 }
 
-export const CostBreakdown = ({ entries }: CostBreakdownProps) => {
+export const CostBreakdown = ({ entries, highlightNodeId }: CostBreakdownProps) => {
   const entriesWithTrace = entries.filter((e) => e.trace);
   if (entriesWithTrace.length === 0) return null;
 
@@ -33,7 +34,7 @@ export const CostBreakdown = ({ entries }: CostBreakdownProps) => {
         </thead>
         <tbody>
           {entriesWithTrace.map((entry) => (
-            <tr key={entry.id} className="border-b border-black/[0.03]">
+            <tr key={entry.id} className={`border-b border-black/[0.03] ${entry.nodeId === highlightNodeId ? "bg-primary/5" : ""}`}>
               <td className="py-1.5 px-2 text-black/70 font-medium truncate max-w-[100px]">
                 {entry.nodeName}
               </td>

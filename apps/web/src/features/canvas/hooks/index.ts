@@ -18,3 +18,4 @@ export {
 export { useBackendAutoSave } from "./use-auto-save";
 export { useCanvasList, useCanvas } from "./use-canvas-queries";
 export { useCanvasEditor } from "./use-canvas-editor";
+export { useCreatePipeline } from "./use-create-pipeline";

@@ -10,6 +10,7 @@ import {
 
 interface GanttChartProps {
   entries: ExecutionLogEntry[];
+  highlightNodeId?: string;
 }
 
 const NODE_TYPE_COLORS: Record<string, string> = {
@@ -27,7 +28,7 @@ const NODE_TYPE_COLORS: Record<string, string> = {
   agent: "#22c55e",
 };
 
-export const GanttChart = ({ entries }: GanttChartProps) => {
+export const GanttChart = ({ entries, highlightNodeId }: GanttChartProps) => {
   if (entries.length === 0) return null;
 
   const firstTimestamp = Math.min(...entries.map((e) => e.timestamp));
@@ -48,7 +49,7 @@ export const GanttChart = ({ entries }: GanttChartProps) => {
           return (
             <Tooltip key={entry.id}>
               <TooltipTrigger asChild>
-                <div className="flex items-center gap-2 h-6">
+                <div className={`flex items-center gap-2 h-6 rounded-sm ${entry.nodeId === highlightNodeId ? "ring-1 ring-primary/50" : ""}`}>
                   <span className="text-[9px] font-mono text-muted-foreground w-16 truncate text-right shrink-0">
                     {entry.nodeName}
                   </span>

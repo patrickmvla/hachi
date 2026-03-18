@@ -5,6 +5,16 @@ export interface GraphJson {
   edges: unknown[];
 }
 
+export interface RunSummary {
+  totalRuns: number;
+  completed: number;
+  failed: number;
+  lastRunStatus: string | null;
+  lastRunAt: string | null;
+  avgDurationMs: number;
+  totalCost: number;
+}
+
 export interface Canvas {
   id: string;
   name: string;
@@ -13,6 +23,7 @@ export interface Canvas {
   createdBy: string | null;
   createdAt: string | null;
   updatedAt: string | null;
+  runSummary?: RunSummary | null;
 }
 
 export async function fetchCanvasList(orgId: string) {

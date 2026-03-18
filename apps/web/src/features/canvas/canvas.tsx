@@ -33,6 +33,12 @@ import { RerankNode } from "./nodes/rerank-node";
 import { JudgeNode } from "./nodes/judge-node";
 import { AgentNode } from "./nodes/agent-node";
 import { EvalNode } from "./nodes/eval-node";
+import { QueryRewriterNode } from "./nodes/query-rewriter-node";
+import { RouterNode } from "./nodes/router-node";
+import { ContextCompressorNode } from "./nodes/context-compressor-node";
+import { ContextOptimizerNode } from "./nodes/context-optimizer-node";
+import { WebSearchNode } from "./nodes/web-search-node";
+import { FusionNode } from "./nodes/fusion-node";
 import { DataEdge } from "./edges/data-edge";
 import { AnimatedEdge } from "./edges/animated-edge";
 import { FloatingEdge } from "./edges/floating-edge";
@@ -42,7 +48,6 @@ import { EdgeMarkers } from "./edges/edge-markers";
 import { NodePalette } from "./components/node-palette";
 import { PropertyPanel } from "./components/property-panel";
 import { getNodeDefaults } from "./config/node-defaults";
-import { ExecutionBar } from "./components/execution-bar";
 import { NodeSearch } from "./components/node-search";
 import { ContextMenu, type ContextMenuState, initialContextMenuState } from "./components/context-menu";
 import { WireTapPanel } from "./wire-tap/wire-tap-panel";
@@ -66,6 +71,12 @@ const nodeTypes: NodeTypes = {
   embedding: EmbedNode,
   agent: AgentNode,
   evaluator: EvalNode,
+  queryRewriter: QueryRewriterNode,
+  router: RouterNode,
+  contextCompressor: ContextCompressorNode,
+  contextOptimizer: ContextOptimizerNode,
+  webSearch: WebSearchNode,
+  fusion: FusionNode,
 };
 
 const edgeTypes: EdgeTypes = {
@@ -86,6 +97,7 @@ const CanvasContent = ({ canvasId, mode = "full", onOpenTemplatePicker }: { canv
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const { screenToFlowPosition } = useReactFlow();
   const [contextMenu, setContextMenu] = useState<ContextMenuState>(initialContextMenuState);
+  const [paletteCollapsed, setPaletteCollapsed] = useState(false);
   const {
     nodes,
     edges,
@@ -94,7 +106,10 @@ const CanvasContent = ({ canvasId, mode = "full", onOpenTemplatePicker }: { canv
     onConnect,
     addNode,
     setEdges,
+    selectedNodeId,
     setSelectedNodeId,
+    propertyPanelNodeId,
+    setPropertyPanelNodeId,
     backgroundVariant,
     showBackground,
     reset,
@@ -237,10 +252,13 @@ const CanvasContent = ({ canvasId, mode = "full", onOpenTemplatePicker }: { canv
 
   return (
     <div className="flex flex-col h-full w-full">
-      <ExecutionBar canvasId={canvasId} onOpenTemplatePicker={mode === "demo" ? onOpenTemplatePicker : undefined} />
-
       <div className="flex flex-1 overflow-hidden">
-        {mode !== "demo" && <NodePalette />}
+        {mode !== "demo" && (
+          <NodePalette
+            collapsed={paletteCollapsed}
+            onToggle={() => setPaletteCollapsed((prev) => !prev)}
+          />
+        )}
 
         <div
           className="flex-1 relative h-full"
@@ -266,12 +284,12 @@ const CanvasContent = ({ canvasId, mode = "full", onOpenTemplatePicker }: { canv
             edgeTypes={edgeTypes}
             onDragOver={onDragOver}
             onDrop={onDrop}
-            onNodeClick={(_, node) => {
-              setSelectedNodeId(node.id);
+            onNodeClick={() => {
               closeContextMenu();
             }}
             onPaneClick={() => {
               setSelectedNodeId(null);
+              setPropertyPanelNodeId(null);
               closeContextMenu();
             }}
             onNodeContextMenu={onNodeContextMenu}
@@ -317,7 +335,7 @@ const CanvasContent = ({ canvasId, mode = "full", onOpenTemplatePicker }: { canv
           <CursorOverlay cursors={cursors} />
         </div>
 
-        <PropertyPanel />
+        {propertyPanelNodeId && <PropertyPanel />}
       </div>
 
       {/* Context Menu */}

@@ -50,6 +50,7 @@ interface CanvasState {
   nodes: HachiNode[];
   edges: HachiEdge[];
   selectedNodeId: string | null;
+  propertyPanelNodeId: string | null;
   selectedNodeIds: string[];
   selectedEdgeIds: string[];
   isRunning: boolean;
@@ -84,6 +85,7 @@ interface CanvasState {
   deleteEdge: (edgeId: string) => void;
   updateEdgeData: (edgeId: string, data: Partial<HachiEdge["data"]>) => void;
   setSelectedNodeId: (id: string | null) => void;
+  setPropertyPanelNodeId: (id: string | null) => void;
   setIsRunning: (isRunning: boolean) => void;
   setRunId: (runId: string | null) => void;
   setBackgroundVariant: (variant: BackgroundVariant) => void;
@@ -136,6 +138,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
   nodes: initialNodes,
   edges: initialEdges,
   selectedNodeId: null,
+  propertyPanelNodeId: null,
   selectedNodeIds: [],
   selectedEdgeIds: [],
   isRunning: false,
@@ -241,6 +244,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
   },
 
   setSelectedNodeId: (id) => set({ selectedNodeId: id }),
+  setPropertyPanelNodeId: (id) => set({ propertyPanelNodeId: id }),
 
   setIsRunning: (isRunning) => set({ isRunning }),
 

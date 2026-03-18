@@ -12,18 +12,11 @@ interface ExecutionBarProps {
 
 export const ExecutionBar = ({ canvasId, onOpenTemplatePicker }: ExecutionBarProps) => {
   const { isRunning } = useCanvasStore();
-  const { testQuery, setTestQuery, currentNodeId, entries, runTrace } = useExecutionLogStore();
+  const { currentNodeId, entries, runTrace } = useExecutionLogStore();
   const { executeWorkflow, stopExecution } = useExecution(canvasId);
 
   const handleRun = () => {
-    executeWorkflow(testQuery || "What is retrieval augmented generation?");
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
-      e.preventDefault();
-      if (!isRunning) handleRun();
-    }
+    executeWorkflow("");
   };
 
   // Find current step name from entries
@@ -84,20 +77,6 @@ export const ExecutionBar = ({ canvasId, onOpenTemplatePicker }: ExecutionBarPro
           </>
         )}
 
-        <div className="flex-1 max-w-xl relative">
-          <input
-            type="text"
-            value={testQuery}
-            onChange={(e) => setTestQuery(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Enter test query..."
-            className="w-full pl-4 pr-12 py-2 text-sm rounded-md border border-border bg-muted/50 focus:outline-none focus:ring-1 focus:ring-primary focus:bg-background transition-all"
-            aria-label="Test query input"
-          />
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-mono text-muted-foreground border border-border px-1.5 py-0.5 rounded" aria-hidden="true">
-            ⌘ + Enter
-          </span>
-        </div>
       </div>
 
       <div className="flex items-center gap-4">

@@ -1,6 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/query-keys";
-import { fetchRunsList, fetchRunDetails, fetchRunEvals, setRunBaseline } from "../api/runs-api";
+import { fetchRunsList, fetchRunDetails, fetchRunEvals, setRunBaseline, fetchPipelineHealth } from "../api/runs-api";
+
+export function usePipelineHealth(days = 7) {
+  return useQuery({
+    queryKey: [...queryKeys.runs.all, "health", days],
+    queryFn: () => fetchPipelineHealth(days),
+  });
+}
 
 export function useRunsList(canvasId: string) {
   return useQuery({

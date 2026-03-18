@@ -57,6 +57,41 @@ export interface EvalResult {
   createdAt: string | null;
 }
 
+export interface PipelineHealth {
+  totals: {
+    completed: number;
+    failed: number;
+    running: number;
+    pending: number;
+  };
+  totalCost: number;
+  totalTokens: number;
+  avgDurationMs: number;
+  successRate: number;
+  recentRuns: {
+    id: string;
+    canvasId: string;
+    canvasName: string;
+    status: string;
+    durationMs: number | null;
+    totalCost: number | null;
+    totalTokens: number | null;
+    startedAt: string | null;
+    error: string | null;
+  }[];
+  dailyRuns: {
+    date: string;
+    completed: number;
+    failed: number;
+  }[];
+}
+
+export async function fetchPipelineHealth(days = 7) {
+  return unwrap(
+    await apiFetch<PipelineHealth>(`/api/runs/health?days=${days}`)
+  );
+}
+
 export async function fetchRunsList(canvasId: string) {
   const { runs } = unwrap(
     await apiFetch<{ runs: Run[] }>(`/api/runs?canvasId=${canvasId}`)

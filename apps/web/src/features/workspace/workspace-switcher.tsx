@@ -32,6 +32,7 @@ export const WorkspaceSwitcher = () => {
         onClick={() => setIsOpen(!isOpen)}
         className="w-8 h-8 mx-auto rounded-md bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center text-white font-bold shadow-sm relative"
         title={displayName}
+        suppressHydrationWarning
       >
         {displayName.charAt(0)}
         {isOpen && (
@@ -106,14 +107,14 @@ export const WorkspaceSwitcher = () => {
         aria-haspopup="listbox"
       >
         <div className="flex items-center gap-3">
-          <div className="w-7 h-7 shrink-0 rounded-md bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center text-white font-bold text-sm shadow-sm">
+          <div className="w-7 h-7 shrink-0 rounded-md bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center text-white font-bold text-sm shadow-sm" suppressHydrationWarning>
             {displayName.charAt(0)}
           </div>
           <div className="flex flex-col items-start text-left min-w-0">
-            <span className="text-sm font-semibold truncate w-full group-hover:text-foreground transition-colors">
+            <span className="text-sm font-semibold truncate w-full group-hover:text-foreground transition-colors" suppressHydrationWarning>
               {displayName}
             </span>
-            <span className="text-xs text-muted-foreground truncate w-full">
+            <span className="text-xs text-muted-foreground truncate w-full" suppressHydrationWarning>
               {activeOrg?.slug || ""}
             </span>
           </div>

@@ -6,14 +6,14 @@ import { PortType } from "@hachi/schemas/nodes";
 import type { HachiNode } from "@/stores/canvas-store";
 import { NodeShell } from "./node-shell";
 
-export const HyDENode = memo(({ id, data, selected }: NodeProps<HachiNode>) => (
+export const ContextOptimizerNode = memo(({ id, data, selected }: NodeProps<HachiNode>) => (
   <NodeShell
     id={id}
     selected={selected ?? false}
     data={data}
-    inputs={[PortType.Query]}
-    outputs={[PortType.Document]}
+    inputs={[PortType.Documents]}
+    outputs={[PortType.Documents]}
   />
 ));
 
-HyDENode.displayName = "HyDENode";
+ContextOptimizerNode.displayName = "ContextOptimizerNode";

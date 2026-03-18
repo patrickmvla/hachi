@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { useCanvasStore } from "@/stores/canvas-store";
+import { Input, Textarea } from "@hachi/ui";
 import {
   X,
   Search,
@@ -15,12 +16,18 @@ import {
   Box,
   Settings2,
   Play,
+  Merge,
+  Split,
+  PenLine,
+  Minimize2,
+  Sparkles,
+  Globe,
 } from "lucide-react";
 import { PanelSection } from "./property-panel/panel-section";
 import { PanelField } from "./property-panel/panel-field";
 import { CONFIG_PANELS } from "./property-panel/node-configs";
 import { getNodeDefaults } from "../config/node-defaults";
-import { ExecutionResults } from "./property-panel/execution-results";
+import { ExecutionSubTabs } from "./property-panel/execution-sub-tabs";
 
 const NODE_ICONS: Record<string, { icon: React.ElementType; color: string }> = {
   query: { icon: Search, color: "text-primary" },
@@ -31,13 +38,19 @@ const NODE_ICONS: Record<string, { icon: React.ElementType; color: string }> = {
   judge: { icon: Scale, color: "text-red-500" },
   llm: { icon: Cpu, color: "text-purple-500" },
   agent: { icon: Bot, color: "text-green-500" },
+  fusion: { icon: Merge, color: "text-teal-500" },
+  router: { icon: Split, color: "text-cyan-500" },
+  queryRewriter: { icon: PenLine, color: "text-indigo-500" },
+  contextCompressor: { icon: Minimize2, color: "text-rose-500" },
+  contextOptimizer: { icon: Sparkles, color: "text-amber-500" },
+  webSearch: { icon: Globe, color: "text-emerald-500" },
 };
 
 export const PropertyPanel = () => {
-  const { selectedNodeId, nodes, edges, setSelectedNodeId, updateNodeData } =
+  const { propertyPanelNodeId, nodes, edges, setPropertyPanelNodeId, updateNodeData } =
     useCanvasStore();
 
-  const selectedNode = nodes.find((n) => n.id === selectedNodeId);
+  const selectedNode = nodes.find((n) => n.id === propertyPanelNodeId);
   const [nameValue, setNameValue] = useState("");
   const [descValue, setDescValue] = useState("");
   const [activeNodeId, setActiveNodeId] = useState<string | null>(null);
@@ -115,7 +128,7 @@ export const PropertyPanel = () => {
           </div>
         </div>
         <button
-          onClick={() => setSelectedNodeId(null)}
+          onClick={() => setPropertyPanelNodeId(null)}
           className="p-1 hover:bg-muted rounded-md transition-colors shrink-0"
           aria-label="Close panel"
         >
@@ -160,9 +173,7 @@ export const PropertyPanel = () => {
             {/* General section */}
             <PanelSection title="General" defaultOpen>
               <PanelField label="Name">
-                <input
-                  type="text"
-                  className="w-full px-3 py-1.5 text-sm rounded-md border border-border bg-background focus:outline-none focus:ring-1 focus:ring-primary"
+                <Input
                   value={nameValue}
                   onChange={(e) => setNameValue(e.target.value)}
                   onBlur={handleNameBlur}
@@ -172,8 +183,8 @@ export const PropertyPanel = () => {
                 />
               </PanelField>
               <PanelField label="Description">
-                <textarea
-                  className="w-full px-3 py-1.5 text-sm rounded-md border border-border bg-background focus:outline-none focus:ring-1 focus:ring-primary min-h-[60px] resize-y"
+                <Textarea
+                  className="min-h-[60px] resize-y"
                   value={descValue}
                   placeholder="Describe what this step does..."
                   onChange={(e) => setDescValue(e.target.value)}
@@ -219,9 +230,7 @@ export const PropertyPanel = () => {
             </PanelSection>
           </div>
         ) : (
-          <div className="p-4">
-            <ExecutionResults nodeId={selectedNode.id} nodeType={nodeType} />
-          </div>
+          <ExecutionSubTabs nodeId={selectedNode.id} nodeType={nodeType} />
         )}
       </div>
     </div>

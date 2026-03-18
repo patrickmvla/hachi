@@ -5,6 +5,7 @@ import { FileText } from "lucide-react";
 
 interface DocumentResultsProps {
   entry: ExecutionLogEntry;
+  threshold?: number;
 }
 
 interface DocItem {
@@ -15,7 +16,7 @@ interface DocItem {
   rerankScore?: number;
 }
 
-export const DocumentResults = ({ entry }: DocumentResultsProps) => {
+export const DocumentResults = ({ entry, threshold }: DocumentResultsProps) => {
   const output = entry.output as Record<string, unknown> | null;
   if (!output) return null;
 
@@ -39,16 +40,23 @@ export const DocumentResults = ({ entry }: DocumentResultsProps) => {
           {documents.map((doc, i) => {
             const score = doc.rerankScore ?? doc.score ?? 0;
             const pct = Math.min(score * 100, 100);
+            const belowThreshold = threshold != null && score < threshold;
             return (
-              <div key={doc.id ?? i} className="flex items-center gap-2">
+              <div key={doc.id ?? i} className={`flex items-center gap-2 ${belowThreshold ? "opacity-40" : ""}`}>
                 <FileText size={10} className="text-muted-foreground shrink-0" />
-                <div className="flex-1 min-w-0">
+                <div className="relative flex-1 min-w-0">
                   <div className="h-3 w-full bg-muted rounded-sm overflow-hidden">
                     <div
                       className="h-full bg-orange-500/70 rounded-sm transition-all"
                       style={{ width: `${pct}%` }}
                     />
                   </div>
+                  {threshold != null && (
+                    <div
+                      className="absolute top-0 h-full border-l border-dashed border-red-400"
+                      style={{ left: `${Math.min(threshold * 100, 100)}%` }}
+                    />
+                  )}
                 </div>
                 <span className="text-[9px] font-mono text-muted-foreground w-10 text-right shrink-0">
                   {score.toFixed(3)}

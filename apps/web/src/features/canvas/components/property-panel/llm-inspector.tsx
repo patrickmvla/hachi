@@ -9,7 +9,6 @@ interface LlmInspectorProps {
 
 export const LlmInspector = ({ entry }: LlmInspectorProps) => {
   const output = entry.output as Record<string, unknown> | null;
-  const input = entry.input as { query?: string; context?: string; documents?: unknown[] } | null;
   const trace = entry.trace;
   if (!output) return null;
 
@@ -92,29 +91,6 @@ export const LlmInspector = ({ entry }: LlmInspectorProps) => {
               ${cost.total.toFixed(6)}
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Prompt display */}
-      {input && (
-        <div className="space-y-1.5">
-          <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
-            Prompt
-          </div>
-          {input.query && (
-            <div className="text-[10px]">
-              <span className="text-muted-foreground">Query: </span>
-              <span className="font-mono">{input.query}</span>
-            </div>
-          )}
-          {input.context && (
-            <div className="text-[10px]">
-              <span className="text-muted-foreground">Context: </span>
-              <pre className="font-mono text-[9px] mt-0.5 p-1.5 bg-muted/30 rounded border border-border whitespace-pre-wrap max-h-32 overflow-auto">
-                {input.context}
-              </pre>
-            </div>
-          )}
         </div>
       )}
 

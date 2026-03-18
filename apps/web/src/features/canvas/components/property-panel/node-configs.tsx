@@ -2,17 +2,21 @@
 
 import { useState } from "react";
 import { Info, X, Plus } from "lucide-react";
+import { Input } from "@hachi/ui";
+import { Textarea } from "@hachi/ui";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@hachi/ui";
 import { PanelField } from "./panel-field";
 
 interface ConfigProps {
   config: Record<string, unknown>;
   onUpdate: (key: string, value: unknown) => void;
 }
-
-const inputClass =
-  "w-full px-3 py-1.5 text-sm rounded-md border border-border bg-background focus:outline-none focus:ring-1 focus:ring-primary";
-const selectClass =
-  "w-full px-3 py-1.5 text-sm rounded-md border border-border bg-background focus:outline-none focus:ring-1 focus:ring-primary";
 
 // --- Query ---
 export const QueryConfig = () => (
@@ -26,21 +30,19 @@ export const QueryConfig = () => (
 export const HyDEConfig = ({ config, onUpdate }: ConfigProps) => (
   <>
     <PanelField label="Model">
-      <select
-        className={selectClass}
-        value={(config.model as string) ?? "gpt-4-turbo"}
-        onChange={(e) => onUpdate("model", e.target.value)}
-      >
-        <option value="gpt-4-turbo">gpt-4-turbo</option>
-        <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
-        <option value="claude-3-opus">claude-3-opus</option>
-        <option value="claude-3-sonnet">claude-3-sonnet</option>
-      </select>
+      <Select value={(config.model as string) ?? "gpt-4-turbo"} onValueChange={(v) => onUpdate("model", v)}>
+        <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+        <SelectContent>
+          <SelectItem value="gpt-4-turbo">gpt-4-turbo</SelectItem>
+          <SelectItem value="gpt-3.5-turbo">gpt-3.5-turbo</SelectItem>
+          <SelectItem value="claude-3-opus">claude-3-opus</SelectItem>
+          <SelectItem value="claude-3-sonnet">claude-3-sonnet</SelectItem>
+        </SelectContent>
+      </Select>
     </PanelField>
     <PanelField label="Max Tokens" hint="Maximum tokens for hypothetical document">
-      <input
+      <Input
         type="number"
-        className={inputClass}
         value={(config.maxTokens as number) ?? 256}
         min={1}
         max={4096}
@@ -54,20 +56,18 @@ export const HyDEConfig = ({ config, onUpdate }: ConfigProps) => (
 export const EmbeddingConfig = ({ config, onUpdate }: ConfigProps) => (
   <>
     <PanelField label="Model">
-      <select
-        className={selectClass}
-        value={(config.model as string) ?? "text-embedding-3-small"}
-        onChange={(e) => onUpdate("model", e.target.value)}
-      >
-        <option value="text-embedding-3-small">text-embedding-3-small</option>
-        <option value="text-embedding-3-large">text-embedding-3-large</option>
-        <option value="text-embedding-ada-002">text-embedding-ada-002</option>
-      </select>
+      <Select value={(config.model as string) ?? "text-embedding-3-small"} onValueChange={(v) => onUpdate("model", v)}>
+        <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+        <SelectContent>
+          <SelectItem value="text-embedding-3-small">text-embedding-3-small</SelectItem>
+          <SelectItem value="text-embedding-3-large">text-embedding-3-large</SelectItem>
+          <SelectItem value="text-embedding-ada-002">text-embedding-ada-002</SelectItem>
+        </SelectContent>
+      </Select>
     </PanelField>
     <PanelField label="Dimensions" hint="Output vector dimensions">
-      <input
+      <Input
         type="number"
-        className={inputClass}
         value={(config.dimensions as number) ?? 1536}
         min={1}
         onChange={(e) => onUpdate("dimensions", Number(e.target.value))}
@@ -80,9 +80,8 @@ export const EmbeddingConfig = ({ config, onUpdate }: ConfigProps) => (
 export const RetrieverConfig = ({ config, onUpdate }: ConfigProps) => (
   <>
     <PanelField label="Top K" hint="Number of documents to retrieve">
-      <input
+      <Input
         type="number"
-        className={inputClass}
         value={(config.topK as number) ?? 5}
         min={1}
         max={100}
@@ -106,9 +105,8 @@ export const RetrieverConfig = ({ config, onUpdate }: ConfigProps) => (
       </div>
     </PanelField>
     <PanelField label="Vector Store">
-      <input
+      <Input
         type="text"
-        className={inputClass}
         value={(config.vectorStore as string) ?? "default"}
         onChange={(e) => onUpdate("vectorStore", e.target.value)}
       />
@@ -120,9 +118,8 @@ export const RetrieverConfig = ({ config, onUpdate }: ConfigProps) => (
 export const RerankerConfig = ({ config, onUpdate }: ConfigProps) => (
   <>
     <PanelField label="Top N" hint="Number of results after reranking">
-      <input
+      <Input
         type="number"
-        className={inputClass}
         value={(config.topN as number) ?? 3}
         min={1}
         max={100}
@@ -130,15 +127,14 @@ export const RerankerConfig = ({ config, onUpdate }: ConfigProps) => (
       />
     </PanelField>
     <PanelField label="Model">
-      <select
-        className={selectClass}
-        value={(config.model as string) ?? "cross-encoder/ms-marco"}
-        onChange={(e) => onUpdate("model", e.target.value)}
-      >
-        <option value="cross-encoder/ms-marco">cross-encoder/ms-marco</option>
-        <option value="cohere-rerank-v3">cohere-rerank-v3</option>
-        <option value="bge-reranker-large">bge-reranker-large</option>
-      </select>
+      <Select value={(config.model as string) ?? "cross-encoder/ms-marco"} onValueChange={(v) => onUpdate("model", v)}>
+        <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+        <SelectContent>
+          <SelectItem value="cross-encoder/ms-marco">cross-encoder/ms-marco</SelectItem>
+          <SelectItem value="cohere-rerank-v3">cohere-rerank-v3</SelectItem>
+          <SelectItem value="bge-reranker-large">bge-reranker-large</SelectItem>
+        </SelectContent>
+      </Select>
     </PanelField>
   </>
 );
@@ -147,15 +143,14 @@ export const RerankerConfig = ({ config, onUpdate }: ConfigProps) => (
 export const JudgeConfig = ({ config, onUpdate }: ConfigProps) => (
   <>
     <PanelField label="Criteria">
-      <select
-        className={selectClass}
-        value={(config.criteria as string) ?? "relevance"}
-        onChange={(e) => onUpdate("criteria", e.target.value)}
-      >
-        <option value="relevance">Relevance</option>
-        <option value="accuracy">Accuracy</option>
-        <option value="completeness">Completeness</option>
-      </select>
+      <Select value={(config.criteria as string) ?? "relevance"} onValueChange={(v) => onUpdate("criteria", v)}>
+        <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+        <SelectContent>
+          <SelectItem value="relevance">Relevance</SelectItem>
+          <SelectItem value="accuracy">Accuracy</SelectItem>
+          <SelectItem value="completeness">Completeness</SelectItem>
+        </SelectContent>
+      </Select>
     </PanelField>
     <PanelField label="Confidence Threshold">
       <div className="flex items-center gap-3">
@@ -180,17 +175,16 @@ export const JudgeConfig = ({ config, onUpdate }: ConfigProps) => (
 export const LLMConfig = ({ config, onUpdate }: ConfigProps) => (
   <>
     <PanelField label="Model">
-      <select
-        className={selectClass}
-        value={(config.model as string) ?? "gpt-4-turbo"}
-        onChange={(e) => onUpdate("model", e.target.value)}
-      >
-        <option value="gpt-4-turbo">gpt-4-turbo</option>
-        <option value="gpt-4o">gpt-4o</option>
-        <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
-        <option value="claude-3-opus">claude-3-opus</option>
-        <option value="claude-3-sonnet">claude-3-sonnet</option>
-      </select>
+      <Select value={(config.model as string) ?? "gpt-4-turbo"} onValueChange={(v) => onUpdate("model", v)}>
+        <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+        <SelectContent>
+          <SelectItem value="gpt-4-turbo">gpt-4-turbo</SelectItem>
+          <SelectItem value="gpt-4o">gpt-4o</SelectItem>
+          <SelectItem value="gpt-3.5-turbo">gpt-3.5-turbo</SelectItem>
+          <SelectItem value="claude-3-opus">claude-3-opus</SelectItem>
+          <SelectItem value="claude-3-sonnet">claude-3-sonnet</SelectItem>
+        </SelectContent>
+      </Select>
     </PanelField>
     <PanelField label="Temperature">
       <div className="flex items-center gap-3">
@@ -209,9 +203,8 @@ export const LLMConfig = ({ config, onUpdate }: ConfigProps) => (
       </div>
     </PanelField>
     <PanelField label="Max Tokens">
-      <input
+      <Input
         type="number"
-        className={inputClass}
         value={(config.maxTokens as number) ?? 1024}
         min={1}
         max={128000}
@@ -219,8 +212,8 @@ export const LLMConfig = ({ config, onUpdate }: ConfigProps) => (
       />
     </PanelField>
     <PanelField label="System Prompt">
-      <textarea
-        className={`${inputClass} min-h-[60px] resize-y`}
+      <Textarea
+        className="min-h-[60px] resize-y"
         value={(config.systemPrompt as string) ?? ""}
         placeholder="Optional system instructions..."
         onChange={(e) => onUpdate("systemPrompt", e.target.value)}
@@ -249,21 +242,19 @@ export const AgentConfig = ({ config, onUpdate }: ConfigProps) => {
   return (
     <>
       <PanelField label="Model">
-        <select
-          className={selectClass}
-          value={(config.model as string) ?? "gpt-4-turbo"}
-          onChange={(e) => onUpdate("model", e.target.value)}
-        >
-          <option value="gpt-4-turbo">gpt-4-turbo</option>
-          <option value="gpt-4o">gpt-4o</option>
-          <option value="claude-3-opus">claude-3-opus</option>
-          <option value="claude-3-sonnet">claude-3-sonnet</option>
-        </select>
+        <Select value={(config.model as string) ?? "gpt-4-turbo"} onValueChange={(v) => onUpdate("model", v)}>
+          <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="gpt-4-turbo">gpt-4-turbo</SelectItem>
+            <SelectItem value="gpt-4o">gpt-4o</SelectItem>
+            <SelectItem value="claude-3-opus">claude-3-opus</SelectItem>
+            <SelectItem value="claude-3-sonnet">claude-3-sonnet</SelectItem>
+          </SelectContent>
+        </Select>
       </PanelField>
       <PanelField label="Max Iterations">
-        <input
+        <Input
           type="number"
-          className={inputClass}
           value={(config.maxIterations as number) ?? 5}
           min={1}
           max={50}
@@ -289,9 +280,7 @@ export const AgentConfig = ({ config, onUpdate }: ConfigProps) => {
           ))}
         </div>
         <div className="flex gap-1.5">
-          <input
-            type="text"
-            className={inputClass}
+          <Input
             value={newTool}
             placeholder="Add tool..."
             onChange={(e) => setNewTool(e.target.value)}
@@ -315,6 +304,195 @@ export const AgentConfig = ({ config, onUpdate }: ConfigProps) => {
   );
 };
 
+// --- Fusion ---
+export const FusionConfig = ({ config, onUpdate }: ConfigProps) => (
+  <>
+    <PanelField label="Method" hint="Fusion algorithm for merging result sets">
+      <Select value={(config.method as string) ?? "rrf"} onValueChange={(v) => onUpdate("method", v)}>
+        <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+        <SelectContent>
+          <SelectItem value="rrf">Reciprocal Rank Fusion</SelectItem>
+          <SelectItem value="combsum">CombSUM</SelectItem>
+          <SelectItem value="combmnz">CombMNZ</SelectItem>
+        </SelectContent>
+      </Select>
+    </PanelField>
+    <PanelField label="K" hint="RRF ranking constant">
+      <Input
+        type="number"
+        value={(config.k as number) ?? 60}
+        min={1}
+        max={1000}
+        onChange={(e) => onUpdate("k", Number(e.target.value))}
+      />
+    </PanelField>
+    <PanelField label="Sources" hint="Number of input result sets to fuse">
+      <Input
+        type="number"
+        value={(config.sources as number) ?? 2}
+        min={2}
+        max={10}
+        onChange={(e) => onUpdate("sources", Number(e.target.value))}
+      />
+    </PanelField>
+  </>
+);
+
+// --- Router ---
+export const RouterConfig = ({ config, onUpdate }: ConfigProps) => (
+  <>
+    <PanelField label="Strategy" hint="How to route queries to branches">
+      <Select value={(config.strategy as string) ?? "complexity"} onValueChange={(v) => onUpdate("strategy", v)}>
+        <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+        <SelectContent>
+          <SelectItem value="complexity">Complexity</SelectItem>
+          <SelectItem value="topic">Topic</SelectItem>
+          <SelectItem value="intent">Intent</SelectItem>
+          <SelectItem value="custom">Custom</SelectItem>
+        </SelectContent>
+      </Select>
+    </PanelField>
+    <PanelField label="Model">
+      <Select value={(config.model as string) ?? "gpt-4o-mini"} onValueChange={(v) => onUpdate("model", v)}>
+        <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+        <SelectContent>
+          <SelectItem value="gpt-4o-mini">gpt-4o-mini</SelectItem>
+          <SelectItem value="gpt-4-turbo">gpt-4-turbo</SelectItem>
+          <SelectItem value="gpt-4o">gpt-4o</SelectItem>
+          <SelectItem value="gpt-3.5-turbo">gpt-3.5-turbo</SelectItem>
+          <SelectItem value="claude-3-opus">claude-3-opus</SelectItem>
+          <SelectItem value="claude-3-sonnet">claude-3-sonnet</SelectItem>
+        </SelectContent>
+      </Select>
+    </PanelField>
+    <PanelField label="Branches" hint="Number of output routing branches">
+      <Input
+        type="number"
+        value={(config.branches as number) ?? 3}
+        min={2}
+        max={10}
+        onChange={(e) => onUpdate("branches", Number(e.target.value))}
+      />
+    </PanelField>
+  </>
+);
+
+// --- Query Rewriter ---
+export const QueryRewriterConfig = ({ config, onUpdate }: ConfigProps) => (
+  <>
+    <PanelField label="Strategy" hint="Query rewriting approach">
+      <Select value={(config.strategy as string) ?? "step-back"} onValueChange={(v) => onUpdate("strategy", v)}>
+        <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+        <SelectContent>
+          <SelectItem value="step-back">Step-Back</SelectItem>
+          <SelectItem value="decompose">Decompose</SelectItem>
+          <SelectItem value="expand">Expand</SelectItem>
+          <SelectItem value="rephrase">Rephrase</SelectItem>
+        </SelectContent>
+      </Select>
+    </PanelField>
+    <PanelField label="Model">
+      <Select value={(config.model as string) ?? "gpt-4-turbo"} onValueChange={(v) => onUpdate("model", v)}>
+        <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+        <SelectContent>
+          <SelectItem value="gpt-4-turbo">gpt-4-turbo</SelectItem>
+          <SelectItem value="gpt-4o">gpt-4o</SelectItem>
+          <SelectItem value="gpt-3.5-turbo">gpt-3.5-turbo</SelectItem>
+          <SelectItem value="claude-3-opus">claude-3-opus</SelectItem>
+          <SelectItem value="claude-3-sonnet">claude-3-sonnet</SelectItem>
+        </SelectContent>
+      </Select>
+    </PanelField>
+    <PanelField label="Max Variants" hint="Maximum query variants to generate">
+      <Input
+        type="number"
+        value={(config.maxVariants as number) ?? 1}
+        min={1}
+        max={10}
+        onChange={(e) => onUpdate("maxVariants", Number(e.target.value))}
+      />
+    </PanelField>
+  </>
+);
+
+// --- Context Compressor ---
+export const ContextCompressorConfig = ({ config, onUpdate }: ConfigProps) => (
+  <>
+    <PanelField label="Method" hint="Compression algorithm">
+      <Select value={(config.method as string) ?? "llmlingua"} onValueChange={(v) => onUpdate("method", v)}>
+        <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+        <SelectContent>
+          <SelectItem value="llmlingua">LLMLingua</SelectItem>
+          <SelectItem value="selective-context">Selective Context</SelectItem>
+          <SelectItem value="extractive">Extractive</SelectItem>
+        </SelectContent>
+      </Select>
+    </PanelField>
+    <PanelField label="Compression Ratio">
+      <Select value={(config.ratio as string) ?? "10x"} onValueChange={(v) => onUpdate("ratio", v)}>
+        <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+        <SelectContent>
+          <SelectItem value="5x">5x</SelectItem>
+          <SelectItem value="10x">10x</SelectItem>
+          <SelectItem value="20x">20x</SelectItem>
+        </SelectContent>
+      </Select>
+    </PanelField>
+    <PanelField label="Model">
+      <Select value={(config.model as string) ?? "gpt-4o-mini"} onValueChange={(v) => onUpdate("model", v)}>
+        <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+        <SelectContent>
+          <SelectItem value="gpt-4o-mini">gpt-4o-mini</SelectItem>
+          <SelectItem value="gpt-4-turbo">gpt-4-turbo</SelectItem>
+          <SelectItem value="gpt-4o">gpt-4o</SelectItem>
+          <SelectItem value="claude-3-sonnet">claude-3-sonnet</SelectItem>
+        </SelectContent>
+      </Select>
+    </PanelField>
+  </>
+);
+
+// --- Context Optimizer ---
+export const ContextOptimizerConfig = ({ config, onUpdate }: ConfigProps) => (
+  <PanelField label="Strategy" hint="How to reorder context for optimal LLM consumption">
+    <Select value={(config.strategy as string) ?? "relevance-first"} onValueChange={(v) => onUpdate("strategy", v)}>
+      <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+      <SelectContent>
+        <SelectItem value="relevance-first">Relevance First</SelectItem>
+        <SelectItem value="diversity">Diversity</SelectItem>
+        <SelectItem value="recency">Recency</SelectItem>
+        <SelectItem value="lost-in-middle">Lost-in-Middle Mitigation</SelectItem>
+      </SelectContent>
+    </Select>
+  </PanelField>
+);
+
+// --- Web Search ---
+export const WebSearchConfig = ({ config, onUpdate }: ConfigProps) => (
+  <>
+    <PanelField label="Provider">
+      <Select value={(config.provider as string) ?? "tavily"} onValueChange={(v) => onUpdate("provider", v)}>
+        <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+        <SelectContent>
+          <SelectItem value="tavily">Tavily</SelectItem>
+          <SelectItem value="serper">Serper</SelectItem>
+          <SelectItem value="brave">Brave</SelectItem>
+          <SelectItem value="bing">Bing</SelectItem>
+        </SelectContent>
+      </Select>
+    </PanelField>
+    <PanelField label="Max Results" hint="Maximum search results to return">
+      <Input
+        type="number"
+        value={(config.maxResults as number) ?? 3}
+        min={1}
+        max={20}
+        onChange={(e) => onUpdate("maxResults", Number(e.target.value))}
+      />
+    </PanelField>
+  </>
+);
+
 // Config panel registry
 export const CONFIG_PANELS: Record<
   string,
@@ -328,4 +506,10 @@ export const CONFIG_PANELS: Record<
   judge: JudgeConfig,
   llm: LLMConfig,
   agent: AgentConfig,
+  fusion: FusionConfig,
+  router: RouterConfig,
+  queryRewriter: QueryRewriterConfig,
+  contextCompressor: ContextCompressorConfig,
+  contextOptimizer: ContextOptimizerConfig,
+  webSearch: WebSearchConfig,
 };

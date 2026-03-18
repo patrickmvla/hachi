@@ -4,16 +4,18 @@ import { PortType, NODE_PORTS } from "./ports";
 /**
  * Which output port types can connect to which input port types.
  * This is the single source of truth for connection compatibility.
+ * Aligned with research docs RAG type system.
  */
 export const PORT_COMPATIBILITY: Record<PortType, PortType[]> = {
-  [PortType.Query]:            [PortType.Query, PortType.Text],
-  [PortType.Text]:             [PortType.Text, PortType.Query],
-  [PortType.Embedding]:        [PortType.Embedding],
-  [PortType.Documents]:        [PortType.Documents],
-  [PortType.Response]:         [PortType.Query, PortType.Text],
-  [PortType.Judgments]:        [PortType.Query, PortType.Documents],
-  [PortType.HypotheticalDocs]: [PortType.Documents, PortType.Text],
-  [PortType.EvalScore]:        [], // terminal — eval scores don't connect downstream
+  [PortType.Query]:       [PortType.Query, PortType.Text],
+  [PortType.Text]:        [PortType.Text, PortType.Query, PortType.Json],
+  [PortType.Embedding]:   [PortType.Embedding],
+  [PortType.Document]:    [PortType.Document, PortType.Documents, PortType.Json],
+  [PortType.Documents]:   [PortType.Documents],
+  [PortType.LlmResponse]: [PortType.Text, PortType.LlmResponse, PortType.Json],
+  [PortType.Score]:       [PortType.Score, PortType.Json],
+  [PortType.Verdict]:     [PortType.Verdict, PortType.Json],
+  [PortType.Json]:        [PortType.Json, PortType.Text],
 };
 
 /**

@@ -7,7 +7,7 @@ import { runs, stepOutputs, spans, canvases, evalResults, testDatasets, testCase
 import type { AppEnv } from "../types";
 import { requireAuth } from "../middleware/auth";
 import { requireOrganization, requirePermission } from "../middleware/organization";
-import { eq, and, inArray } from "drizzle-orm";
+import { eq, and, inArray, desc, sql, gte } from "drizzle-orm";
 import { executeGraph } from "../services/execution/runner";
 import type { RunnerConfig, RunInput } from "../services/execution/runner";
 import { transformGraphForExecution } from "../services/execution/graph-transform";
@@ -57,6 +57,99 @@ export const runRoutes = new Hono<AppEnv>()
       .orderBy(runs.startedAt);
 
     return c.json({ runs: canvasRuns });
+  })
+
+  // Pipeline health stats for the org dashboard
+  .get("/health", requireAuth, requireOrganization, async (c) => {
+    const organizationId = c.get("organizationId");
+    const daysParam = Number(c.req.query("days") ?? "7");
+    const days = Math.min(Math.max(daysParam, 1), 90);
+    const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+
+    // Get all canvas IDs belonging to this org
+    const orgCanvases = await db
+      .select({ id: canvases.id })
+      .from(canvases)
+      .where(eq(canvases.organizationId, organizationId));
+
+    const canvasIds = orgCanvases.map((c) => c.id);
+
+    if (canvasIds.length === 0) {
+      return c.json({
+        totals: { completed: 0, failed: 0, running: 0, pending: 0 },
+        totalCost: 0,
+        totalTokens: 0,
+        avgDurationMs: 0,
+        successRate: 0,
+        recentRuns: [],
+        dailyRuns: [],
+      });
+    }
+
+    // Get aggregate stats for runs in the time window
+    const [stats] = await db
+      .select({
+        completed: sql<number>`count(*) filter (where ${runs.status} = 'completed')`.as("completed"),
+        failed: sql<number>`count(*) filter (where ${runs.status} = 'failed')`.as("failed"),
+        running: sql<number>`count(*) filter (where ${runs.status} = 'running')`.as("running"),
+        pending: sql<number>`count(*) filter (where ${runs.status} = 'pending')`.as("pending"),
+        totalCost: sql<number>`coalesce(sum(${runs.totalCost}), 0)`.as("total_cost"),
+        totalTokens: sql<number>`coalesce(sum(${runs.totalTokens}), 0)`.as("total_tokens"),
+        avgDurationMs: sql<number>`coalesce(avg(${runs.durationMs}), 0)`.as("avg_duration_ms"),
+      })
+      .from(runs)
+      .where(and(inArray(runs.canvasId, canvasIds), gte(runs.startedAt, since)));
+
+    const completed = Number(stats?.completed ?? 0);
+    const failed = Number(stats?.failed ?? 0);
+    const total = completed + failed;
+    const successRate = total > 0 ? completed / total : 0;
+
+    // Recent runs with canvas name
+    const recentRuns = await db
+      .select({
+        id: runs.id,
+        canvasId: runs.canvasId,
+        canvasName: canvases.name,
+        status: runs.status,
+        durationMs: runs.durationMs,
+        totalCost: runs.totalCost,
+        totalTokens: runs.totalTokens,
+        startedAt: runs.startedAt,
+        error: runs.error,
+      })
+      .from(runs)
+      .innerJoin(canvases, eq(runs.canvasId, canvases.id))
+      .where(and(inArray(runs.canvasId, canvasIds), gte(runs.startedAt, since)))
+      .orderBy(desc(runs.startedAt))
+      .limit(5);
+
+    // Daily run counts for the sparkline chart
+    const dailyRuns = await db
+      .select({
+        date: sql<string>`date(${runs.startedAt})`.as("date"),
+        completed: sql<number>`count(*) filter (where ${runs.status} = 'completed')`.as("completed"),
+        failed: sql<number>`count(*) filter (where ${runs.status} = 'failed')`.as("failed"),
+      })
+      .from(runs)
+      .where(and(inArray(runs.canvasId, canvasIds), gte(runs.startedAt, since)))
+      .groupBy(sql`date(${runs.startedAt})`)
+      .orderBy(sql`date(${runs.startedAt})`);
+
+    return c.json({
+      totals: {
+        completed,
+        failed,
+        running: Number(stats?.running ?? 0),
+        pending: Number(stats?.pending ?? 0),
+      },
+      totalCost: Number(stats?.totalCost ?? 0),
+      totalTokens: Number(stats?.totalTokens ?? 0),
+      avgDurationMs: Math.round(Number(stats?.avgDurationMs ?? 0)),
+      successRate,
+      recentRuns,
+      dailyRuns,
+    });
   })
 
   // Get run by ID with step outputs

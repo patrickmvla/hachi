@@ -211,10 +211,10 @@ export default function OnboardingPage() {
       const graph = template?.graphJson || { nodes: [], edges: [] };
       const canvas = await createCanvas(
         createdOrgId,
-        template?.name || "Untitled Canvas",
+        template?.name || "Untitled Pipeline",
         graph
       );
-      router.push(`/canvases/${canvas.id}`);
+      router.push(`/pipelines/${canvas.id}`);
     } catch {
       router.push("/dashboard");
     }
@@ -788,7 +788,7 @@ export default function OnboardingPage() {
               </p>
 
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                {/* Blank canvas option */}
+                {/* Blank pipeline option */}
                 <button
                   onClick={() => setSelectedTemplate(null)}
                   className={`group rounded-2xl border p-5 text-left transition-all duration-200 ${
@@ -816,10 +816,10 @@ export default function OnboardingPage() {
                     />
                   </div>
                   <h4 className="mb-1 text-[14px] font-bold text-black">
-                    Blank Canvas
+                    Blank Pipeline
                   </h4>
                   <p className="text-[12px] leading-relaxed text-black/35">
-                    Start from an empty canvas
+                    Start from an empty pipeline
                   </p>
                 </button>
 
@@ -900,7 +900,7 @@ export default function OnboardingPage() {
                     </>
                   ) : selectedTemplate ? (
                     <>
-                      Create &amp; Open Canvas
+                      Create &amp; Open Pipeline
                       <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
                     </>
                   ) : (

@@ -18,6 +18,7 @@
     "@hachi/ui": "workspace:*",
     "@hookform/resolvers": "^5.2.2",
     "@tanstack/react-query": "catalog:",
+    "@tanstack/react-table": "^8.21.3",
     "@xyflow/react": "catalog:flow",
     "lucide-react": "catalog:ui",
     "next": "^16.1.6",

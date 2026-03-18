@@ -1,3 +1,18 @@
 @import "@hachi/ui/styles/globals.css";
 
 @source "../../../../packages/ui/src";
+
+/* Handle connection states — ComfyUI-inspired feedback */
+.react-flow__handle.valid {
+  transform: scale(1.25) !important;
+  box-shadow: 0 0 8px var(--handle-color, currentColor);
+}
+
+.react-flow__handle.connecting {
+  animation: handle-pulse 1s ease-in-out infinite;
+}
+
+@keyframes handle-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.3); }
+}

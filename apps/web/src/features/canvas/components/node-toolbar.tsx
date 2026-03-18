@@ -10,7 +10,7 @@ interface NodeToolbarProps {
 }
 
 export const NodeToolbar = ({ nodeId, isVisible }: NodeToolbarProps) => {
-  const { deleteNode, duplicateNode, setSelectedNodeId } = useCanvasStore();
+  const { deleteNode, duplicateNode, setPropertyPanelNodeId } = useCanvasStore();
 
   const handleDelete = () => {
     deleteNode(nodeId);
@@ -21,7 +21,7 @@ export const NodeToolbar = ({ nodeId, isVisible }: NodeToolbarProps) => {
   };
 
   const handleSettings = () => {
-    setSelectedNodeId(nodeId);
+    setPropertyPanelNodeId(nodeId);
   };
 
   return (

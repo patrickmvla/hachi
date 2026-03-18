@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, type MouseEvent } from "react";
-import { Copy, Trash2, Settings, Play, Pause, RotateCcw, Maximize2 } from "lucide-react";
+import { Copy, Trash2, Settings, Maximize2 } from "lucide-react";
 import { useReactFlow } from "@xyflow/react";
 import { useCanvasStore } from "@/stores/canvas-store";
 import { cn } from "@hachi/ui/lib/utils";
@@ -27,8 +27,7 @@ export const ContextMenu = ({ id, type, position, onClose }: ContextMenuProps) =
     duplicateNode,
     deleteNode,
     deleteEdge,
-    setSelectedNodeId,
-    setNodeStatus,
+    setPropertyPanelNodeId,
     addNode,
   } = useCanvasStore();
 
@@ -64,30 +63,12 @@ export const ContextMenu = ({ id, type, position, onClose }: ContextMenuProps) =
     onClose();
   }, [id, type, getNode, fitView, onClose]);
 
-  const handleRunNode = useCallback(() => {
-    if (id && type === "node") {
-      setNodeStatus(id, "loading");
-      // Simulate node execution
-      setTimeout(() => {
-        setNodeStatus(id, "success");
-      }, 2000);
-    }
-    onClose();
-  }, [id, type, setNodeStatus, onClose]);
-
-  const handleResetStatus = useCallback(() => {
-    if (id && type === "node") {
-      setNodeStatus(id, "initial");
-    }
-    onClose();
-  }, [id, type, setNodeStatus, onClose]);
-
   const handleSettings = useCallback(() => {
     if (id && type === "node") {
-      setSelectedNodeId(id);
+      setPropertyPanelNodeId(id);
     }
     onClose();
-  }, [id, type, setSelectedNodeId, onClose]);
+  }, [id, type, setPropertyPanelNodeId, onClose]);
 
   const handleAddNode = useCallback(
     (nodeType: string) => {
@@ -111,9 +92,6 @@ export const ContextMenu = ({ id, type, position, onClose }: ContextMenuProps) =
   const menuItems =
     type === "node"
       ? [
-          { icon: Play, label: "Run Node", onClick: handleRunNode, shortcut: "R" },
-          { icon: RotateCcw, label: "Reset Status", onClick: handleResetStatus },
-          { divider: true },
           { icon: Copy, label: "Duplicate", onClick: handleDuplicate, shortcut: "Ctrl+D" },
           { icon: Maximize2, label: "Focus", onClick: handleFocusNode },
           { icon: Settings, label: "Settings", onClick: handleSettings },
@@ -127,15 +105,26 @@ export const ContextMenu = ({ id, type, position, onClose }: ContextMenuProps) =
           { icon: Trash2, label: "Delete Edge", onClick: handleDelete, shortcut: "Del", danger: true },
         ]
       : [
-          { label: "Add Node", header: true },
+          { label: "Pre-Retrieval", header: true },
           { icon: null, label: "Query", onClick: () => handleAddNode("query") },
-          { icon: null, label: "Generate (LLM)", onClick: () => handleAddNode("llm") },
-          { icon: null, label: "Retrieve", onClick: () => handleAddNode("retriever") },
-          { icon: null, label: "Embed", onClick: () => handleAddNode("embedding") },
-          { icon: null, label: "Rerank", onClick: () => handleAddNode("reranker") },
-          { icon: null, label: "Judge", onClick: () => handleAddNode("judge") },
+          { icon: null, label: "Query Rewriter", onClick: () => handleAddNode("queryRewriter") },
+          { icon: null, label: "Router", onClick: () => handleAddNode("router") },
           { icon: null, label: "HyDE", onClick: () => handleAddNode("hyde") },
+          { label: "Retrieval", header: true },
+          { icon: null, label: "Embedding", onClick: () => handleAddNode("embedding") },
+          { icon: null, label: "Retriever", onClick: () => handleAddNode("retriever") },
+          { icon: null, label: "Web Search", onClick: () => handleAddNode("webSearch") },
+          { icon: null, label: "Fusion (RRF)", onClick: () => handleAddNode("fusion") },
+          { label: "Post-Retrieval", header: true },
+          { icon: null, label: "Reranker", onClick: () => handleAddNode("reranker") },
+          { icon: null, label: "Context Compressor", onClick: () => handleAddNode("contextCompressor") },
+          { icon: null, label: "Context Optimizer", onClick: () => handleAddNode("contextOptimizer") },
+          { label: "Generation", header: true },
+          { icon: null, label: "LLM", onClick: () => handleAddNode("llm") },
           { icon: null, label: "Agent", onClick: () => handleAddNode("agent") },
+          { label: "Evaluation", header: true },
+          { icon: null, label: "Judge", onClick: () => handleAddNode("judge") },
+          { icon: null, label: "Evaluator", onClick: () => handleAddNode("evaluator") },
         ];
 
   return (

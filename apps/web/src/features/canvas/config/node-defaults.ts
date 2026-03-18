@@ -1,4 +1,4 @@
-type NodeType = "query" | "hyde" | "embedding" | "retriever" | "reranker" | "judge" | "llm" | "agent" | "evaluator";
+type NodeType = "query" | "hyde" | "embedding" | "retriever" | "reranker" | "judge" | "llm" | "agent" | "evaluator" | "queryRewriter" | "router" | "contextCompressor" | "contextOptimizer" | "webSearch" | "fusion";
 
 type NodeDefaultsMap = {
   [K in NodeType]: Record<string, unknown>;
@@ -42,6 +42,33 @@ export const nodeDefaults: NodeDefaultsMap = {
     metric: "faithfulness",
     model: "gpt-4o-mini",
     temperature: 0,
+  },
+  queryRewriter: {
+    strategy: "step-back",
+    model: "gpt-4-turbo",
+    maxVariants: 1,
+  },
+  router: {
+    strategy: "complexity",
+    model: "gpt-4o-mini",
+    branches: 3,
+  },
+  contextCompressor: {
+    method: "llmlingua",
+    ratio: "10x",
+    model: "gpt-4o-mini",
+  },
+  contextOptimizer: {
+    strategy: "relevance-first",
+  },
+  webSearch: {
+    provider: "tavily",
+    maxResults: 3,
+  },
+  fusion: {
+    method: "rrf",
+    k: 60,
+    sources: 2,
   },
 };
 

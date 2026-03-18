@@ -7,6 +7,13 @@ import {
   Scale,
   Cpu,
   Bot,
+  BarChart3,
+  PenLine,
+  Route,
+  Shrink,
+  ListOrdered,
+  Globe,
+  Merge,
   type LucideIcon,
 } from "lucide-react";
 
@@ -93,6 +100,69 @@ export const nodeRegistry: Record<string, NodeRegistryEntry> = {
     description: "Autonomous tool-using agent",
     hasTargetHandle: true,
   },
+  evaluator: {
+    icon: BarChart3,
+    color: "text-emerald-500",
+    bgColor: "bg-emerald-500/5",
+    borderColor: "border-l-emerald-500",
+    label: "Evaluator",
+    description: "Evaluate pipeline quality with RAG metrics",
+    hasTargetHandle: true,
+  },
+  queryRewriter: {
+    icon: PenLine,
+    color: "text-indigo-500",
+    bgColor: "bg-indigo-500/5",
+    borderColor: "border-l-indigo-500",
+    label: "Query Rewriter",
+    description: "Rewrite queries for better retrieval",
+    hasTargetHandle: true,
+  },
+  router: {
+    icon: Route,
+    color: "text-amber-500",
+    bgColor: "bg-amber-500/5",
+    borderColor: "border-l-amber-500",
+    label: "Router",
+    description: "Route queries by complexity or type",
+    hasTargetHandle: true,
+  },
+  contextCompressor: {
+    icon: Shrink,
+    color: "text-teal-500",
+    bgColor: "bg-teal-500/5",
+    borderColor: "border-l-teal-500",
+    label: "Context Compressor",
+    description: "Compress context to reduce cost and noise",
+    hasTargetHandle: true,
+  },
+  contextOptimizer: {
+    icon: ListOrdered,
+    color: "text-cyan-500",
+    bgColor: "bg-cyan-500/5",
+    borderColor: "border-l-cyan-500",
+    label: "Context Optimizer",
+    description: "Reorder context to avoid lost-in-the-middle",
+    hasTargetHandle: true,
+  },
+  webSearch: {
+    icon: Globe,
+    color: "text-sky-500",
+    bgColor: "bg-sky-500/5",
+    borderColor: "border-l-sky-500",
+    label: "Web Search",
+    description: "Fallback web search when retrieval fails",
+    hasTargetHandle: true,
+  },
+  fusion: {
+    icon: Merge,
+    color: "text-violet-500",
+    bgColor: "bg-violet-500/5",
+    borderColor: "border-l-violet-500",
+    label: "Fusion",
+    description: "Merge results from multiple retrievers via RRF",
+    hasTargetHandle: true,
+  },
 };
 
 export const nodeTypes = Object.keys(nodeRegistry);
@@ -119,6 +189,20 @@ export function getNodeConfigSummary(
       return `${config.model ?? "gpt-4-turbo"} | temp ${config.temperature ?? 0.7}`;
     case "agent":
       return `${config.model ?? "gpt-4-turbo"} | ${config.maxIterations ?? 5} iters`;
+    case "evaluator":
+      return `${config.metric ?? "faithfulness"} | ${config.model ?? "gpt-4o-mini"}`;
+    case "queryRewriter":
+      return `${config.strategy ?? "step-back"} | ${config.model ?? "gpt-4-turbo"}`;
+    case "router":
+      return `${config.strategy ?? "complexity"} | ${config.branches ?? 3} branches`;
+    case "contextCompressor":
+      return `${config.method ?? "llmlingua"} | ${config.ratio ?? "10x"}`;
+    case "contextOptimizer":
+      return `${config.strategy ?? "relevance-first"}`;
+    case "webSearch":
+      return `${config.provider ?? "tavily"} | top-${config.maxResults ?? 3}`;
+    case "fusion":
+      return `${config.method ?? "rrf"} | ${config.sources ?? 2} sources`;
     default:
       return "";
   }
